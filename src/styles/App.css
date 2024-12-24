@@ -2,4 +2,5 @@ body {
     background-color: #040405;
     color: #f0f6fc;
     padding-left: 0.5rem;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
