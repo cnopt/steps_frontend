@@ -98,7 +98,7 @@ const DaysGrid = () => {
 
   const getGreenShade = (steps) => {
     const intensity = Math.floor((steps / maxStepsInMonth) * 255);
-    return `rgb(0, ${intensity}, 0)`;
+    return `rgba(0, ${intensity}, 0)`;
   };
 
   const daysInMonth = new Date(
@@ -154,7 +154,7 @@ const DaysGrid = () => {
               : null;
 
             let backgroundColor = '#040405';
-            let color = '#222';
+            let color = '#111';
 
             if (dayData) {
               // if (milestoneDays.has(dayDate)) {
