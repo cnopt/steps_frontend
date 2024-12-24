@@ -1,0 +1,65 @@
+@font-face {
+    font-family: sf;
+    src: url('../assets/sf-regular.otf');
+}
+@font-face {
+    font-family: sf-med;
+    src: url('../assets/sf-med.otf');
+}
+@font-face {
+    font-family: sf-semi;
+    src: url('../assets/sf-semi.otf');
+}
+@font-face {
+    font-family: sf-mono;
+    src: url('../assets/sf-mono.otf');
+}
+@font-face {
+    font-family: sf-mono-med;
+    src: url('../assets/sf-mono-med.otf');
+}
+
+.day-grid-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-family: sf-mono;
+}
+
+.day-grid-date-selector {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center 
+}
+.day-grid-date-selector button {
+    background-color: transparent;
+    outline: none;
+    border:none;
+    color:white;
+    font-family: sf-mono;
+}
+.day-grid-both-divs {
+
+}
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* gap: 5px; */
+    text-align: center;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+.day-grid-days-label {
+    font-size: 0.5em;
+    opacity: 0.6;
+}
+.day {
+    padding: 0;
+    font-size: 1.75em;
+}
+
+.day-details {
+    /* flex: 1, fontSize: '16px', textAlign: 'left' */
+    margin-top: 3rem;
+    height: 7rem;
+}
