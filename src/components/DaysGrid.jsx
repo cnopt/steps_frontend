@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
 
-import steps from '../assets/allstepsdata.json'
+// import steps from '../assets/allstepsdata.json'
 import '../styles/DaysGrid.css'
 
 const fetchStepsData = async () => {
-  const response = await axios.get('https://yxa.gr/steps/allstepsdta');
+  const response = await axios.get('https://yxa.gr/steps/allstepsdata');
   return response.data;
 };
 
@@ -16,50 +16,77 @@ const DaysGrid = () => {
   const [selectedDay, setSelectedDay] = useState(null);
 
 
-  // // Fetch data using the latest React Query v5 syntax
-  // const query = useQuery({
-  //   queryKey: ['stepsData'],
-  //   queryFn: fetchStepsData,
-  // });
+  // Fetch data using the latest React Query v5 syntax
+  const query = useQuery({
+    queryKey: ['stepsData'],
+    queryFn: fetchStepsData,
+  });
 
-  // if (query.isLoading) {
-  //   return <div>Loading...</div>;
-  // }
+  if (query.isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  // if (query.isError || !query.data) {
-  //   return <div>Error fetching data.</div>;
-  // }
+  if (query.isError || !query.data) {
+    return <div>Error fetching data.</div>;
+  }
 
   const milestones = [
     100000,
     250000,
     300000,
-    400000
+    400000,
+    500000,
+    600000,
+    700000,
+    800000,
+    900000,
+    1000000,
+    1100000,
+    1200000,
+    1300000,
+    1400000,
+    1500000,
+    1600000,
+    1700000,
+    1800000,
+    1900000,
+    2000000,
   ];
-  // const allSteps = query.data.dev.filterResultsJSON; // Steps data from API
-  const allSteps = steps.dev;
-  console.log(allSteps)
+
+  const allSteps = query.data.dev; // Steps data from API
+  //const allSteps = steps.dev;
 
   const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
 
   const calculateMilestoneDays = () => {
-    const sortedSteps = [...allSteps].sort((a, b) => new Date(a.formatted_date) - new Date(b.formatted_date));
+    // Sort steps by date (earliest first)
+    const sortedSteps = [...allSteps].sort(
+      (a, b) => new Date(a.formatted_date) - new Date(b.formatted_date)
+    );
+
+    const milestoneDays = new Map();
     let runningTotal = 0;
-    const milestoneDays = new Set();
+    let currentMilestoneIndex = 0;
 
-    milestones.forEach((milestone) => {
-      let milestoneAchieved = false;
+    // Process each day's steps sequentially
+    for (const dayData of sortedSteps) {
+      runningTotal += dayData.steps;
 
-      sortedSteps.forEach((item) => {
-        if (!milestoneAchieved) {
-          runningTotal += item.steps;
-          if (runningTotal >= milestone) {
-            milestoneDays.add(item.formatted_date); // Add the day the milestone was crossed
-            milestoneAchieved = true; // Mark milestone as achieved
-          }
-        }
-      });
-    });
+      // Check if we've crossed the current milestone
+      if (currentMilestoneIndex < milestones.length && 
+          runningTotal >= milestones[currentMilestoneIndex]) {
+        milestoneDays.set(
+          dayData.formatted_date,
+          milestones[currentMilestoneIndex]
+        );
+        currentMilestoneIndex++; // Move to next milestone
+      }
+
+      // Exit if we've found all milestones
+      if (currentMilestoneIndex >= milestones.length) {
+        break;
+      }
+    }
 
     return milestoneDays;
   };
@@ -98,7 +125,7 @@ const DaysGrid = () => {
 
   const getGreenShade = (steps) => {
     const intensity = Math.floor((steps / maxStepsInMonth) * 255);
-    return `rgba(0, ${intensity}, 0)`;
+    return `rgba(0, ${intensity}, 20)`;
   };
 
   const daysInMonth = new Date(
@@ -128,6 +155,11 @@ const DaysGrid = () => {
 
   return (
     <div className="day-grid-area">
+
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        {allTimeTotalSteps.toLocaleString()} total steps
+      </div>
+
       <div className="day-grid-date-selector">
         <button onClick={() => navigateMonth(-1)}>←</button>
         <p>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
@@ -157,13 +189,12 @@ const DaysGrid = () => {
             let color = '#111';
 
             if (dayData) {
-              // if (milestoneDays.has(dayDate)) {
-              //   // backgroundColor = 'gold';
-              //   color = 'gold';
-              // } else {
+              if (milestoneDays.has(dayDate)) {
+                color = 'gold';
+              } else {
                 // backgroundColor = getGreenShade(dayData.steps);
                 color = getGreenShade(dayData.steps);
-              //}
+              }
             }
 
             return (
@@ -185,20 +216,20 @@ const DaysGrid = () => {
       <div className="day-details">
         {selectedDay ? (
           <>
-            <p>{formatDate(selectedDay.formatted_date)}</p>
-            <p>{selectedDay.steps.toLocaleString()} steps</p>
+            <p><span>📅</span> {formatDate(selectedDay.formatted_date)}</p>
+            <p><span>👣</span> {selectedDay.steps.toLocaleString()} steps</p>
+            {milestoneDays.has(selectedDay.formatted_date) && (
+              <p className='day-details-milestone'>
+                <span>★</span>{milestoneDays.get(selectedDay.formatted_date).toLocaleString()} steps unlocked
+              </p>
+            )}
           </>
         ) : (
           <p>Select a day to see details.</p>
         )}
       </div>
-
-
       </div>
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        {allTimeTotalSteps.toLocaleString()} total steps
-      </div>
     </div>
   );
 };
