@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
+import NavBar from './NavBar';
 
 // import steps from '../assets/allstepsdata.json'
 import '../styles/DaysGrid.css'
@@ -154,83 +155,85 @@ const DaysGrid = () => {
   };
 
   return (
-    <div className="day-grid-area">
+    <>
+      <NavBar/>
+      <div className="day-grid-area">
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
-        {allTimeTotalSteps.toLocaleString()} total steps
-      </div>
-
-      <div className="day-grid-date-selector">
-        <button onClick={() => navigateMonth(-1)}>←</button>
-        <p>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
-        <button onClick={() => navigateMonth(1)}>→</button>
-      </div>
-
-      <div className="day-grid-both-divs">
-        <div className='day-grid'>
-          <p className='day-grid-days-label'>M</p>
-          <p className='day-grid-days-label'>T</p>
-          <p className='day-grid-days-label'>W</p>
-          <p className='day-grid-days-label'>T</p>
-          <p className='day-grid-days-label'>F</p>
-          <p className='day-grid-days-label'>S</p>
-          <p className='day-grid-days-label'>S</p>
-
-          {Array.from({ length: totalSlots }, (_, index) => {
-            const day = index - offset + 1;
-            const dayData = daysWithData[day];
-            const dayDate = day > 0 && day <= daysInMonth
-              ? `${currentDate.getFullYear()}-${String(
-                  currentDate.getMonth() + 1
-                ).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-              : null;
-
-            let backgroundColor = '#040405';
-            let color = '#111';
-
-            if (dayData) {
-              if (milestoneDays.has(dayDate)) {
-                color = 'gold';
-              } else {
-                // backgroundColor = getGreenShade(dayData.steps);
-                color = getGreenShade(dayData.steps);
-              }
-            }
-
-            return (
-              <div className='day'
-                key={day}
-                onClick={() => setSelectedDay(daysWithData[day] || null)}
-                style={{
-                  backgroundColor,
-                  color
-                }}
-              >
-                {dayData ? '■' : '.'}
-              </div>
-            );
-          })}
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          {allTimeTotalSteps.toLocaleString()} total steps
         </div>
 
-      {/* Right Details Panel */}
-      <div className="day-details">
-        {selectedDay ? (
-          <>
-            <p><span>📅</span> {formatDate(selectedDay.formatted_date)}</p>
-            <p><span>👣</span> {selectedDay.steps.toLocaleString()} steps</p>
-            {milestoneDays.has(selectedDay.formatted_date) && (
-              <p className='day-details-milestone'>
-                <span>★</span>{milestoneDays.get(selectedDay.formatted_date).toLocaleString()} steps unlocked
-              </p>
-            )}
-          </>
-        ) : (
-          <p>Select a day to see details.</p>
-        )}
-      </div>
-      </div>
+        <div className="day-grid-date-selector">
+          <button onClick={() => navigateMonth(-1)}>←</button>
+          <p>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
+          <button onClick={() => navigateMonth(1)}>→</button>
+        </div>
 
-    </div>
+        <div className="day-grid-both-divs">
+          <div className='day-grid'>
+            <p className='day-grid-days-label'>M</p>
+            <p className='day-grid-days-label'>T</p>
+            <p className='day-grid-days-label'>W</p>
+            <p className='day-grid-days-label'>T</p>
+            <p className='day-grid-days-label'>F</p>
+            <p className='day-grid-days-label'>S</p>
+            <p className='day-grid-days-label'>S</p>
+
+            {Array.from({ length: totalSlots }, (_, index) => {
+              const day = index - offset + 1;
+              const dayData = daysWithData[day];
+              const dayDate = day > 0 && day <= daysInMonth
+                ? `${currentDate.getFullYear()}-${String(
+                    currentDate.getMonth() + 1
+                  ).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                : null;
+
+              let backgroundColor = '#040405';
+              let color = '#111';
+
+              if (dayData) {
+                if (milestoneDays.has(dayDate)) {
+                  color = 'gold';
+                } else {
+                  // backgroundColor = getGreenShade(dayData.steps);
+                  color = getGreenShade(dayData.steps);
+                }
+              }
+
+              return (
+                <div className='day'
+                  key={day}
+                  onClick={() => setSelectedDay(daysWithData[day] || null)}
+                  style={{
+                    backgroundColor,
+                    color
+                  }}
+                >
+                  {dayData ? '■' : '.'}
+                </div>
+              );
+            })}
+          </div>
+
+        {/* Right Details Panel */}
+        <div className="day-details">
+          {selectedDay ? (
+            <>
+              <p><span>📅</span> {formatDate(selectedDay.formatted_date)}</p>
+              <p><span>👣</span> {selectedDay.steps.toLocaleString()} steps</p>
+              {milestoneDays.has(selectedDay.formatted_date) && (
+                <p className='day-details-milestone'>
+                  <span>★</span>{milestoneDays.get(selectedDay.formatted_date).toLocaleString()} steps unlocked
+                </p>
+              )}
+            </>
+          ) : (
+            <p>Select a day to see details.</p>
+          )}
+        </div>
+        </div>
+      </div>
+    </>
   );
 };
 

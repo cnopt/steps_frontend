@@ -1,0 +1,84 @@
+.achievements-container {
+    margin-top: 6rem;
+    font-family: sf;
+    width: 93%;
+    margin: auto;
+    margin-top: 5rem;
+}
+
+.milestone-item {
+    border:2px solid #3b3b3b;
+    border-radius: 6px;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    width: 15rem;
+    display: inline-block;
+    margin-right: 0.75rem;
+    /* border-top-right-radius: 60px; */
+}
+.milestone-star {
+    padding-right: 0.33rem;
+}
+
+.milestones-done-section {
+    width: 93vw;
+    height: 10rem;
+    overflow-x: scroll;
+    white-space: nowrap;
+    &::-webkit-scrollbar {
+        display: none;
+      };
+    margin-bottom: 2rem;
+}
+
+
+.upcoming {
+    opacity: 0.5;
+}
+.upcoming .milestone-item {
+    width: 97%;
+}
+.upcoming .milestone-value {
+    border-bottom:none;
+    padding-bottom: 1rem;
+    /* text-align: center; */
+}
+.upcoming .milestone-date {
+    display: none;
+}
+
+.milestone-value {
+    display: block;
+    font-size: 1.3em;
+    border-bottom: 2px solid #2a2a2a;
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-bottom: 1.75rem;
+    font-family: sf-semi;
+}
+.milestone-date {
+    display: block;
+    padding-left: 1rem;
+    font-size: 1em;
+    padding-top: 0.5rem;
+    opacity: 0.5;
+}
+
+.achieved {
+    border: 2px solid gold;
+}
+.achieved .milestone-star {
+    color:#040405;
+}
+.achieved .milestone-value {
+    padding-top: 1.75rem;
+    border-bottom: 2px solid gold;
+    color:#040405;
+    background-color: gold;
+    border-radius: 6px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px
+}
+.achieved .milestone-date {
+    color:gold;
+}
