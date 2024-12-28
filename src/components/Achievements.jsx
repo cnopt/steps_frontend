@@ -73,7 +73,7 @@ const Achievements = () => {
             <div key={milestone} className="milestone-item achieved">
               
               <span className="milestone-value">
-                <span className="milestone-star">🗹</span>
+                <span className="milestone-star">󰄵</span>
                 {milestone.toLocaleString()} steps
               </span>
               <span className="milestone-date">

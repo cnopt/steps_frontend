@@ -17,7 +17,8 @@
     /* border-top-right-radius: 60px; */
 }
 .milestone-star {
-    padding-right: 0.33rem;
+    font-family: sf-mono;
+    padding-right: 0.7rem;
 }
 
 .milestones-done-section {
@@ -59,8 +60,8 @@
 .milestone-date {
     display: block;
     padding-left: 1rem;
-    font-size: 1em;
-    padding-top: 0.5rem;
+    font-size: 0.8em;
+    padding-top: 0.7rem;
     opacity: 0.5;
 }
 

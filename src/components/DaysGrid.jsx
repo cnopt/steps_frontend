@@ -219,8 +219,8 @@ const DaysGrid = () => {
         <div className="day-details">
           {selectedDay ? (
             <>
-              <p><span>📅</span> {formatDate(selectedDay.formatted_date)}</p>
-              <p><span>👣</span> {selectedDay.steps.toLocaleString()} steps</p>
+              <p><span></span> {formatDate(selectedDay.formatted_date)}</p>
+              <p><span>󰖃</span> {selectedDay.steps.toLocaleString()} steps</p>
               {milestoneDays.has(selectedDay.formatted_date) && (
                 <p className='day-details-milestone'>
                   <span>★</span>{milestoneDays.get(selectedDay.formatted_date).toLocaleString()} steps unlocked

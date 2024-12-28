@@ -76,6 +76,7 @@
 .day-details p span {
     margin-right: 0.5rem;
     opacity: 0.5;
+    font-family: sf-mono;
 }
 .day-details-milestone {
     color: gold !important;
