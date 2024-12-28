@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from 'axios';
 import NavBar from './NavBar'
 import '../styles/NumberInput.css'
@@ -7,6 +7,8 @@ import '../styles/NumberInput.css'
 const NumberInput = () => {
   const [inputValue, setInputValue] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const queryClient = useQueryClient();
+
 
   const { data: stepsData } = useQuery({
     queryKey: ['stepsData'],
@@ -39,9 +41,9 @@ const NumberInput = () => {
   };
 
   const handleEnter = async () => {
-    const formattedDate = new Date().toISOString().split("T")[0]; // Format date as YYYY-MM-DD
+    const formattedDate = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
     const data = {
-      steps: inputValue,
+      steps: parseInt(inputValue),
       formatted_date: formattedDate,
     };
 
@@ -49,6 +51,10 @@ const NumberInput = () => {
       const response = await axios.post("https://yxa.gr/steps/add", data);
       alert(`Success! Response: ${JSON.stringify(response.data)}`);
       setInputValue(""); // Clear the input field
+      queryClient.invalidateQueries({
+        queryKey: ['stepsData'],
+        refetchType: 'all' // refetch both active and inactive queries
+       });
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
@@ -89,9 +95,8 @@ const NumberInput = () => {
             <button onClick={() => handleDateChange(-1)}>
               ←
             </button>
-            <span style={{
-                color: hasDataForSelectedDate() ? '#4CAF50' : '#FFA500',
-                fontSize: '0.8em'
+            <span className="data-indicator" style={{
+                color: hasDataForSelectedDate() ? '#4CAF50' : '#FFA500'
               }}>
                 ⚫
               </span>
