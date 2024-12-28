@@ -98,7 +98,7 @@ const NumberInput = () => {
             <span className="data-indicator" style={{
                 color: hasDataForSelectedDate() ? '#4CAF50' : '#FFA500'
               }}>
-                &#x23FA;
+                
               </span>
             <span style={{
               color: isToday(selectedDate) ? "#4493f8" : "unset", 
