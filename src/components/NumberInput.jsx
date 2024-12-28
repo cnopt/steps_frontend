@@ -7,6 +7,7 @@ import '../styles/NumberInput.css'
 const NumberInput = () => {
   const [inputValue, setInputValue] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [successMessage, setSuccessMessage] = useState(null);  // Add this state
   const queryClient = useQueryClient();
 
 
@@ -32,6 +33,19 @@ const NumberInput = () => {
     return formattedDate.replace(day,`${day}${suffix}`);
   };
 
+  const formatShortDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    
+    let suffix = "th";
+    if (day % 10 === 1 && day !== 11) suffix = "st";
+    else if (day % 10 === 2 && day !== 12) suffix = "nd";
+    else if (day % 10 === 3 && day !== 13) suffix = "rd";
+    
+    return `${day}${suffix} ${month}`;
+  };
+
   const handleButtonClick = (value) => {
     setInputValue((prev) => prev + value);
   };
@@ -46,10 +60,9 @@ const NumberInput = () => {
       steps: parseInt(inputValue),
       formatted_date: formattedDate,
     };
-
     try {
       const response = await axios.post("https://yxa.gr/steps/add", data);
-      alert(`Success! Response: ${JSON.stringify(response.data)}`);
+      setSuccessMessage(response.data);  // Store response in state instead of alert
       setInputValue(""); // Clear the input field
       queryClient.invalidateQueries({
         queryKey: ['stepsData'],
@@ -126,13 +139,16 @@ const NumberInput = () => {
                   {num}
               </button>
               ))}
-              <button className="backspace" onClick={handleBackspace}>
-                  ⌫
-              </button>
-              <button className="enter" onClick={handleEnter}>
-              ↪
-              </button>
+              <button className="backspace" onClick={handleBackspace}>󰁮</button>
+              <button className="enter" onClick={handleEnter}>󰦺</button>
           </div>
+          {successMessage && (
+            <div className="success-message">
+              <p><span>󰸞</span> 
+              added {JSON.stringify(successMessage.data_added.steps)} steps
+              for {formatShortDate(successMessage.data_added.formatted_date)}</p>
+            </div>
+          )}
         </div>
     </>
   );

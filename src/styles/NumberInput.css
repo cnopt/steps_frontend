@@ -22,7 +22,7 @@
     align-items: center;
     margin-top: 1rem;
     width: 100%;
-    height: 100vh;
+    margin-bottom: 2rem;
     padding:10px;
     box-sizing: border-box;
     font-family: sf-mono;
@@ -40,7 +40,7 @@
     align-content: center;
 }
 .dateNav button:disabled {
-    opacity: 0.2;
+    opacity: 0;
 }
 
 .data-indicator {
@@ -71,6 +71,9 @@
     gap: 10px;
     user-select: none;
 }
+.buttonGrid button {
+    font-size: 1.7em;
+}
 
 button {
     height: 60px;
@@ -86,8 +89,55 @@ button {
 .enter {
     background-color: #4CAF50;
     color:#275a29;
+    font-size: 2.3em !important;
 }
 .backspace {
     color:#64210d;
     background-color: #ff5722;
+    padding-right: 1.2rem;
+    font-size: 1.8em !important;
 }
+
+.success-message {
+    width: 100%;
+    background-color: #133410;
+    border-radius: 6px;
+    color:#45933e;
+    font-family: sf;
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    /* -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation-fill-mode: forwards;
+    -webkit-animation-fill-mode: forwards; */
+}
+.success-message p {
+    margin: 0;
+    padding: 0;
+}
+.success-message span {
+    padding-right: 1rem;
+    font-family: sf-mono;
+}
+
+@-webkit-keyframes fadein {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  
+  @keyframes fadein {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  
+  @-webkit-keyframes fadeout {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }
+  
+  @keyframes fadeout {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }

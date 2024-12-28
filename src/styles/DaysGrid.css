@@ -19,6 +19,16 @@
     src: url('../assets/sf-mono-med.otf');
 }
 
+.total-steps {
+    margin-top: 20px;
+    text-align: center;
+    color:#4493f8 ;
+    font-size: 1.1em;
+}
+.total-steps span {
+    font-family: sf-semi;
+}
+
 .day-grid-area {
     display: flex;
     flex-direction: column;
@@ -69,6 +79,7 @@
     padding-left: 1rem;
     padding-top: 0.25rem;
     padding-bottom: 1rem;
+    margin-bottom: 4rem;
 }
 .day-details p {
     color:#8f8f8f;

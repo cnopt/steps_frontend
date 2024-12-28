@@ -159,8 +159,8 @@ const DaysGrid = () => {
       <NavBar/>
       <div className="day-grid-area">
 
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          {allTimeTotalSteps.toLocaleString()} total steps
+        <div className="total-steps">
+          <span>{allTimeTotalSteps.toLocaleString()}</span> total steps
         </div>
 
         <div className="day-grid-date-selector">
