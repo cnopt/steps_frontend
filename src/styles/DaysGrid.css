@@ -19,15 +19,6 @@
     src: url('../assets/sf-mono-med.otf');
 }
 
-.total-steps {
-    text-align: center;
-    color:#4493f8 ;
-    font-size: 1.1em;
-}
-.total-steps span {
-    font-family: sf-semi;
-}
-
 .day-grid-area {
     display: flex;
     flex-direction: column;
@@ -95,51 +86,3 @@
 .day-details-milestone span {
     opacity: 1 !important;
 }
-
-.level-progress-container {
-    width: 100%;
-    position: relative;
-    background-color: #0a1626;
-    border-radius: 8px;
-    height: 40px;
-    overflow: hidden;
-}
-
-.level-progress-bar {
-    position: absolute;
-    height: 100%;
-    background-color: #112540;
-    transition: width 0.3s ease;
-}
-
-.level-progress-content {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-    color: white;
-}
-
-.current-level {
-    padding-left: 1rem;
-    color:#4493f8;
-}
-.current-level span {
-    padding-right: 0.2rem;
-}
-.next-level {
-    padding-right: 1rem;
-    color:#4493f8;
-}
-.next-level span {
-    padding-right: 0.2rem;
-}
-.current-level, .next-level {
-    font-family: sf-mono;
-}
-
-.total-steps {
-    font-size: 1.1em;
-}
-

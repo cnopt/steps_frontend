@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from 'axios';
 import NavBar from './NavBar'
 import '../styles/NumberInput.css'
+import XPBar from "./XPBar";
 
 const NumberInput = () => {
   const [inputValue, setInputValue] = useState("");
@@ -103,6 +104,7 @@ const NumberInput = () => {
   return (
     <>
         <NavBar/>
+        <XPBar/>
         <div className="container">
           <div className="dateNav">
             <button onClick={() => handleDateChange(-1)}>

@@ -8,6 +8,7 @@ import NavBar from './NavBar';
 import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from '@uidotdev/usehooks';
+import XPBar from './XPBar';
 
 
 
@@ -28,10 +29,32 @@ const Achievements = () => {
   if (query.isLoading) return <div>Loading...</div>;
   if (query.isError) return <div>Error fetching data.</div>;
 
+  const allSteps = query.data.dev; // Steps data from API
+  //const allSteps = steps.dev;
+
+  const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
+
   const milestones = [
-    100000, 250000, 300000, 400000, 500000, 600000, 700000, 800000, 900000,
-    1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000,
-    1800000, 1900000, 2000000,
+    { value: 100000, rarity: 'common' },
+    { value: 250000, rarity: 'common' },
+    { value: 300000, rarity: 'common' },
+    { value: 400000, rarity: 'common' },
+    { value: 500000, rarity: 'rare' },
+    { value: 600000, rarity: 'uncommon' },
+    { value: 700000, rarity: 'uncommon' },
+    { value: 800000, rarity: 'uncommon' },
+    { value: 900000, rarity: 'uncommon' },
+    { value: 1000000, rarity: 'rare' },
+    { value: 1100000, rarity: 'uncommon' },
+    { value: 1200000, rarity: 'uncommon' },
+    { value: 1300000, rarity: 'uncommon' },
+    { value: 1400000, rarity: 'uncommon' },
+    { value: 1500000, rarity: 'rare' },
+    { value: 1600000, rarity: 'uncommon' },
+    { value: 1700000, rarity: 'uncommon' },
+    { value: 1800000, rarity: 'uncommon' },
+    { value: 1900000, rarity: 'uncommon' },
+    { value: 2000000, rarity: 'rare' },
   ];
 
   const calculateMilestoneDays = () => {
@@ -47,9 +70,9 @@ const Achievements = () => {
       runningTotal += dayData.steps;
 
       while (currentMilestoneIndex < milestones.length && 
-             runningTotal >= milestones[currentMilestoneIndex]) {
+             runningTotal >= milestones[currentMilestoneIndex].value) {
         milestoneDays.set(
-          milestones[currentMilestoneIndex],
+          milestones[currentMilestoneIndex].value,
           dayData.formatted_date
         );
         currentMilestoneIndex++;
@@ -75,34 +98,35 @@ const Achievements = () => {
   return (
     <>
       <NavBar/>
+      <XPBar/>
       <div className="achievements-container">
         
-        <h3>Achieved (<span style={{color:'gold'}}>{milestoneDays.size}</span>)</h3>
+        <h3>Unlocked (<span style={{color:'gold'}}>{milestoneDays.size}</span>)</h3>
         {/* Achieved Milestones */}
         <div className="milestones-done-section">
           
           {milestones.slice(0, lastAchievedIndex + 1).reverse().map((milestone) => (
-            <AnimatePresence key={milestone}>
-              {unwrappedMilestones.includes(milestone) ? (
+            <AnimatePresence key={milestone.value}>
+              {unwrappedMilestones.includes(milestone.value) ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="milestone-item achieved"
+                  className={`milestone-item achieved ${milestone.rarity}`}
                 >
                   <span className="milestone-value">
                     <span className="milestone-star">󰄵</span>
-                    {milestone.toLocaleString()} steps
+                    {milestone.value.toLocaleString()} steps
                   </span>
                   <span className="milestone-date">
                     Unlocked: <br/>
-                    {formatDate(milestoneDays.get(milestone))}
+                    {formatDate(milestoneDays.get(milestone.value))}
                   </span>
                 </motion.div>
               ) : (
                 <FoilPack
                   milestone={milestone}
-                  onUnwrap={() => handleUnwrap(milestone)}
+                  onUnwrap={() => handleUnwrap(milestone.value)}
                 />
               )}
             </AnimatePresence>
@@ -111,13 +135,12 @@ const Achievements = () => {
 
         {/* Upcoming Milestones */}
         <div className="milestones-section upcoming">
-          {console.log()}
-          <h3>Upcoming ({milestones.length-milestoneDays.size})</h3>
+          <h3>Locked ({milestones.length-milestoneDays.size})</h3>
           {milestones.slice(lastAchievedIndex + 1).map((milestone) => (
-            <div key={milestone} className="milestone-item upcoming">
+            <div key={milestone.value} className="milestone-item upcoming">
               <span className="milestone-value">
                 <span className="milestone-star">☐</span>
-                {milestone.toLocaleString()} steps
+                {milestone.value.toLocaleString()} steps
               </span>
             </div>
           ))}

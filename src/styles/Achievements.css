@@ -68,18 +68,46 @@
 .achieved {
     border: 2px solid gold;
 }
+.achieved.common {
+    border: 2px solid silver;
+}
+.achieved.uncommon {
+    border: 2px solid gold;
+    /* box-shadow: 0px 0px 12px #4c482e; */
+}
+.achieved.rare {
+    border: 2px solid darkviolet;
+    box-shadow: 0px 0px 16px #432e4c;
+}
 .achieved .milestone-star {
     color:#040405;
 }
 .achieved .milestone-value {
     padding-top: 1.75rem;
-    border-bottom: 2px solid gold;
+    border-bottom: 2px solid;
     color:#040405;
-    background-color: gold;
     border-radius: 6px;
     border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px
+    border-bottom-right-radius: 0px;
 }
-.achieved .milestone-date {
-    color:gold;
+.achieved.common .milestone-value {
+    background-color: silver;
+    border-bottom-color: silver;
+}
+.achieved.uncommon .milestone-value {
+    background-color: gold;
+    border-bottom-color: gold;
+}
+.achieved.rare .milestone-value {
+    background-color: blueviolet;
+    border-bottom-color: blueviolet;
+}
+.achieved.common .milestone-date {
+    color: silver;
+}
+.achieved.uncommon .milestone-date {
+    color: gold;
+}
+.achieved.rare .milestone-date {
+    color: blueviolet;
 }
