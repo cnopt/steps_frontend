@@ -1,15 +1,18 @@
 .title-bar-nav {
     font-family: sf;
-    color:#8f8f8f;
-    overflow:scroll;
+    color: #8f8f8f;
+    overflow: scroll;
     width: 100%;
     margin-top: 2rem;
+    margin-bottom: 0.8rem;
+    height: 2rem;
+    white-space: nowrap;
     &::-webkit-scrollbar {
         display: none;
       };
 }
 .title-bar-nav p {
-    display: ruby-text;
+    display: inline-block;
     margin: 0;
     margin-right: 2rem;
 }
