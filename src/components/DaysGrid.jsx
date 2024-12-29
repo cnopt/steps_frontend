@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
+import { milestones, calculateMilestoneDays } from '../helpers/milestones'
 import NavBar from './NavBar';
 import XPBar from './XPBar';
 
@@ -18,7 +19,6 @@ const DaysGrid = () => {
   const [currentDate, setCurrentDate] = useState(new Date('2024-12-01'));
   const [selectedDay, setSelectedDay] = useState(null);
 
-
   // Fetch data using the latest React Query v5 syntax
   const query = useQuery({
     queryKey: ['stepsData'],
@@ -33,69 +33,13 @@ const DaysGrid = () => {
     return <div>Error fetching data.</div>;
   }
 
-  const milestones = [
-    100000,
-    250000,
-    300000,
-    400000,
-    500000,
-    600000,
-    700000,
-    800000,
-    900000,
-    1000000,
-    1100000,
-    1200000,
-    1300000,
-    1400000,
-    1500000,
-    1600000,
-    1700000,
-    1800000,
-    1900000,
-    2000000,
-  ];
 
   const allSteps = query.data.dev; // Steps data from API
   //const allSteps = steps.dev;
 
   const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
 
-
-  const calculateMilestoneDays = () => {
-    // Sort steps by date (earliest first)
-    const sortedSteps = [...allSteps].sort(
-      (a, b) => new Date(a.formatted_date) - new Date(b.formatted_date)
-    );
-
-    const milestoneDays = new Map();
-    let runningTotal = 0;
-    let currentMilestoneIndex = 0;
-
-    // Process each day's steps sequentially
-    for (const dayData of sortedSteps) {
-      runningTotal += dayData.steps;
-
-      // Check if we've crossed the current milestone
-      if (currentMilestoneIndex < milestones.length && 
-          runningTotal >= milestones[currentMilestoneIndex]) {
-        milestoneDays.set(
-          dayData.formatted_date,
-          milestones[currentMilestoneIndex]
-        );
-        currentMilestoneIndex++; // Move to next milestone
-      }
-
-      // Exit if we've found all milestones
-      if (currentMilestoneIndex >= milestones.length) {
-        break;
-      }
-    }
-
-    return milestoneDays;
-  };
-
-  const milestoneDays = calculateMilestoneDays();
+  const milestoneDays = calculateMilestoneDays({allSteps});
 
   const getMonthData = (date) => {
     const year = date.getFullYear();
@@ -155,15 +99,34 @@ const DaysGrid = () => {
     return `${dayOfWeek} ${day} ${month}`;
   };
 
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'common':
+        return 'gold'; // was silver but now just use gold
+      case 'uncommon':
+        return 'gold';
+      case 'rare':
+        return 'blueviolet';
+      default:
+        return '#c0c0c0';
+    }
+  };
+
   return (
     <>
       <NavBar/>
       <XPBar/>
       <div className="day-grid-area">
         <div className="day-grid-date-selector">
-          <button onClick={() => navigateMonth(-1)}>←</button>
-          <p>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
-          <button onClick={() => navigateMonth(1)}>→</button>
+          <button className="prev" onClick={() => navigateMonth(-1)}>←</button>
+          <p>
+            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+            <br />
+            <p className="month-total-steps">
+              {monthData.reduce((sum, day) => sum + day.steps, 0).toLocaleString()} steps
+            </p>
+          </p>
+          <button className="next" onClick={() => navigateMonth(1)}>→</button>
         </div>
 
         <div className="day-grid-both-divs">
@@ -190,7 +153,8 @@ const DaysGrid = () => {
 
               if (dayData) {
                 if (milestoneDays.has(dayDate)) {
-                  color = 'gold';
+                  const milestone = milestoneDays.get(dayDate);
+                  color = getRarityColor(milestone.rarity);
                 } else {
                   // backgroundColor = getGreenShade(dayData.steps);
                   color = getGreenShade(dayData.steps);
@@ -220,7 +184,10 @@ const DaysGrid = () => {
               <p><span>󰖃</span> {selectedDay.steps.toLocaleString()} steps</p>
               {milestoneDays.has(selectedDay.formatted_date) && (
                 <p className='day-details-milestone'>
-                  <span>★</span>{milestoneDays.get(selectedDay.formatted_date).toLocaleString()} steps unlocked
+                  <span>★</span>
+                  <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity) }}>
+                    {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps unlocked
+                  </span>
                 </p>
               )}
             </>

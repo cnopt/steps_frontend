@@ -77,7 +77,7 @@
 }
 .achieved.rare {
     border: 2px solid darkviolet;
-    box-shadow: 0px 0px 16px #432e4c;
+    /* box-shadow: 0px 0px 16px #432e4c; */
 }
 .achieved .milestone-star {
     color:#040405;

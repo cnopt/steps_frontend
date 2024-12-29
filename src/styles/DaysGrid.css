@@ -29,7 +29,11 @@
 .day-grid-date-selector {
     display: flex;
     justify-content: space-between; 
-    align-items: center 
+    align-items: end; 
+}
+.day-grid-date-selector p {
+    margin: 0;
+    text-align: center;
 }
 .day-grid-date-selector button {
     background-color: transparent;
@@ -37,6 +41,18 @@
     border:none;
     color:white;
     font-family: sf-mono;
+    width: 2.25rem;
+}
+.day-grid-date-selector .prev {
+    text-align: left;
+}
+.day-grid-date-selector .next {
+    text-align: right;
+}
+.month-total-steps {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 0.3rem !important;
 }
 .day-grid-both-divs {
 
@@ -65,11 +81,11 @@
     border-radius: 5px;
     width: 90%;
     margin:auto;
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding-left: 1rem;
     padding-top: 0.25rem;
     padding-bottom: 1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
 }
 .day-details p {
     color:#8f8f8f;
