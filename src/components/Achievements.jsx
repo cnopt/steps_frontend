@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 import '../styles/Achievements.css'
 import NavBar from './NavBar';
+import FoilPack from './FoilPack';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useLocalStorage } from '@uidotdev/usehooks';
+
 
 
 
@@ -14,6 +18,8 @@ const fetchStepsData = async () => {
 };
 
 const Achievements = () => {
+  const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
+
   const query = useQuery({
     queryKey: ['stepsData'],
     queryFn: fetchStepsData,
@@ -60,6 +66,12 @@ const Achievements = () => {
     return format(date, 'do MMMM yyyy');
   };
 
+  const handleUnwrap = (milestone) => {
+    if (!unwrappedMilestones.includes(milestone)) {
+      setUnwrappedMilestones([...unwrappedMilestones, milestone]);
+    }
+  };
+
   return (
     <>
       <NavBar/>
@@ -70,17 +82,30 @@ const Achievements = () => {
         <div className="milestones-done-section">
           
           {milestones.slice(0, lastAchievedIndex + 1).reverse().map((milestone) => (
-            <div key={milestone} className="milestone-item achieved">
-              
-              <span className="milestone-value">
-                <span className="milestone-star">󰄵</span>
-                {milestone.toLocaleString()} steps
-              </span>
-              <span className="milestone-date">
-                Unlocked: <br/>
-                {formatDate(milestoneDays.get(milestone))}
-              </span>
-            </div>
+            <AnimatePresence key={milestone}>
+              {unwrappedMilestones.includes(milestone) ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="milestone-item achieved"
+                >
+                  <span className="milestone-value">
+                    <span className="milestone-star">󰄵</span>
+                    {milestone.toLocaleString()} steps
+                  </span>
+                  <span className="milestone-date">
+                    Unlocked: <br/>
+                    {formatDate(milestoneDays.get(milestone))}
+                  </span>
+                </motion.div>
+              ) : (
+                <FoilPack
+                  milestone={milestone}
+                  onUnwrap={() => handleUnwrap(milestone)}
+                />
+              )}
+            </AnimatePresence>
           ))}
         </div>
 
