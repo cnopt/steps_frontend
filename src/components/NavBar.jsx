@@ -8,12 +8,11 @@ export default function NavBar() {
                 <Link to={`/month`}>
                     <p>Month grid</p>
                 </Link>
-                
-                <Link to={`/week`}>
+                {/* <Link to={`/week`}>
                     <p>Week grid</p>
-                </Link>
-                <Link to={`/statistics`}>
-                    <p>Statistics</p>
+                </Link> */}
+                <Link to={`/stats`}>
+                    <p>Stats</p>
                 </Link>
                 <Link to={`/achievements`}>
                     <p>Achievements</p>

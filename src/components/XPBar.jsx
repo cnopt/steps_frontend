@@ -1,22 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useStepsData } from '../hooks/useStepsData';
 import '../styles/XPBar.css'
-
-
-const fetchStepsData = async () => {
-    const response = await axios.get('https://yxa.gr/steps/allstepsdata');
-    return response.data;
-  };
 
 export default function XPBar() {
     const [isExpanded, setIsExpanded] = useState(false);
     const detailsRef = useRef(null);
-
-    const query = useQuery({
-        queryKey: ['stepsData'],
-        queryFn: fetchStepsData,
-    });
+    const query = useStepsData();
 
     if (query.isLoading) {
         return <div>Loading...</div>;
@@ -33,19 +22,19 @@ export default function XPBar() {
 
     const calculateLevel = (totalSteps) => {
         // Each level requires more XP than the last
-        // Using a simple exponential formula: baseXP * (level ^ 1.5)
+        // Using a simple exponential formula: baseXP * (level ^ 1.3)
         const baseXP = 8000;
         let level = 1;
         
-        while ((baseXP * (Math.pow(level, 1.5))) <= totalSteps) {
+        while ((baseXP * (Math.pow(level, 1.3))) <= totalSteps) {
           level++;
         }
         
         return {
           currentLevel: level - 1,
           nextLevel: level,
-          currentLevelXP: baseXP * (Math.pow(level - 1, 1.5)),
-          nextLevelXP: baseXP * (Math.pow(level, 1.5)),
+          currentLevelXP: baseXP * (Math.pow(level - 1, 1.3)),
+          nextLevelXP: baseXP * (Math.pow(level, 1.3)),
         };
       };
 
@@ -91,9 +80,9 @@ export default function XPBar() {
                 <div className={`level-details ${isExpanded ? 'expanded' : ''}`}>
                     <div className="details-content">
                         {/* <p>󰇆</p> */}
-                        <p>Current XP: {allTimeTotalSteps.toLocaleString()}</p>
-                        <p>XP for Next Level: {levelInfo.nextLevelXP.toLocaleString()}</p>
-                        <p>XP Needed: {(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
+                        <p>Current XP: {Math.floor(allTimeTotalSteps).toLocaleString()}</p>
+                        <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>
+                        <p>XP Needed: {Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
                     </div>
                 </div>
             </div>

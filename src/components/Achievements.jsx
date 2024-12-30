@@ -1,39 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { format, parseISO } from 'date-fns';
-import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
-import '../styles/Achievements.css'
+import { useStepsData } from '../hooks/useStepsData';
 import { milestones } from '../helpers/milestones'
 import NavBar from './NavBar';
 import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import XPBar from './XPBar';
+import { checkBadgeUnlock } from '../helpers/badges';
+import Badges from './Badges';
+import '../styles/Achievements.css'
 
 
-
-
-const fetchStepsData = async () => {
-  const response = await axios.get('https://yxa.gr/steps/allstepsdata');
-  return response.data;
-};
 
 const Achievements = () => {
   const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
+  const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
+  const query = useStepsData();
 
-  const query = useQuery({
-    queryKey: ['stepsData'],
-    queryFn: fetchStepsData,
-  });
+  useEffect(() => {
+    if (query.data) {
+      const newUnlockedBadges = checkBadgeUnlock(query.data.dev);
+      setUnlockedBadges(newUnlockedBadges);
+    }
+  }, [query.data]);
 
   if (query.isLoading) return <div>Loading...</div>;
   if (query.isError) return <div>Error fetching data.</div>;
 
-  const allSteps = query.data.dev; // Steps data from API
+  //const allSteps = query.data.dev; // Steps data from API
   //const allSteps = steps.dev;
-
-  const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
+  //const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
 
 
   const calculateMilestoneDays = () => {
@@ -80,7 +77,7 @@ const Achievements = () => {
       <XPBar/>
       <div className="achievements-container">
         
-        <h3>Unlocked (<span style={{color:'gold'}}>{milestoneDays.size}</span>)</h3>
+        <h3>Milestone cards (<span style={{color:'gold'}}>{milestoneDays.size}</span>)</h3>
         {/* Achieved Milestones */}
         <div className="milestones-done-section">
           
@@ -94,12 +91,11 @@ const Achievements = () => {
                   className={`milestone-item achieved ${milestone.rarity}`}
                 >
                   <span className="milestone-value">
-                    <span className="milestone-star">󰄵</span>
-                    {milestone.value.toLocaleString()} steps
+                    <span className="milestone-star">󰄵</span> <br/>
+                    {milestone.value.toLocaleString()} <br/> steps
                   </span>
                   <span className="milestone-date">
-                    Unlocked: <br/>
-                    {formatDate(milestoneDays.get(milestone.value))}
+                    {format(parseISO(milestoneDays.get(milestone.value)), 'do MMM yyyy')}
                   </span>
                 </motion.div>
               ) : (
@@ -113,7 +109,7 @@ const Achievements = () => {
         </div>
 
         {/* Upcoming Milestones */}
-        <div className="milestones-section upcoming">
+        {/* <div className="milestones-section upcoming">
           <h3>Locked ({milestones.length-milestoneDays.size})</h3>
           {milestones.slice(lastAchievedIndex + 1).map((milestone) => (
             <div key={milestone.value} className="milestone-item upcoming">
@@ -123,6 +119,11 @@ const Achievements = () => {
               </span>
             </div>
           ))}
+        </div> */}
+
+        <div className="badges-section">
+          <h3>Badges (<span style={{color:'gold'}}>{unlockedBadges.length}</span>)</h3>
+          <Badges unlockedBadges={unlockedBadges} />
         </div>
       </div>
     </>

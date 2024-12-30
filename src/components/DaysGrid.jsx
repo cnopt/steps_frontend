@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useStepsData } from '../hooks/useStepsData';
 import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
 import { milestones, calculateMilestoneDays } from '../helpers/milestones'
 import NavBar from './NavBar';
@@ -18,12 +17,7 @@ const fetchStepsData = async () => {
 const DaysGrid = () => {
   const [currentDate, setCurrentDate] = useState(new Date('2024-12-01'));
   const [selectedDay, setSelectedDay] = useState(null);
-
-  // Fetch data using the latest React Query v5 syntax
-  const query = useQuery({
-    queryKey: ['stepsData'],
-    queryFn: fetchStepsData,
-  });
+  const query = useStepsData();
 
   if (query.isLoading) {
     return <div>Loading...</div>;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from 'axios';
+import { useStepsData } from '../hooks/useStepsData';
 import NavBar from './NavBar'
 import '../styles/NumberInput.css'
 import XPBar from "./XPBar";
@@ -10,16 +11,8 @@ const NumberInput = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [successMessage, setSuccessMessage] = useState(null);  // Add this state
   const queryClient = useQueryClient();
+  const { data: stepsData } = useStepsData();
 
-
-  const { data: stepsData } = useQuery({
-    queryKey: ['stepsData'],
-    queryFn: async () => {
-      const response = await axios.get('https://yxa.gr/steps/allstepsdata');
-      console.log(response.data)
-      return response.data;
-    }
-  });
 
   const formatDate = (date) => {
     const options = { weekday: "short", day: "numeric", month: "short", year: "numeric" };

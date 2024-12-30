@@ -31,7 +31,7 @@ const getRarityColors = (rarity) => {
 const FoilWrapper = styled(motion.div)`
   position: relative;
   display: inline-block;
-  width: 15rem;
+  width: 8.5rem;
   height: 8.6rem;
   cursor: pointer;
   perspective: 1000px;
@@ -39,42 +39,6 @@ const FoilWrapper = styled(motion.div)`
   margin-right: 0.75rem;
   transform-style: preserve-3d;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      ${props => props.$shimmerColor} 0%,
-      rgba(255,255,255,0.1) 50%,
-      ${props => props.$shimmerColor} 100%
-    );
-    border-radius: 8px;
-    filter: blur(0.5px);
-    z-index: 2;
-    transform-style: preserve-3d;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 0.5rem;
-    height: 60%;
-    background: linear-gradient(
-      90deg,
-      rgba(0,0,0,0.3),
-      rgba(0,0,0,0.1) 50%,
-      rgba(0,0,0,0) 100%
-    );
-    transform: translateY(-50%);
-    border-radius: 2px;
-    z-index: 3;
-  }
 
   .foil-surface {
     position: absolute;
@@ -91,29 +55,10 @@ const FoilWrapper = styled(motion.div)`
     animation: gradient 5s ease infinite;
     border-radius: 8px;
     transform-style: preserve-3d;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      right: 0;
-      width: 0.5rem;
-      height: 60%;
-      background: linear-gradient(
-        -90deg,
-        rgba(0,0,0,0.3),
-        rgba(0,0,0,0.1) 50%,
-        rgba(0,0,0,0) 100%
-      );
-      transform: translateY(-50%);
-      border-radius: 2px;
-      z-index: 3;
-    }
-  }
   
   .pack-text {
     text-align: center;
-    margin-top: 20%;
+    margin-top: 35%;
     color: black;
     font-family: sf-mono;
     font-size: 2em;

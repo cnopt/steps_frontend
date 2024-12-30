@@ -6,6 +6,7 @@ import DaysGrid from './components/DaysGrid';
 import Achievements from './components/Achievements';
 import NavBar from './components/NavBar';
 import NumberInput from './components/NumberInput';
+import Stats from './components/Stats';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ function App() {
           <Route path='/month' element={<DaysGrid/>}/>
           <Route path='/achievements' element={<Achievements/>}/>
           <Route path='/input' element={<NumberInput/>}/>
+          <Route path='/stats' element={<Stats/>}/>
         </Routes>
       </Router>
     </QueryClientProvider>

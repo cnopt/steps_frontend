@@ -1,7 +1,6 @@
 .achievements-container {
     margin-top: 6rem;
     font-family: sf;
-    
     margin: auto;
     margin-top: 5rem;
 }
@@ -11,7 +10,7 @@
     border-radius: 6px;
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
-    width: 15rem;
+    width: 8.5rem;
     display: inline-block;
     margin-right: 0.75rem;
     /* border-top-right-radius: 60px; */
@@ -50,40 +49,42 @@
 
 .milestone-value {
     display: block;
-    font-size: 1.3em;
+    font-size: 1.2em;
     border-bottom: 2px solid #2a2a2a;
     padding-top: 1rem;
     padding-left: 1rem;
-    padding-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
     font-family: sf-semi;
 }
 .milestone-date {
     display: block;
     padding-left: 1rem;
     font-size: 0.8em;
-    padding-top: 0.7rem;
-    opacity: 0.5;
 }
 
 .achieved {
     border: 2px solid gold;
+    background-color: gold;
 }
 .achieved.common {
     border: 2px solid silver;
+    background-color: silver;
 }
 .achieved.uncommon {
     border: 2px solid gold;
+    background-color: gold;
     /* box-shadow: 0px 0px 12px #4c482e; */
 }
 .achieved.rare {
-    border: 2px solid darkviolet;
+    border: 2px solid blueviolet;
+    background-color: blueviolet;
     /* box-shadow: 0px 0px 16px #432e4c; */
 }
 .achieved .milestone-star {
     color:#040405;
 }
 .achieved .milestone-value {
-    padding-top: 1.75rem;
+    padding-top: 1rem;
     border-bottom: 2px solid;
     color:#040405;
     border-radius: 6px;
@@ -102,12 +103,117 @@
     background-color: blueviolet;
     border-bottom-color: blueviolet;
 }
-.achieved.common .milestone-date {
-    color: silver;
+.milestone-date {
+    font-family: sf-med;
+    color: rgba(0,0,0,0.4)
 }
-.achieved.uncommon .milestone-date {
-    color: gold;
+
+.badges-section {
+  margin-top: 2rem;
 }
-.achieved.rare .milestone-date {
-    color: blueviolet;
+
+.badges-section h3 {
+  margin: 0 0 1rem 0;
+  font-family: sf-semi;
+}
+
+.badge-container {
+    width: 90%;
+    margin: auto;
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 1rem;
+}
+
+.badge-item {
+    display: inline-block;
+}
+
+.badge-img {
+    display: inline-block;
+}
+
+.badge-img img {
+    width: 6rem;
+    /* border: 7px solid #ddff00;
+    border-radius: 500px;
+    -webkit-border-radius: 500px;
+    -moz-border-radius: 500px; */
+}
+
+.badge-desc {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.8rem;
+    color: #666;
+    font-family: sf;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.modal-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -45%);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background: #1a1a1a;
+    padding: 1.5rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    border: 1px solid #333;
+    text-align: center;
+    overflow-y: auto;
+    margin: auto;
+    perspective: 1000px;
+}
+
+.modal-badge-image {
+  width: 100px;
+  height: auto;
+  margin-bottom: 1rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.modal-badge-title {
+  margin: 0.5rem 0;
+  color: gold;
+  font-family: sf-semi;
+  font-size: 1.25rem;
+  word-wrap: break-word;
+}
+
+.modal-badge-description {
+  color: gold;
+  margin: 0 0;
+  font-family: sf;
+  font-size: 1rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.modal-badge-date {
+  color: #666;
+  font-size: 0.8rem;
+  font-family: sf;
+  margin-bottom: 0.5rem;
 }

@@ -1,0 +1,35 @@
+.chart-last-7-days {
+    height: 200px;
+    margin-top: 2rem;
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    padding-bottom:2.5rem;
+}
+
+.chart-title {
+    margin: 0;
+    font-family: 'sf-med';
+    color: #8f8f8f;
+    font-size: 1.2em;
+    padding-left: 1rem;
+    padding-top: 1.2rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    width: 80%;
+}
+
+.chart-weekly-distribution {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    margin-top: 2rem;
+    padding-bottom: 2rem;
+    height: 220px;
+    pointer-events: none;
+}
+
+.chart-monthly-distribution {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    margin-top: 2rem;
+    height: 150px;
+}
