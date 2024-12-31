@@ -85,13 +85,12 @@ const NumberInput = () => {
   };
 
   const hasDataForSelectedDate = () => {
-    if (!stepsData?.dev) {
-      console.log("no data")
+    if (!stepsData) {
       return false;
     }
     
     const formattedSelectedDate = selectedDate.toISOString().split('T')[0];
-    return stepsData.dev.some(entry => entry.formatted_date === formattedSelectedDate);
+    return stepsData.some(entry => entry.formatted_date === formattedSelectedDate);
   };
 
   return (
@@ -130,12 +129,13 @@ const NumberInput = () => {
               <button
                   key={num}
                   onClick={() => handleButtonClick(num.toString())}
+                  disabled={hasDataForSelectedDate()}
               >
                   {num}
               </button>
               ))}
-              <button className="backspace" onClick={handleBackspace}>󰁮</button>
-              <button className="enter" onClick={handleEnter}>󰦺</button>
+              <button className="backspace" onClick={handleBackspace} disabled={hasDataForSelectedDate()}>󰁮</button>
+              <button className="enter" onClick={handleEnter} disabled={hasDataForSelectedDate()}>󰦺</button>
           </div>
           {successMessage && (
             <div className="success-message">

@@ -68,6 +68,8 @@
 .day-grid-days-label {
     font-size: 0.5em;
     opacity: 0.6;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 .day {
     padding: 0;
@@ -79,26 +81,35 @@
     height: 5rem;
     /* background-color: #0b0b0e; */
     border-radius: 5px;
-    width: 90%;
+    width: 94%;
     margin:auto;
-    margin-top: 1rem;
-    padding-left: 1rem;
+    margin-top: 2rem;
     padding-top: 0.25rem;
     padding-bottom: 1rem;
     margin-bottom: 3rem;
 }
 .day-details p {
     color:#8f8f8f;
+    margin-top: 0;
 }
 .day-details p span {
     margin-right: 0.5rem;
     opacity: 0.5;
     font-family: sf-mono;
 }
+.day-details-top-row {
+    display: flex;
+    justify-content: space-between;
+    text-transform: capitalize;
+}
+.day-details-top-row .weather-icon {
+    margin-right: 0.75rem;
+}
 .day-details-milestone {
     color: gold !important;
     font-family: sf-med;
+    margin-bottom: 0.5rem;
 }
-.day-details-milestone span {
-    opacity: 1 !important;
+.day-details-badge span {
+    margin-right: 0.75rem !important;
 }

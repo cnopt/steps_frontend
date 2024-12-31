@@ -20,7 +20,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     width: 100%;
     margin-bottom: 2rem;
     padding:10px;
@@ -73,6 +73,9 @@
 }
 .buttonGrid button {
     font-size: 1.7em;
+}
+.buttonGrid button:disabled {
+    opacity: 0.25;
 }
 
 button {

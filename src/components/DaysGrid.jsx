@@ -4,31 +4,59 @@ import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
 import { milestones, calculateMilestoneDays } from '../helpers/milestones'
 import NavBar from './NavBar';
 import XPBar from './XPBar';
-
+import LoadingSpinner from './LoadingSpinner';
+import { useWeatherData } from '../hooks/useWeatherData';
 // import steps from '../assets/allstepsdata.json'
 import '../styles/DaysGrid.css'
+import { useLocalStorage } from '@uidotdev/usehooks';
 
-const fetchStepsData = async () => {
-  const response = await axios.get('https://yxa.gr/steps/allstepsdata');
-  return response.data;
+const getWeatherIcon = (weatherString) => {
+  const weatherIcons = {
+    'clear': '☀️',
+    'sunny': '☀️',
+    'partly cloudy': '⛅',
+    'cloudy': '☁️',
+    'overcast': '☁️',
+    'fog': '🌫️',
+    'mist': '🌫️',
+    'drizzle': '🌦️',
+    'light rain': '🌦️',
+    'rain': '🌧️',
+    'heavy rain': '🌧️',
+    'snow': '🌨️',
+    'light snow': '🌨️',
+    'heavy snow': '🌨️',
+    'thunderstorm': '⛈️',
+    'storm': '⛈️'
+  };
+
+  return weatherIcons[weatherString.toLowerCase()] || '🌡️'; // Default icon if string not found
 };
 
+const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
+  return unlockedBadges.some(badge => badge.unlockDate === date);
+};
 
 const DaysGrid = () => {
   const [currentDate, setCurrentDate] = useState(new Date('2024-12-01'));
   const [selectedDay, setSelectedDay] = useState(null);
+  const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
+  
+  // Get unique dates for weather data
+  const dates = React.useMemo(() => {
+    if (!query.data) return [];
+    return [...new Set(query.data.map(day => new Date(day.formatted_date)))];
+  }, [query.data]);
 
-  if (query.isLoading) {
-    return <div>Loading...</div>;
-  }
+  // Get weather data
+  const weatherQuery = useWeatherData(dates);
 
-  if (query.isError || !query.data) {
-    return <div>Error fetching data.</div>;
-  }
+  if (query.isLoading || weatherQuery.isLoading) return <LoadingSpinner/>;
+  if (query.isError || weatherQuery.isError) return <div>Error fetching data.</div>;
 
 
-  const allSteps = query.data.dev; // Steps data from API
+  const allSteps = query.data; // Steps data from API
   //const allSteps = steps.dev;
 
   const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
@@ -161,26 +189,64 @@ const DaysGrid = () => {
                   onClick={() => setSelectedDay(daysWithData[day] || null)}
                   style={{
                     backgroundColor,
-                    color
+                    color,
+                    position: 'relative'
                   }}
                 >
+                  {dayData && wasBadgeUnlockedOnDate(dayDate, unlockedBadges) && (
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        left: '3px',
+                        width: '6px',
+                        height: '6px',
+                        backgroundColor: 'gold',
+                        borderRadius: '50%',
+                        zIndex: 2
+                      }}
+                    />
+                  )}
                   {dayData ? '■' : '.'}
                 </div>
               );
             })}
           </div>
 
-        {/* Right Details Panel */}
         <div className="day-details">
           {selectedDay ? (
             <>
-              <p><span></span> {formatDate(selectedDay.formatted_date)}</p>
-              <p><span>󰖃</span> {selectedDay.steps.toLocaleString()} steps</p>
+              <div className='day-details-top-row'>
+                <p>
+                  <span></span> {formatDate(selectedDay.formatted_date)}
+                </p>
+                {weatherQuery.data && weatherQuery.data[selectedDay.formatted_date] && (
+                  <p>
+                    <span className='weather-icon'>
+                      {getWeatherIcon(weatherQuery.data[selectedDay.formatted_date].weather_code)}
+                    </span> 
+                  </p>
+                )}
+              </div>
+              <p>
+                <span>󰖃</span> 
+                {selectedDay.steps.toLocaleString()} steps
+              </p>
+
               {milestoneDays.has(selectedDay.formatted_date) && (
                 <p className='day-details-milestone'>
                   <span>★</span>
-                  <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity) }}>
-                    {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps unlocked
+                  <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity), fontSize:'0.8em' }}>
+                    {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps milestone
+                  </span>
+                </p>
+              )}
+
+              {wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges) && (
+                <p className='day-details-badge'>
+                  <span style={{color:'gold'}}>󰻂</span>
+                  <span style={{ color: 'gold', fontSize:'0.8em'}}>
+                    {unlockedBadges.find(badge => badge.unlockDate === selectedDay.formatted_date)?.name || 'Badge'} unlocked
                   </span>
                 </p>
               )}

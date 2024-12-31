@@ -17,11 +17,12 @@ import {
 } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
 import '../styles/Stats.css'
+import LoadingSpinner from './LoadingSpinner';
 
 export default function Stats() {
     const query = useStepsData();
 
-    if (query.isLoading) return <div>Loading...</div>;
+    if (query.isLoading) return <LoadingSpinner/>;
     if (query.isError) return <div>Error fetching data.</div>;
 
     // Get last 7 days from yesterday
@@ -32,7 +33,7 @@ export default function Stats() {
     }).reverse();
 
     const chartData = last7Days.map(date => {
-        const dayData = query.data.dev.find(d => d.formatted_date === date);
+        const dayData = query.data.find(d => d.formatted_date === date);
         return {
             date: format(new Date(date), 'EEE'),
             steps: dayData ? dayData.steps : 0
@@ -42,7 +43,7 @@ export default function Stats() {
     // Add new data processing for weekly distribution with ordered days
     const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
-    const weeklyDistribution = query.data.dev.reduce((acc, day) => {
+    const weeklyDistribution = query.data.reduce((acc, day) => {
         const dayOfWeek = format(parseISO(day.formatted_date), 'EEEE');
         acc[dayOfWeek] = (acc[dayOfWeek] || 0) + day.steps;
         return acc;

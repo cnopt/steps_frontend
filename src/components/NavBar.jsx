@@ -6,7 +6,7 @@ export default function NavBar() {
         <>
             <div className='title-bar-nav'>
                 <Link to={`/month`}>
-                    <p>Month grid</p>
+                    <p>Grid</p>
                 </Link>
                 {/* <Link to={`/week`}>
                     <p>Week grid</p>

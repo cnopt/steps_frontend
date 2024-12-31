@@ -2,7 +2,7 @@
     margin-top: 6rem;
     font-family: sf;
     margin: auto;
-    margin-top: 5rem;
+    margin-top: 3rem;
 }
 
 .milestone-item {
@@ -114,33 +114,80 @@
 
 .badges-section h3 {
   margin: 0 0 1rem 0;
-  font-family: sf-semi;
+  font-family: sf;
 }
 
 .badge-container {
-    width: 90%;
+    width: 98%;
     margin: auto;
     margin-top: 2rem;
+    margin-bottom: 4rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.33em;
+    /* height: 32rem;
+    overflow-x: visible;
+    overflow-y: scroll;
+    &::-webkit-scrollbar {
+        display: none;
+      }; */
 }
 
 .badge-item {
     display: inline-block;
+    margin: auto;
 }
 
 .badge-img {
     display: inline-block;
+    margin: 0;
+    position: relative;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    z-index: 1;
 }
 
 .badge-img img {
-    width: 6rem;
+    width: 5.9rem;
     /* border: 7px solid #ddff00;
     border-radius: 500px;
     -webkit-border-radius: 500px;
     -moz-border-radius: 500px; */
 }
+
+.badge-img.new::before {
+    content:"󰀨";
+    position: absolute;
+    top: -12px;
+    left: -2px;
+    font-size: 2em;
+    font-family: 'sf-mono' !important;
+    color:yellow;
+    padding:0.25rem;
+    width: 1.2rem;
+    text-align: center;
+    border-radius: 50%;
+    font-family: sf-med;
+    transform: rotate(-7deg);
+    z-index: 3;
+}
+.badge-img.new::after {
+    content: ".";
+    position: absolute;
+    top: -5px;
+    left: -1px;
+    font-size: 2em;
+    width: 2rem;
+    height: 2rem;
+    z-index: 2;
+    color:black;
+    background-color: black;
+    border-radius: 500px;
+}
+.badge-img.new {
+    
+}
+
 
 .badge-desc {
     margin: 0.5rem 0 0 0;
@@ -164,10 +211,10 @@
 }
 
 .modal-container {
-    position: absolute;
+    position: fixed;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -45%);
+    transform: translate(-50%, -50%);
     z-index: 1000;
 }
 

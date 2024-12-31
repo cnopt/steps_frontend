@@ -3,7 +3,8 @@ import axios from 'axios';
 
 const fetchStepsData = async () => {
   const response = await axios.get('https://yxa.gr/steps/allstepsdata');
-  return response.data;
+  const sortedData = response.data.dev.sort((a, b) => new Date(a.formatted_date) - new Date(b.formatted_date));
+  return sortedData;
 };
 
 export function useStepsData() {

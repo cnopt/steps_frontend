@@ -20,6 +20,11 @@ export const milestones = [
     { value: 1800000, rarity: 'uncommon' },
     { value: 1900000, rarity: 'uncommon' },
     { value: 2000000, rarity: 'rare' },
+    { value: 2100000, rarity: 'uncommon' },
+    { value: 2200000, rarity: 'uncommon' },
+    { value: 2300000, rarity: 'uncommon' },
+    { value: 2400000, rarity: 'uncommon' },
+    { value: 2500000, rarity: 'rare' },
 ];
 
 

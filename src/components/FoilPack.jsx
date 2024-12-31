@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import styled from 'styled-components';
 
 const getRarityColors = (rarity) => {
-  console.log(rarity)
   switch (rarity) {
     case 'common':
       return {
@@ -72,7 +71,6 @@ const FoilWrapper = styled(motion.div)`
 `;
 
 const FoilPack = ({ milestone, onUnwrap }) => {
-  console.log(milestone.rarity)
   const { colors, shimmer } = getRarityColors(milestone.rarity);
 
   return (

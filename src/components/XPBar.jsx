@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStepsData } from '../hooks/useStepsData';
 import '../styles/XPBar.css'
+import LoadingSpinner from './LoadingSpinner';
 
 export default function XPBar() {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -8,14 +9,14 @@ export default function XPBar() {
     const query = useStepsData();
 
     if (query.isLoading) {
-        return <div>Loading...</div>;
+        return <LoadingSpinner/>;
     }
 
     if (query.isError || !query.data) {
         return <div>Error fetching data.</div>;
     }
 
-    const allSteps = query.data.dev; // Steps data from API
+    const allSteps = query.data; // Steps data from API
     //const allSteps = steps.dev;
   
     const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);

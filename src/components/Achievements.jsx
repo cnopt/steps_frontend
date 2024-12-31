@@ -7,9 +7,11 @@ import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import XPBar from './XPBar';
-import { checkBadgeUnlock } from '../helpers/badges';
+import { checkBadgeUnlock } from '../components/Badges';
 import Badges from './Badges';
+import { useWeatherData } from '../hooks/useWeatherData';
 import '../styles/Achievements.css'
+import LoadingSpinner from './LoadingSpinner';
 
 
 
@@ -17,16 +19,25 @@ const Achievements = () => {
   const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
-
-  useEffect(() => {
-    if (query.data) {
-      const newUnlockedBadges = checkBadgeUnlock(query.data.dev);
-      setUnlockedBadges(newUnlockedBadges);
-    }
+  
+  // Get unique dates from steps data
+  const dates = React.useMemo(() => {
+    if (!query.data) return [];
+    return [...new Set(query.data.map(day => new Date(day.formatted_date)))];
   }, [query.data]);
 
-  if (query.isLoading) return <div>Loading...</div>;
-  if (query.isError) return <div>Error fetching data.</div>;
+  // Get weather data only for dates we have steps for
+  const weatherQuery = useWeatherData(dates);
+
+  useEffect(() => {
+    if (query.data && weatherQuery.data) {
+      const newUnlockedBadges = checkBadgeUnlock(query.data, weatherQuery.data);
+      setUnlockedBadges(newUnlockedBadges);
+    }
+  }, [query.data, weatherQuery.data]);
+
+  if (query.isLoading || weatherQuery.isLoading) return <LoadingSpinner/>;
+  if (query.isError || weatherQuery.isError) return <div>Error fetching data.</div>;
 
   //const allSteps = query.data.dev; // Steps data from API
   //const allSteps = steps.dev;
@@ -34,15 +45,11 @@ const Achievements = () => {
 
 
   const calculateMilestoneDays = () => {
-    const sortedSteps = [...query.data.dev].sort(
-      (a, b) => new Date(a.formatted_date) - new Date(b.formatted_date)
-    );
-
     const milestoneDays = new Map();
     let runningTotal = 0;
     let currentMilestoneIndex = 0;
 
-    for (const dayData of sortedSteps) {
+    for (const dayData of query.data) {
       runningTotal += dayData.steps;
 
       while (currentMilestoneIndex < milestones.length && 

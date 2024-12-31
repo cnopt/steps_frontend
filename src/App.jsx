@@ -1,5 +1,6 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 import './styles/App.css'
 import DaysGrid from './components/DaysGrid';
@@ -23,6 +24,7 @@ function App() {
           <Route path='/stats' element={<Stats/>}/>
         </Routes>
       </Router>
+      <ReactQueryDevtools/>
     </QueryClientProvider>
   );
 }
