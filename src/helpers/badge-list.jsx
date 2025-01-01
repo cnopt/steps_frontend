@@ -90,4 +90,60 @@ export const badges = [
         image: '../src/assets/badges/badge-500k.png',
         unlockDate: null,
     },
+    {
+        id: 14,
+        name: "1337",
+        description: "1337",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 15,
+        name: "1111",
+        description: "1111",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 16,
+        name: "9999",
+        description: "9999",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 17,
+        name: "Deja-vu",
+        description: "Exact same step count 2 days in a row.. woah",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 18,
+        name: "Sanka, ya dead?",
+        description: "Less than 1000 steps for 7 days in a row",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 19,
+        name: "Fuck the Cold",
+        description: "Decent walk on a freeeezing day",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null,
+    },
+    {
+        id: 20,
+        name: "Consecutive Climber",
+        description: "Increased your step count every day for 5 days straight",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 21,
+        name: "Fuck Me It's Hot",
+        description: "10,000 steps on a bloody hot day",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
 ];

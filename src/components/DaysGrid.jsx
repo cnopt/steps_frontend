@@ -38,7 +38,7 @@ const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
 };
 
 const DaysGrid = () => {
-  const [currentDate, setCurrentDate] = useState(new Date('2024-12-01'));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();

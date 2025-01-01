@@ -270,7 +270,148 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   }
 
 
-  
+  // ********************************************************
+  // Exact Step Count badges
+  //   - 1337 steps (Leet Steps)
+  //   - All same digits steps (1111, 2222 etc)
+  //   - Special numbers (1321)
+  //   - Just missed numbers (4,999)
+  // ********************************************************
+  const exactStepCounts = {
+    1337: { id: 14, awarded: false },
+    1111: { id: 15, awarded: false },
+    // 2222: { id: XX, awarded: false },
+    // 3333: { id: XX, awarded: false },
+    // 4444: { id: XX, awarded: false },
+    // 5555: { id: XX, awarded: false },
+    // 6666: { id: XX, awarded: false },
+    // 7777: { id: XX, awarded: false },
+    // 8888: { id: XX, awarded: false },
+    9999: { id: 16, awarded: false },
+    // 10000: { id: XX, awarded: false },
+    // 20000: { id: XX, awarded: false },
+    // 1321: { id: XX, awarded: false }, 
+    // 999: { id: XX, awarded: false },
+    // 8008: { id: XX, awarded: false },    
+    // 2048: { id: XX, awarded: false },    
+    // 4096: { id: XX, awarded: false },    
+  };
+
+  for (const day of stepsData) {
+    if (!Object.values(exactStepCounts).every(badge => badge.awarded)) {
+      const stepCount = day.steps;
+      
+      if (exactStepCounts[stepCount] && !exactStepCounts[stepCount].awarded) {
+        unlockedBadges.push({
+          id: exactStepCounts[stepCount].id,
+          name: badges.find(b => b.id === exactStepCounts[stepCount].id).name,
+          unlockDate: day.formatted_date
+        });
+        exactStepCounts[stepCount].awarded = true;
+      }
+    } else {
+      // All badges found, exit
+      break;
+    }
+  }
+
+
+  // ********************************************************
+  // Deja-vu badge (same step count two days in a row)
+  // ********************************************************
+  const matchingDays = stepsData.find((day, index) => {
+    if (index === 0) return false; // Skip first day since we need to compare with previous
+    return day.steps === stepsData[index - 1].steps;
+  });
+
+  if (matchingDays) {
+    unlockedBadges.push({
+      id: 17,
+      name: badges.find(b => b.id === 17).name,
+      unlockDate: matchingDays.formatted_date
+    });
+  }
+
+
+  // ********************************************************
+  // Sanka ya dead badge (less than 1000 steps for 7 days in a row)
+  // ********************************************************
+  for (let i = 0; i < stepsData.length - 6; i++) {
+    const sevenDays = stepsData.slice(i, i + 7);
+    if (sevenDays.every(day => day.steps < 1000)) {
+      unlockedBadges.push({ 
+        id: 18, 
+        name: badges.find(b => b.id === 18).name, 
+        unlockDate: sevenDays[6].formatted_date 
+      });
+      break;
+    }
+  }
+
+
+  // ********************************************************
+  // Fuck the Cold badge (7k+ steps on a freezing day)
+  // ********************************************************
+  const coldWarriorDay = stepsData.find(day => {
+    const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
+    const weather = weatherData[dateStr];
+    console.log(weather)
+    return weather && 
+           weather.temperature_max <= 1 && 
+           day.steps > 7000;
+  });
+
+  if (coldWarriorDay) {
+    unlockedBadges.push({
+      id: 19,
+      name: badges.find(b => b.id === 19).name,
+      unlockDate: coldWarriorDay.formatted_date
+    });
+  }
+
+
+  // ********************************************************
+  // Consecutive Climber badge (increasing steps for 5 days)
+  // ********************************************************
+  for (let i = 0; i < stepsData.length - 4; i++) {
+    const fiveDays = stepsData.slice(i, i + 5);
+    const isConsecutiveIncrease = fiveDays.every((day, index) => {
+      if (index === 0) return true;
+      return day.steps > fiveDays[index - 1].steps;
+    });
+
+    if (isConsecutiveIncrease) {
+      unlockedBadges.push({
+        id: 20,
+        name: badges.find(b => b.id === 20).name,
+        unlockDate: fiveDays[4].formatted_date
+      });
+      break;
+    }
+  }
+
+
+  // ********************************************************
+  // Fuck Me It's Hot badge (10k steps on a hot day)
+  // ********************************************************
+  const heatWaveDay = stepsData.find(day => {
+    const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
+    const weather = weatherData[dateStr];
+    
+    return weather && 
+           weather.temperature_max >= 28 && 
+           day.steps >= 10000;
+  });
+
+  if (heatWaveDay) {
+    unlockedBadges.push({
+      id: 21,
+      name: badges.find(b => b.id === 21).name,
+      unlockDate: heatWaveDay.formatted_date
+    });
+  }
+
+
   return unlockedBadges;
 };
 

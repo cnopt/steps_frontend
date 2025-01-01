@@ -75,7 +75,7 @@ export class WeatherService {
     return {
       date: date.toISOString().split('T')[0],
       weather_code: getWeatherDescription(data.daily.weather_code[0]),
-      temperature_max: data.daily.temperature_2m_max[0],
+      temperature_max: Math.round(data.daily.temperature_2m_max[0]),
       rain: data.daily.rain_sum[0],
       precipitation: data.daily.precipitation_sum[0],
       wind_speed_max: data.daily.wind_speed_10m_max[0],
