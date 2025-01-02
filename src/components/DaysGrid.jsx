@@ -193,20 +193,23 @@ const DaysGrid = () => {
                     position: 'relative'
                   }}
                 >
-                  {dayData && wasBadgeUnlockedOnDate(dayDate, unlockedBadges) && (
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        top: '8px',
-                        left: '3px',
-                        width: '6px',
-                        height: '6px',
-                        backgroundColor: 'gold',
-                        borderRadius: '50%',
-                        zIndex: 2
-                      }}
-                    />
-                  )}
+                  {dayData && unlockedBadges
+                    .filter(badge => badge.unlockDate === dayDate)
+                    .map((badge, index) => (
+                      <div 
+                        key={badge.id}
+                        style={{
+                          position: 'absolute',
+                          top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
+                          left: '3px',
+                          width: '6px',
+                          height: '6px',
+                          backgroundColor: 'gold',
+                          borderRadius: '50%',
+                          zIndex: 2
+                        }}
+                      />
+                    ))}
                   {dayData ? '■' : '.'}
                 </div>
               );
@@ -243,12 +246,18 @@ const DaysGrid = () => {
               )}
 
               {wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges) && (
-                <p className='day-details-badge'>
-                  <span style={{color:'gold'}}>󰻂</span>
-                  <span style={{ color: 'gold', fontSize:'0.8em'}}>
-                    {unlockedBadges.find(badge => badge.unlockDate === selectedDay.formatted_date)?.name || 'Badge'} unlocked
-                  </span>
-                </p>
+                <div className='day-details-badge'>
+                  {unlockedBadges
+                    .filter(badge => badge.unlockDate === selectedDay.formatted_date)
+                    .map(badge => (
+                      <p key={badge.id}>
+                        <span style={{color:'gold'}}>󰻂</span>
+                        <span style={{ color: 'gold', fontSize:'0.8em'}}>
+                          {badge.name} unlocked
+                        </span>
+                      </p>
+                    ))}
+                </div>
               )}
             </>
           ) : (

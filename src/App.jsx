@@ -8,6 +8,7 @@ import Achievements from './components/Achievements';
 import NavBar from './components/NavBar';
 import NumberInput from './components/NumberInput';
 import Stats from './components/Stats';
+import PlayerHome from './components/PlayerHome';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -17,7 +18,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path='/' element={<NavBar/>}/>
+          <Route path='/' element={<PlayerHome/>}/>
           <Route path='/month' element={<DaysGrid/>}/>
           <Route path='/achievements' element={<Achievements/>}/>
           <Route path='/input' element={<NumberInput/>}/>

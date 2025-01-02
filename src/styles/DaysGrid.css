@@ -110,6 +110,9 @@
     font-family: sf-med;
     margin-bottom: 0.5rem;
 }
+.day-details-badge p {
+    margin-bottom: 0.5rem;
+}
 .day-details-badge span {
     margin-right: 0.75rem !important;
 }

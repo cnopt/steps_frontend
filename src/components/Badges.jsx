@@ -190,17 +190,27 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   // ********************************************************
   // Weekend Wizard badge (500k total steps on weekends)
   // ********************************************************
-  const weekendTotalSteps = stepsData.reduce((total, day) => {
-    const date = new Date(day.formatted_date);
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    return isWeekend ? total + day.steps : total;
-  }, 0);
+  let runningWeekendTotal = 0;
+  let unlockDate = null;
 
-  if (weekendTotalSteps >= 500000) {
+  for (const day of stepsData) {
+    const date = new Date(day.formatted_date);
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    if (isWeekend) {
+      runningWeekendTotal += day.steps;
+      if (runningWeekendTotal >= 500000 && !unlockDate) {
+        unlockDate = day.formatted_date;
+      }
+    }
+  }
+
+  if (unlockDate) {
     unlockedBadges.push({
       id: 10,
       name: badges.find(b => b.id === 10).name,
-      unlockDate: stepsData[stepsData.length - 1].formatted_date // Use the latest date as unlock date
+      unlockDate: unlockDate
     });
   }
 
@@ -409,6 +419,46 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
       name: badges.find(b => b.id === 21).name,
       unlockDate: heatWaveDay.formatted_date
     });
+  }
+
+
+  // ********************************************************
+  // Distance Badges
+  //   - Marathon (42.2km)
+  //   - half Marathon (21.1km)
+  //   - 100 miles
+  //   - 200 miles
+  // ********************************************************
+  const height = 170;
+  const stride_length = (height * 0.42) / 100; // convert to meters
+  
+  const distanceMilestones = {
+    21100: { id: 22, name: 'Half Marathon', awarded: false },  // 21.1km in meters
+    42200: { id: 23, name: 'Marathon', awarded: false },       // 42.2km in meters
+    160934: { id: 24, name: '100 Miles', awarded:false },  
+    321869: { id: 25, name: '200 Miles', awarded:false }  
+  };
+
+  let totalDistance = 0;
+  for (const day of stepsData) {
+    if (!Object.values(distanceMilestones).every(milestone => milestone.awarded)) {
+      const dailyDistance = day.steps * stride_length;
+      totalDistance += dailyDistance;
+      
+      for (const [distance, milestone] of Object.entries(distanceMilestones)) {
+        if (!milestone.awarded && totalDistance >= parseInt(distance)) {
+          unlockedBadges.push({
+            id: milestone.id,
+            name: badges.find(b => b.id === milestone.id).name,
+            unlockDate: day.formatted_date
+          });
+          milestone.awarded = true;
+        }
+      }
+    } else {
+      // exit
+      break;
+    }
   }
 
 

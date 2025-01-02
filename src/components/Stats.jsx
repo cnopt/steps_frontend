@@ -13,7 +13,11 @@ import {
   Area,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  BarChart,
+  Bar,
+  FunnelChart,
+  Funnel
 } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
 import '../styles/Stats.css'
@@ -40,7 +44,6 @@ export default function Stats() {
         };
     });
 
-    // Add new data processing for weekly distribution with ordered days
     const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
     const weeklyDistribution = query.data.reduce((acc, day) => {
@@ -54,7 +57,6 @@ export default function Stats() {
         value: weeklyDistribution[day] || 0
     }));
 
-    // Colors for the pie chart sections
     const pieColors = [
         '#33220F',
         '#6B1A2B', 
@@ -78,6 +80,113 @@ export default function Stats() {
         };
         return dayMap[dayName] || dayName;
     };
+
+    const cumulativeData = query.data
+        .sort((a, b) => new Date(a.formatted_date) - new Date(b.formatted_date))
+        .reduce((acc, day) => {
+            const previousTotal = acc.length > 0 ? acc[acc.length - 1].total : 0;
+            const currentYear = format(parseISO(day.formatted_date), 'yyyy');
+            const isFirstOfYear = !acc.length || currentYear !== format(parseISO(acc[acc.length - 1].formatted_date), 'yyyy');
+            
+            acc.push({
+                fullDate: format(parseISO(day.formatted_date), 'MMM d, yyyy'),
+                formatted_date: day.formatted_date,
+                year: currentYear,
+                total: previousTotal + day.steps,
+                showTick: isFirstOfYear
+            });
+            return acc;
+        }, []);
+
+    const formatLargeNumber = (num) => {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 50000) {
+            return (num / 1000).toFixed(0) + 'K';
+        } else if (num >= 1000) {
+            // Check if the hundreds is 00
+            return num % 1000 === 0 
+                ? (num / 1000).toFixed(0) + 'K'
+                : (num / 1000).toFixed(1) + 'K';
+        }
+        return num;
+    };
+
+    const yearlyTotalData = query.data
+        .reduce((acc, day) => {
+            const year = format(parseISO(day.formatted_date), 'yyyy');
+            if (!acc[year]) {
+                acc[year] = 0;
+            }
+            acc[year] += day.steps;
+            return acc;
+        }, {});
+
+    const yearlyData = Object.entries(yearlyTotalData)
+        .map(([year, total]) => ({
+            year,
+            total
+        }))
+        .sort((a, b) => a.year.localeCompare(b.year));
+
+    // mountain valley shape
+    const mountainPath = [
+        { x: 0, y: 0 },     
+        { x: 1, y: 15 },
+        { x: 2, y: 25 },
+        { x: 3, y: 40 },
+        { x: 4, y: 55 },
+        { x: 5, y: 75 },
+        { x: 6, y: 90 },
+        { x: 7, y: 85 },
+        { x: 8, y: 70 },
+        { x: 9, y: 65 },
+        { x: 10, y: 60 },
+        { x: 11, y: 45 },
+        { x: 12, y: 30 },
+        { x: 13, y: 25 },
+        { x: 14, y: 35 },
+        { x: 15, y: 50 },
+        { x: 16, y: 65 },
+        { x: 17, y: 80 },
+        { x: 18, y: 95 },
+        { x: 19, y: 90 },
+        { x: 20, y: 75 },
+        { x: 21, y: 65 },
+        { x: 22, y: 55 },
+        { x: 23, y: 60 },
+        { x: 24, y: 45 },
+        { x: 25, y: 35 },
+        { x: 26, y: 40 },
+        { x: 27, y: 30 },
+        { x: 28, y: 20 },
+        { x: 29, y: 10 },
+        { x: 30, y: 0 }
+    ];
+
+    // Calculate progress line based on total steps
+    const calculateProgress = () => {
+        const totalSteps = query.data.reduce((sum, day) => sum + day.steps, 0);
+        const maxSteps = 5000000;
+        const progressPercentage = Math.min((totalSteps / maxSteps) * 100, 100);
+        const progress = Math.min((totalSteps / maxSteps) * mountainPath.length, mountainPath.length);
+        
+        // Store the last valid x position for the tick
+        const lastValidX = Math.floor(progress);
+        
+        return {
+            data: mountainPath.map((point, index) => ({
+                x: point.x,
+                y: point.y,
+                progressY: index <= lastValidX ? point.y : null
+            })),
+            progressX: lastValidX,
+            progressPercentage: Math.round(progressPercentage)
+        };
+    };
+
+    const { data: mountainData, progressX, progressPercentage } = calculateProgress();
+
 
     return(
         <>
@@ -121,7 +230,7 @@ export default function Stats() {
                             tick={{ fill: '#666' }}
                             fontFamily='sf'
                             fontSize={'0.9em'}
-                            tickFormatter={(value) => value.toLocaleString()}
+                            tickFormatter={formatLargeNumber}
                         />
                         <Tooltip 
                             contentStyle={{
@@ -139,10 +248,10 @@ export default function Stats() {
                             type="natural"
                             dataKey="steps"
                             stroke="#4CAF50"
-                            strokeOpacity={0.5}
+                            strokeOpacity={1}
                             fill="url(#colorSteps)"
                             fillOpacity={1}
-                            strokeWidth={2}
+                            strokeWidth={1}
                             dot={{ fill: '#4CAF50', r: 3 }}
                             activeDot={{ r: 5 }}
                             animationDuration={800}
@@ -153,7 +262,7 @@ export default function Stats() {
             </div>
 
 
-            {/* New Pie Chart */}
+            {/* Pie Chart */}
             <div className='chart-weekly-distribution'>
                 <p className="chart-title">
                     Total Steps Distribution by Days of the Week
@@ -193,6 +302,193 @@ export default function Stats() {
                     </PieChart>
                 </ResponsiveContainer>
             </div>
+
+            {/* Cumulative Steps Chart */}
+            <div className='chart-cumulative-steps'>
+                <p className="chart-title">
+                    Total Steps Over Time
+                </p>
+                <ResponsiveContainer width="100%" height="80%">
+                    <AreaChart
+                        data={cumulativeData}
+                        margin={{
+                            top: 5,
+                            right: 25,
+                            left: 10,
+                            bottom: 0,
+                        }}
+                    >
+                        <defs>
+                            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid 
+                            strokeDasharray="3 3" 
+                            stroke="#222"
+                            vertical={false}
+                        />
+                        <XAxis 
+                            dataKey="year"
+                            stroke="#666"
+                            tick={{ fill: '#666' }}
+                            fontFamily='sf'
+                            fontSize={'0.9em'}
+                            ticks={cumulativeData.filter(d => d.showTick).map(d => d.year)}
+                            tickFormatter={(value) => value}
+                        />
+                        <YAxis 
+                            stroke="#666"
+                            tick={{ fill: '#666' }}
+                            fontFamily='sf'
+                            fontSize={'0.9em'}
+                            tickFormatter={formatLargeNumber}
+                        />
+                        <Area 
+                            type="natural"
+                            dataKey="total"
+                            stroke="#4CAF50"
+                            strokeOpacity={1}
+                            fill="url(#colorTotal)"
+                            fillOpacity={1}
+                            strokeWidth={2}
+                            animationDuration={800}
+                            animationEasing="ease-in-out"
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Yearly Total Steps Chart */}
+            <div className='chart-yearly-steps'>
+                <p className="chart-title">
+                    Total Steps by Year
+                </p>
+                <ResponsiveContainer width="100%" height="80%">
+                    <BarChart
+                        data={yearlyData}
+                        margin={{
+                            top: 5,
+                            right: 25,
+                            left: 10,
+                            bottom: 0,
+                        }}
+                    >
+                        <CartesianGrid 
+                            strokeDasharray="3 3" 
+                            stroke="#222"
+                            vertical={false}
+                        />
+                        <XAxis 
+                            dataKey="year"
+                            stroke="#666"
+                            tick={{ fill: '#666' }}
+                            fontFamily='sf'
+                            fontSize={'0.9em'}
+                        />
+                        <YAxis 
+                            stroke="#666"
+                            tick={{ fill: '#666' }}
+                            fontFamily='sf'
+                            fontSize={'0.9em'}
+                            tickFormatter={formatLargeNumber}
+                        />
+                        <Tooltip 
+                            contentStyle={{
+                                backgroundColor: '#1a1a1a',
+                                border: 'none',
+                                borderRadius: '4px',
+                                color: '#fff',
+                                fontFamily:'sf',
+                                display:'inline-block',
+                                whiteSpace:'nowrap'
+                            }}
+                            formatter={(value) => value.toLocaleString()}
+                        />
+                        <Bar 
+                            dataKey="total" 
+                            fill="#4CAF50"
+                            radius={[10, 10, 0, 0]}
+                            animationDuration={800}
+                            animationEasing="ease-in-out"
+                        >
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Mountain Valley Progress Chart */}
+            <div className='chart-mountain-valley'>
+                <p className="chart-title">
+                    Mountain Valley Progress
+                </p>
+                <ResponsiveContainer width="100%" height="80%">
+                    <AreaChart
+                        data={mountainData}
+                        margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 25,
+                        }}
+                    >
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0.2}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="2 4" vertical={true} opacity={'0.2'} />
+                        <XAxis 
+                            dataKey="x" 
+                            stroke="#666"
+                            tick={(props) => {
+                                // Only show tick for end point
+                                if (props.payload.value === 30) {
+                                    return (
+                                        <g transform={`translate(${props.x},${props.y})`}>
+                                            <text
+                                                x={0}
+                                                y={20}
+                                                textAnchor="middle"
+                                                fill="#666"
+                                                fontFamily="sf"
+                                                fontSize="0.9em"
+                                            >
+                                                5M steps
+                                            </text>
+                                        </g>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
+                        <Area
+                            type="basis"
+                            dataKey="y"
+                            stroke="#666"
+                            strokeWidth={2}
+                            fill='#666'
+                            dot={false}
+                            opacity={0.33}
+                        />
+                        <Area
+                            type="basis"
+                            dataKey="progressY"
+                            stroke="#4CAF50"
+                            strokeWidth={2}
+                            fill="url(#progressGradient)"
+                            dot={false}
+                            animationDuration={800}
+                            animationEasing="ease-in-out"
+                            connectNulls={false}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+
+
         </>
     );
 }

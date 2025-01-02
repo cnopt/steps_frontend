@@ -30,6 +30,41 @@
 .chart-monthly-distribution {
     background-color: #0a0a0a;
     border-radius: 8px;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     height: 150px;
 }
+
+.chart-cumulative-steps {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    height: 330px;
+    margin-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.chart-cumulative-steps .chart-title {
+    margin-bottom: 20px;
+}
+
+.chart-yearly-steps {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    height: 330px;
+    margin-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.chart-yearly-steps .chart-title {
+    margin-bottom: 20px;
+}
+
+.chart-mountain-valley {
+    position: relative;
+    margin-top: 1.5rem;
+    background-color: #0a0a0a;
+    border-radius: 10px;
+    padding-bottom: 1rem;
+    height: 280px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+

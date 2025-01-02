@@ -146,4 +146,32 @@ export const badges = [
         image: '../src/assets/badges/badge-500k.png',
         unlockDate: null
     },
+    {
+        id: 22,
+        name: "Half Marathon",
+        description: "Walked the distance of a Half Marathon (21.1km)",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 23,
+        name: "Marathon",
+        description: "Walked the distance of a Marathon (42.2km)",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 24,
+        name: "100 Miles",
+        description: "Walked 100 miles",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 25,
+        name: "200 Miles",
+        description: "Walked 200 miles",
+        image: '../src/assets/badges/badge-500k.png',
+        unlockDate: null
+    },
 ];
