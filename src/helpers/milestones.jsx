@@ -25,6 +25,21 @@ export const milestones = [
     { value: 2300000, rarity: 'uncommon' },
     { value: 2400000, rarity: 'uncommon' },
     { value: 2500000, rarity: 'rare' },
+    { value: 3000000, rarity: 'rare' },
+    { value: 3500000, rarity: 'rare' },
+    { value: 4000000, rarity: 'rare' },
+    { value: 4500000, rarity: 'rare' },
+    { value: 5000000, rarity: 'rare' },
+    { value: 5500000, rarity: 'rare' },
+    { value: 6000000, rarity: 'rare' },
+    { value: 6500000, rarity: 'rare' },
+    { value: 7000000, rarity: 'rare' },
+    { value: 7500000, rarity: 'rare' },
+    { value: 8000000, rarity: 'rare' },
+    { value: 8500000, rarity: 'rare' },
+    { value: 9000000, rarity: 'rare' },
+    { value: 9500000, rarity: 'rare' },
+    { value: 10000000, rarity: 'rare' },
 ];
 
 

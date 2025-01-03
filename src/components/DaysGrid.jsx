@@ -176,9 +176,12 @@ const DaysGrid = () => {
               if (dayData) {
                 if (milestoneDays.has(dayDate)) {
                   const milestone = milestoneDays.get(dayDate);
-                  color = getRarityColor(milestone.rarity);
+                  if (milestone.rarity === 'rare') {
+                    color = 'blueviolet';
+                  } else {
+                    color = getGreenShade(dayData.steps);
+                  }
                 } else {
-                  // backgroundColor = getGreenShade(dayData.steps);
                   color = getGreenShade(dayData.steps);
                 }
               }
@@ -193,23 +196,42 @@ const DaysGrid = () => {
                     position: 'relative'
                   }}
                 >
-                  {dayData && unlockedBadges
-                    .filter(badge => badge.unlockDate === dayDate)
-                    .map((badge, index) => (
-                      <div 
-                        key={badge.id}
-                        style={{
-                          position: 'absolute',
-                          top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
-                          left: '3px',
-                          width: '6px',
-                          height: '6px',
-                          backgroundColor: 'gold',
-                          borderRadius: '50%',
-                          zIndex: 2
-                        }}
-                      />
-                    ))}
+                  {dayData && (
+                    <>
+                      {/* {milestoneDays.has(dayDate) && milestoneDays.get(dayDate).rarity !== 'rare' && (
+                        <div 
+                          className="milestone-indicator"
+                          style={{
+                            position: 'absolute',
+                            top: '3px',
+                            left: '3px',
+                            width: '8px',
+                            height: '3px',
+                            backgroundColor: 'gold',
+                            borderRadius: '1px',
+                            zIndex: 3
+                          }}
+                        />
+                      )} */}
+                      {unlockedBadges
+                        .filter(badge => badge.unlockDate === dayDate)
+                        .map((badge, index) => (
+                          <div 
+                            key={badge.id}
+                            style={{
+                              position: 'absolute',
+                              top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
+                              left: '3px',
+                              width: '6px',
+                              height: '6px',
+                              backgroundColor: 'gold',
+                              borderRadius: '50%',
+                              zIndex: 2
+                            }}
+                          />
+                        ))}
+                    </>
+                  )}
                   {dayData ? '■' : '.'}
                 </div>
               );
@@ -227,7 +249,10 @@ const DaysGrid = () => {
                   <p>
                     <span className='weather-icon'>
                       {getWeatherIcon(weatherQuery.data[selectedDay.formatted_date].weather_code)}
-                    </span> 
+                    </span>
+                    <span style={{ fontSize: '0.8em', color: '#666', fontFamily:'sf' }}>
+                      {weatherQuery.data[selectedDay.formatted_date].temperature_max}°C
+                    </span>
                   </p>
                 )}
               </div>

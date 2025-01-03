@@ -474,7 +474,7 @@ const Badges = ({ unlockedBadges }) => {
     const saved = localStorage.getItem('viewedBadges');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-  const lockedBadgeImage = '../src/assets/badges/locked.png';
+  const lockedBadgeImage = '/locked.png';
 
   const [{ rotateY }, api] = useSpring(() => ({
     rotateY: 0,

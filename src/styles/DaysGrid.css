@@ -103,7 +103,7 @@
     text-transform: capitalize;
 }
 .day-details-top-row .weather-icon {
-    margin-right: 0.75rem;
+    margin-right: 0.33rem;
 }
 .day-details-milestone {
     color: gold !important;
