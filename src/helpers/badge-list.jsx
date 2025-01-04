@@ -100,14 +100,14 @@ export const badges = [
     {
         id: 15,
         name: "1111",
-        description: "1111",
+        description: "Exactly 1111 Steps",
         image: '/badge-500k.png',
         unlockDate: null,
     },
     {
         id: 16,
         name: "9999",
-        description: "9999",
+        description: "Exactly 9999 Steps",
         image: '/badge-500k.png',
         unlockDate: null,
     },
@@ -171,6 +171,111 @@ export const badges = [
         id: 25,
         name: "200 Miles",
         description: "Walked 200 miles",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 26,
+        name: "Mental Weekend",
+        description: "50k Steps In One Weekend",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 27,
+        name: "2222",
+        description: "Exactly 2222 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 28,
+        name: "3333",
+        description: "Exactly 3333 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 29,
+        name: "4444",
+        description: "Exactly 4444 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 30,
+        name: "5555",
+        description: "Exactly 5555 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 31,
+        name: "Doesn't Bother Me",
+        description: "500k Steps On Rainy Days",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 32,
+        name: "White Blanket",
+        description: "Big walk in the snow",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 33,
+        name: "Ramping Up",
+        description: "3 months in a row where total steps increased",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 34,
+        name: "Ramping Up II",
+        description: "6 months in a row where total steps increased",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 35,
+        name: "6666",
+        description: "Exactly 6666 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 36,
+        name: "7777",
+        description: "Exactly 7777 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 37,
+        name: "8888",
+        description: "Exactly 8888 Steps",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 38,
+        name: "Just The Cold Init",
+        description: "100k total steps in the bloody cold",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 39,
+        name: "Just The Cold Init II",
+        description: "500k total steps in the bloody cold",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 40,
+        name: "500 Miles",
+        description: "Just Like The Song",
         image: '/badge-500k.png',
         unlockDate: null
     },

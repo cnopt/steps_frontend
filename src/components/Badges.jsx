@@ -35,9 +35,20 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
       }
 
       // ********************************************************
-      // Rain Demon badge (10k  steps during one rainy day)
+      // Doesn't Bother Me (500kk  steps on rainy days)
       // ********************************************************
-      if (day.steps >= 10000 && !unlockedBadges.some(b => b.id === 9)) {
+      if (runningRainyDaySteps >= 500000 && !unlockedBadges.some(b => b.id === 8)) {
+        unlockedBadges.push({
+          id: 31,
+          name: badges.find(b => b.id === 31).name,
+          unlockDate: day.formatted_date
+        });
+      }
+
+      // ********************************************************
+      // Rain Demon badge (20k steps during one rainy day)
+      // ********************************************************
+      if (day.steps >= 20000 && !unlockedBadges.some(b => b.id === 9)) {
         unlockedBadges.push({
           id: 9,
           name: badges.find(b => b.id === 9).name,
@@ -98,6 +109,7 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
 
   // ********************************************************
   // Weekend Demon badge (20k steps in one weekend)
+  // Weekend God badge (50k steps in one weekend)
   // ********************************************************
   const weekendData = stepsData.reduce((acc, day) => {
     const date = new Date(day.formatted_date);
@@ -109,19 +121,31 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
       acc.currentWeekend.steps += day.steps;
       acc.currentWeekend.endDate = day.formatted_date;
     } else {
-      if (acc.currentWeekend && acc.currentWeekend.steps >= 20000) {
-        acc.achievedWeekends.push(acc.currentWeekend);
+      if (acc.currentWeekend) {
+        if (acc.currentWeekend.steps >= 40000) {
+          acc.fiftyKWeekends.push(acc.currentWeekend);
+        } else if (acc.currentWeekend.steps >= 20000) {
+          acc.twentyKWeekends.push(acc.currentWeekend);
+        }
       }
       acc.currentWeekend = null;
     }
     return acc;
-  }, { currentWeekend: null, achievedWeekends: [] });
+  }, { currentWeekend: null, twentyKWeekends: [], fiftyKWeekends: [] });
 
-  if (weekendData.achievedWeekends.length > 0) {
+  if (weekendData.fiftyKWeekends.length > 0) {
+    unlockedBadges.push({ 
+      id: 26,
+      name: badges.find(b => b.id === 26).name,
+      unlockDate: weekendData.fiftyKWeekends[0].endDate 
+    });
+  }
+
+  if (weekendData.twentyKWeekends.length > 0) {
     unlockedBadges.push({ 
       id: 4,
       name: badges.find(b => b.id === 4).name,
-      unlockDate: weekendData.achievedWeekends[0].endDate 
+      unlockDate: weekendData.twentyKWeekends[0].endDate 
     });
   }
 
@@ -205,7 +229,6 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
       }
     }
   }
-
   if (unlockDate) {
     unlockedBadges.push({
       id: 10,
@@ -290,13 +313,13 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   const exactStepCounts = {
     1337: { id: 14, awarded: false },
     1111: { id: 15, awarded: false },
-    // 2222: { id: XX, awarded: false },
-    // 3333: { id: XX, awarded: false },
-    // 4444: { id: XX, awarded: false },
-    // 5555: { id: XX, awarded: false },
-    // 6666: { id: XX, awarded: false },
-    // 7777: { id: XX, awarded: false },
-    // 8888: { id: XX, awarded: false },
+    2222: { id: 27, awarded: false },
+    3333: { id: 28, awarded: false },
+    4444: { id: 29, awarded: false },
+    5555: { id: 30, awarded: false },
+    6666: { id: 35, awarded: false },
+    7777: { id: 36, awarded: false },
+    8888: { id: 37, awarded: false },
     9999: { id: 16, awarded: false },
     // 10000: { id: XX, awarded: false },
     // 20000: { id: XX, awarded: false },
@@ -428,6 +451,7 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   //   - half Marathon (21.1km)
   //   - 100 miles
   //   - 200 miles
+  //   - 500 miles
   // ********************************************************
   const height = 170;
   const stride_length = (height * 0.42) / 100; // convert to meters
@@ -436,7 +460,8 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
     21100: { id: 22, name: 'Half Marathon', awarded: false },  // 21.1km in meters
     42200: { id: 23, name: 'Marathon', awarded: false },       // 42.2km in meters
     160934: { id: 24, name: '100 Miles', awarded:false },  
-    321869: { id: 25, name: '200 Miles', awarded:false }  
+    321869: { id: 25, name: '200 Miles', awarded:false },  
+    804670: { id: 40, name: '500 Miles', awarded:false }  
   };
 
   let totalDistance = 0;
@@ -461,6 +486,125 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
     }
   }
 
+
+  // ********************************************************
+  // White Blanket badge (8k+ steps on a snowy day)
+  // ********************************************************
+  const snowDayWalk = stepsData.find(day => {
+    const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
+    const weather = weatherData[dateStr];
+    
+    return weather && 
+           weather.weather_code === 'snow' && 
+           day.steps >= 8000;
+  });
+
+  if (snowDayWalk) {
+    unlockedBadges.push({
+      id: 32,
+      name: badges.find(b => b.id === 32).name,
+      unlockDate: snowDayWalk.formatted_date
+    });
+  }
+
+
+  // ********************************************************
+  // Ramping Up badge (3 months where steps increased every month)
+  // ********************************************************
+  const monthlyTotals = stepsData.reduce((acc, day) => {
+    const date = new Date(day.formatted_date);
+    const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+    
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        steps: 0,
+        lastDate: day.formatted_date,
+        month: date.getMonth(),
+        year: date.getFullYear()
+      };
+    }
+    
+    acc[monthKey].steps += day.steps;
+    acc[monthKey].lastDate = day.formatted_date;
+    return acc;
+  }, {});
+
+  // convert to array and sort chronologically
+  const monthlyArray = Object.values(monthlyTotals)
+    .sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.month - b.month;
+    });
+
+  // Check for 3 consecutive increasing months
+  for (let i = 0; i < monthlyArray.length - 2; i++) {
+    if (monthlyArray[i].steps < monthlyArray[i + 1].steps && 
+        monthlyArray[i + 1].steps < monthlyArray[i + 2].steps) {
+      unlockedBadges.push({
+        id: 33,
+        name: badges.find(b => b.id === 33).name,
+        unlockDate: monthlyArray[i + 2].lastDate
+      });
+      break;
+    }
+  }
+
+  // ********************************************************
+  // Still Going badge (6 months where steps increased every month)
+  // ********************************************************
+  for (let i = 0; i < monthlyArray.length - 5; i++) {
+    if (monthlyArray[i].steps < monthlyArray[i + 1].steps && 
+        monthlyArray[i + 1].steps < monthlyArray[i + 2].steps &&
+        monthlyArray[i + 2].steps < monthlyArray[i + 3].steps &&
+        monthlyArray[i + 3].steps < monthlyArray[i + 4].steps &&
+        monthlyArray[i + 4].steps < monthlyArray[i + 5].steps) {
+      unlockedBadges.push({
+        id: 34,
+        name: badges.find(b => b.id === 34).name,
+        unlockDate: monthlyArray[i + 5].lastDate
+      });
+      break;
+    }
+  }
+
+  // ********************************************************
+  //  Just The Cold Init (100k total steps in cold weather)
+  // ********************************************************
+  let coldWeatherSteps = 0;
+  let coldWeather100kDate = null;
+  let coldWeather500kDate = null;
+
+  for (const day of stepsData) {
+    const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
+    const weather = weatherData[dateStr];
+    
+    if (weather && weather.temperature_max <= 3) {
+      coldWeatherSteps += day.steps;
+      
+      if (coldWeatherSteps >= 500000 && !coldWeather500kDate) {
+        coldWeather500kDate = day.formatted_date;
+      }
+      else if (coldWeatherSteps >= 100000 && !coldWeather100kDate) {
+        coldWeather100kDate = day.formatted_date;
+      }
+    }
+  }
+
+  if (coldWeather100kDate) {
+    unlockedBadges.push({
+      id: 38,
+      name: badges.find(b => b.id === 38).name,
+      unlockDate: coldWeather100kDate
+    });
+  }
+
+  if (coldWeather500kDate) {
+    unlockedBadges.push({
+      id: 39,
+      name: badges.find(b => b.id === 39).name,
+      unlockDate: coldWeather500kDate
+    });
+  }
 
   return unlockedBadges;
 };

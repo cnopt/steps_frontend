@@ -22,6 +22,9 @@ import {
 import { format, subDays, parseISO } from 'date-fns';
 import '../styles/Stats.css'
 import LoadingSpinner from './LoadingSpinner';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';  // Add this import
+
 
 export default function Stats() {
     const query = useStepsData();
@@ -187,6 +190,118 @@ export default function Stats() {
 
     const { data: mountainData, progressX, progressPercentage } = calculateProgress();
 
+
+    // First, let's prepare the data for the last 30 days
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+        const date = subDays(yesterday, i);
+        return format(date, 'yyyy-MM-dd');
+    }).reverse();
+
+
+    // Prepare data for ECharts deviation chart
+    const deviationChartData = last30Days.map(date => {
+        const dayData = query.data.find(d => d.formatted_date === date);
+        const steps = dayData ? dayData.steps : 0;
+        return {
+            date: format(new Date(date), 'MMM d'),
+            deviation: steps - 5500 // Difference from UK average
+        };
+    });
+
+    // ECharts option configuration
+    const deviationChartOption = {
+        backgroundColor: '#0a0a0a',
+        tooltip: {
+            trigger: 'axis',
+            formatter: function(params) {
+                const deviation = params[0].value;
+                const formattedDeviation = deviation > 0 
+                    ? `+${deviation.toLocaleString()}`
+                    : deviation.toLocaleString();
+                return `${params[0].name}<br/>
+                        Deviation: ${formattedDeviation} steps`;
+            },
+            backgroundColor: '#0a0a0a',
+            borderWidth: 0,
+            textStyle: {
+                color: '#fff',
+                fontFamily: 'sf'
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: deviationChartData.map(d => d.date),
+            axisLabel: {
+                color: '#666',
+                fontFamily: 'sf',
+                fontSize: 11
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#222'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            axisLabel: {
+                color: '#666',
+                fontFamily: 'sf',
+                fontSize: 11,
+                formatter: (value) => `${value > 0 ? '+' : ''}${value.toLocaleString()}`
+            },
+            splitLine: {
+                lineStyle: {
+                    color: '#222',
+                    type: 'dashed'
+                }
+            }
+        },
+        series: [{
+            data: deviationChartData.map(d => d.deviation),
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: {
+                width: 2
+            },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    {
+                        offset: 0,
+                        color: 'rgba(76, 175, 80, 0.3)'
+                    },
+                    {
+                        offset: 1,
+                        color: 'rgba(255, 68, 68, 0.3)'
+                    }
+                ])
+            },
+            itemStyle: {
+                color: function(params) {
+                    return params.value >= 0 ? '#4CAF50' : '#ff4444';
+                }
+            }
+        }],
+        markLine: {
+            silent: true,
+            data: [{
+                yAxis: 0,
+                lineStyle: {
+                    color: '#666',
+                    type: 'solid',
+                    width: 2
+                }
+            }]
+        }
+    };
 
     return(
         <>
@@ -488,6 +603,16 @@ export default function Stats() {
                 </ResponsiveContainer>
             </div>
 
+            <div className='chart-step-deviation'>
+                <p className="chart-title">
+                    Step Count Deviation from UK Average (6,000)
+                </p>
+                <ReactECharts 
+                    option={deviationChartOption}
+                    style={{ height: '80%', width: '100%' }}
+                    theme="dark"
+                />
+            </div>
 
         </>
     );

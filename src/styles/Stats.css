@@ -68,3 +68,16 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.chart-step-deviation {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    height: 330px;
+    margin-top: 1.5rem;
+    padding-bottom: 1rem;
+    margin-bottom: 20rem;
+}
+
+.chart-step-deviation .chart-title {
+    margin-bottom: 20px;
+}
+
