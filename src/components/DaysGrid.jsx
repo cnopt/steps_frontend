@@ -13,6 +13,8 @@ import { useLocalStorage } from '@uidotdev/usehooks';
 const getWeatherIcon = (weatherString) => {
   const weatherIcons = {
     'clear': '☀️',
+    'clear sky': '☀️',
+    'mainly clear': '☀️',
     'sunny': '☀️',
     'partly cloudy': '⛅',
     'cloudy': '☁️',

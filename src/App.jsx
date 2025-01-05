@@ -9,6 +9,7 @@ import NavBar from './components/NavBar';
 import NumberInput from './components/NumberInput';
 import Stats from './components/Stats';
 import PlayerHome from './components/PlayerHome';
+import Compass from './components/Compass';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ function App() {
           <Route path='/achievements' element={<Achievements/>}/>
           <Route path='/input' element={<NumberInput/>}/>
           <Route path='/stats' element={<Stats/>}/>
+          <Route path='/compass' element={<Compass/>}/>
         </Routes>
       </Router>
       <ReactQueryDevtools/>

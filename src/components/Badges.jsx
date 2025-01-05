@@ -10,6 +10,7 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   let runningTotalSteps = 0;
   let runningRainyDaySteps = 0;
   let highestRainyDaySteps = 0;
+  //console.log(weatherData)
 
   // Process days chronologically, tracking running totals
   for (const day of stepsData) {
@@ -388,7 +389,6 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   const coldWarriorDay = stepsData.find(day => {
     const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
     const weather = weatherData[dateStr];
-    console.log(weather)
     return weather && 
            weather.temperature_max <= 1 && 
            day.steps > 7000;
@@ -568,7 +568,7 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
   }
 
   // ********************************************************
-  //  Just The Cold Init (100k total steps in cold weather)
+  //  Just The Cold Init (100k + 500k total steps in cold weather)
   // ********************************************************
   let coldWeatherSteps = 0;
   let coldWeather100kDate = null;
@@ -605,6 +605,33 @@ export const checkBadgeUnlock = (stepsData, weatherData = {}) => {
       unlockDate: coldWeather500kDate
     });
   }
+
+
+  // ********************************************************
+  // Pussy badge (less than 2k steps on a freezing day)
+  // ********************************************************
+  const coldAvoidanceDay = stepsData.find(day => {
+    const dateStr = new Date(day.formatted_date).toISOString().split('T')[0];
+    const weather = weatherData[dateStr];
+    return weather && 
+          weather.temperature_max <= 1 && 
+          day.steps < 2000;
+  });
+
+  if (coldAvoidanceDay) {
+    unlockedBadges.push({
+      id: 41,
+      name: badges.find(b => b.id === 41).name,
+      unlockDate: coldAvoidanceDay.formatted_date
+    });
+  }
+
+
+
+
+
+
+
 
   return unlockedBadges;
 };

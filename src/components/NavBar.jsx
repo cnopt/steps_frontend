@@ -20,6 +20,9 @@ export default function NavBar() {
                 <Link to={`/input`}>
                     <p>Input</p>
                 </Link>
+                <Link to={`/compass`}>
+                    <p>Compass</p>
+                </Link>
             </div>
         </>
     )

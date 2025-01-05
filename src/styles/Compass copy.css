@@ -1,0 +1,146 @@
+.compass-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    touch-action: none;
+}
+
+.compass {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    cursor: grab;
+    user-select: none;
+    font-family: sf;
+}
+
+.compass:active {
+    cursor: grabbing;
+}
+
+.compass-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    border: 2px solid #666;
+}
+
+.compass-markings {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-origin: center;
+}
+
+.compass-marking {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+.compass-marking::after {
+    position: absolute;
+    content: " ";
+    color: black;
+    background-color: black;
+    width: 1.15rem;
+    height: 2rem;
+    /* text-align: center; */
+    margin-left: -1.1rem;
+    margin-top: 0rem;
+    z-index: -1;
+}
+
+.degree-marker {
+    width: 2px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    margin-top: -4px;
+    margin-left: -1px;
+    transform-origin: 50% 150px;
+}
+
+.degree-marker:nth-child(3n) {
+    height: 12px;
+    margin-top: -6px;
+}
+
+.north { top: -5%; }
+.south { bottom: -5%; }
+.east { right: 50%; top: 50%; transform: translateY(-50%); }
+.west { left: 50%; top: 50%; transform: translateY(-50%); }
+/* Add intercardinal directions */
+.northwest { left: 36%; top: 9%; font-size: 0.9em; color: #999;}
+.northeast { right: 36%; top: 9%; font-size: 0.9em;color: #999;}
+.southeast { right: 36%; bottom: 9%; font-size: 0.9em;color: #999;}
+.southwest { left: 36%; bottom: 9%; font-size: 0.9em;color: #999;}
+
+.compass-arrow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 40%;
+    background: red;
+    transform: translate(-50%, -100%);
+    transform-origin: bottom center;
+    clip-path: polygon(50% 0, 100% 100%, 50% 85%, 0 100%);
+}
+
+.compass-controls {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.heading-display {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.location-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.control-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.control-group input {
+    width: 150px;
+    padding: 5px;
+    border: 1px solid white;
+    background: transparent;
+    color: white;
+    border-radius: 4px;
+}
+
+.simulation-controls button {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.simulation-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.simulation-controls button.active {
+    background: rgba(255, 255, 255, 0.2);
+} 

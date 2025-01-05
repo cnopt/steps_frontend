@@ -275,7 +275,14 @@ export const badges = [
     {
         id: 40,
         name: "500 Miles",
-        description: "Just Like The Song",
+        description: "Haha Like The Song",
+        image: '/badge-500k.png',
+        unlockDate: null
+    },
+    {
+        id: 41,
+        name: "Pussy",
+        description: "Didn't go nowhere on a freeezing day",
         image: '/badge-500k.png',
         unlockDate: null
     },
