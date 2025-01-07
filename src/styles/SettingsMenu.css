@@ -1,0 +1,117 @@
+.settings-container {
+  padding: 18px;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 2rem;
+}
+
+.height-settings, .weight-settings {
+  font-family: sf;
+  background: #0a0a0a;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding-top: 1.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-bottom: 1.5rem;
+}
+
+.gender-settings {
+    margin-bottom: 1.75rem;
+}
+
+.height-settings h2, .weight-settings h2 {
+  margin-bottom: 20px;
+  color: #666;
+  margin: 0;
+  margin-bottom: 0.3rem;
+  font-size: 1.1em;
+  font-weight: normal;
+  font-family: sf-semi;
+}
+
+.height-adjuster, .weight-adjuster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.height-button, .weight-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+
+.decrease {
+  color: #ff4444;
+}
+
+.increase {
+  color: #00C851;
+}
+
+.height-value-container, .weight-value-container {
+  position: relative;
+  min-width: 100px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.height-value, .weight-value {
+  position: absolute;
+  font-size: 1.4em;
+  font-weight: bold;
+  text-align: center;
+}
+
+.gender-switch {
+    width: 10rem;
+    margin: auto;
+    border: 3px solid #111;
+    border-radius: 12px;
+}
+.gender-switch button {
+    width: 50%;
+    opacity: 0.4;
+}
+.gender-switch button.active {
+    background-color: #11233b;
+    opacity: 1;   
+}
+button.gender-button.girl.active {
+    background-color: #3b113a !important;
+}
+
+.save-button-container {
+    width: 70%;
+    margin: auto;
+}
+.save-settings-button {
+  display: block;
+  width: 100%;
+  margin: auto;
+  text-align: center;
+  padding: 1rem;
+  font-family: sf;
+  background: #0a0a0a;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 2rem;
+}
+
+
+.save-settings-button:active {
+  transform: scale(0.98);
+}

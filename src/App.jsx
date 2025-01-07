@@ -10,6 +10,8 @@ import NumberInput from './components/NumberInput';
 import Stats from './components/Stats';
 import PlayerHome from './components/PlayerHome';
 import Compass from './components/Compass';
+import { AnimatePresence } from 'framer-motion';
+import SettingsMenu from './components/SettingsMenu';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -18,16 +20,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Routes>
-          <Route path='/' element={<PlayerHome/>}/>
-          <Route path='/month' element={<DaysGrid/>}/>
-          <Route path='/achievements' element={<Achievements/>}/>
-          <Route path='/input' element={<NumberInput/>}/>
-          <Route path='/stats' element={<Stats/>}/>
-          <Route path='/compass' element={<Compass/>}/>
-        </Routes>
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path='/' element={<PlayerHome/>}/>
+            <Route path='/month' element={<DaysGrid/>}/>
+            <Route path='/achievements' element={<Achievements/>}/>
+            <Route path='/input' element={<NumberInput/>}/>
+            <Route path='/stats' element={<Stats/>}/>
+            <Route path='/compass' element={<Compass/>}/>
+            <Route path='/settings' element={<SettingsMenu/>}/>
+          </Routes>
+        </AnimatePresence>
       </Router>
-      <ReactQueryDevtools/>
+      {/* <ReactQueryDevtools/> */}
     </QueryClientProvider>
   );
 }

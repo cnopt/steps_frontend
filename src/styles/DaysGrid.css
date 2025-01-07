@@ -62,7 +62,7 @@
     grid-template-columns: repeat(7, 1fr);
     /* gap: 5px; */
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1.4em;
     cursor: pointer;
 }
 .day-grid-days-label {
@@ -102,6 +102,13 @@
     justify-content: space-between;
     text-transform: capitalize;
 }
+.day-details-top-row p {
+    margin-bottom: 0.65rem;
+}
+.day-details-top-row-date {
+    font-family: sf !important;
+    margin-bottom: 0;
+}
 .day-details-top-row .weather-icon {
     margin-right: 0.33rem;
 }
@@ -115,4 +122,50 @@
 }
 .day-details-badge span {
     margin-right: 0.75rem !important;
+}
+
+.day-details-second-row {
+    display: flex;
+    justify-content: space-between;
+}
+.day-details-second-row p {
+    margin-bottom: 0.5rem;
+}
+.day-details-second-row p span {
+    margin-right: 0 !important;
+}
+.day-details-second-row span {
+    font-size: 1.2em;
+}
+.day-details-second-row .icon {
+    margin-right: 0.5rem !important;
+}
+.day-details-steps {
+    font-family: sf-semi !important;
+    opacity: 1 !important;
+    font-size: 1.4em;
+}
+.day-details-distance {
+    font-family: sf-semi !important;
+    opacity: 1 !important;
+    font-size: 1.4em;
+}
+.day-details-calories {
+    font-size: 0.7em !important;
+    opacity: 1 !important;
+    vertical-align: middle;
+}
+
+.day-details-third-row {
+    margin-bottom: 1rem;
+}
+.day-details-third-row p {
+    margin: 0;
+}
+
+.day-details-milestones {
+    margin-top: 0.8rem;
+}
+.day-details-badges {
+    margin-top: 0.8rem;
 }

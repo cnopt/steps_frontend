@@ -24,6 +24,7 @@ import '../styles/Stats.css'
 import LoadingSpinner from './LoadingSpinner';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';  // Add this import
+import PageTransition from './PageTransition';
 
 
 export default function Stats() {
@@ -307,313 +308,314 @@ export default function Stats() {
         <>
             <NavBar/>
             <XPBar/>
-            
-            <div className='chart-last-7-days'>
-                <p className="chart-title">
-                    Steps for last 7 days
-                </p>
-                <ResponsiveContainer width="100%" height="80%">
-                    <AreaChart
-                        data={chartData}
-                        margin={{
-                            top: 5,
-                            right: 25,
-                            left: 10,
-                            bottom: 0,
-                        }}
-                    >
-                        <defs>
-                            <linearGradient id="colorSteps" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid 
-                            strokeDasharray="3 3" 
-                            stroke="#222"
-                            vertical={false}
-                        />
-                        <XAxis 
-                            dataKey="date" 
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                        />
-                        <YAxis 
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                            tickFormatter={formatLargeNumber}
-                        />
-                        <Tooltip 
-                            contentStyle={{
-                                backgroundColor: '#1a1a1a',
-                                border: 'none',
-                                borderRadius: '4px',
-                                color: '#fff',
-                                fontFamily:'sf',
-                                display:'inline-block',
-                                whiteSpace:'nowrap'
-                            }}
-                            formatter={(value) => value.toLocaleString()}
-                        />
-                        <Area 
-                            type="natural"
-                            dataKey="steps"
-                            stroke="#4CAF50"
-                            strokeOpacity={1}
-                            fill="url(#colorSteps)"
-                            fillOpacity={1}
-                            strokeWidth={1}
-                            dot={{ fill: '#4CAF50', r: 3 }}
-                            activeDot={{ r: 5 }}
-                            animationDuration={800}
-                            animationEasing="ease-in-out"
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-
-
-            {/* Pie Chart */}
-            <div className='chart-weekly-distribution'>
-                <p className="chart-title">
-                    Total Steps Distribution by Days of the Week
-                </p>
-                <ResponsiveContainer width="100%" height="80%">
-                    <PieChart
-                        margin={{
-                            top: 80,
-                            right: 0,
-                            left: 0,
-                            bottom: 0,
-                        }}
-                    >
-                        <Pie
-                            data={pieChartData}
-                            dataKey="value"
-                            nameKey="name"
-                            startAngle={180}
-                            endAngle={0}
-                            cx="50%"
-                            cy="40%"
-                            outerRadius={85}
-                            label={({ name }) => getDayAbbreviation(name)}
-                            labelLine={false}
-                        >
-                            {pieChartData.map((entry, index) => (
-                                <Cell 
-                                    key={`cell-${index}`} 
-                                    fill={'#4CAF50'}
-                                    stroke={'#000'}
-                                    fontSize={'0.8em'}
-                                    fontFamily='sf'
-                                    onClick={null}
+                <div className="stats-container">
+                    <div className='chart-last-7-days'>
+                        <p className="chart-title">
+                            Steps for last 7 days
+                        </p>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <AreaChart
+                                data={chartData}
+                                margin={{
+                                    top: 5,
+                                    right: 25,
+                                    left: 10,
+                                    bottom: 0,
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient id="colorSteps" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid 
+                                    strokeDasharray="3 3" 
+                                    stroke="#222"
+                                    vertical={false}
                                 />
-                            ))}
-                        </Pie>
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
+                                <XAxis 
+                                    dataKey="date" 
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                />
+                                <YAxis 
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                    tickFormatter={formatLargeNumber}
+                                />
+                                <Tooltip 
+                                    contentStyle={{
+                                        backgroundColor: '#1a1a1a',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        color: '#fff',
+                                        fontFamily:'sf',
+                                        display:'inline-block',
+                                        whiteSpace:'nowrap'
+                                    }}
+                                    formatter={(value) => value.toLocaleString()}
+                                />
+                                <Area 
+                                    type="natural"
+                                    dataKey="steps"
+                                    stroke="#4CAF50"
+                                    strokeOpacity={1}
+                                    fill="url(#colorSteps)"
+                                    fillOpacity={1}
+                                    strokeWidth={1}
+                                    dot={{ fill: '#4CAF50', r: 3 }}
+                                    activeDot={{ r: 5 }}
+                                    animationDuration={800}
+                                    animationEasing="ease-in-out"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
 
-            {/* Cumulative Steps Chart */}
-            <div className='chart-cumulative-steps'>
-                <p className="chart-title">
-                    Total Steps Over Time
-                </p>
-                <ResponsiveContainer width="100%" height="80%">
-                    <AreaChart
-                        data={cumulativeData}
-                        margin={{
-                            top: 5,
-                            right: 25,
-                            left: 10,
-                            bottom: 0,
-                        }}
-                    >
-                        <defs>
-                            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid 
-                            strokeDasharray="3 3" 
-                            stroke="#222"
-                            vertical={false}
-                        />
-                        <XAxis 
-                            dataKey="year"
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                            ticks={cumulativeData.filter(d => d.showTick).map(d => d.year)}
-                            tickFormatter={(value) => value}
-                        />
-                        <YAxis 
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                            tickFormatter={formatLargeNumber}
-                        />
-                        <Area 
-                            type="natural"
-                            dataKey="total"
-                            stroke="#4CAF50"
-                            strokeOpacity={1}
-                            fill="url(#colorTotal)"
-                            fillOpacity={1}
-                            strokeWidth={2}
-                            animationDuration={800}
-                            animationEasing="ease-in-out"
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
 
-            {/* Yearly Total Steps Chart */}
-            <div className='chart-yearly-steps'>
-                <p className="chart-title">
-                    Total Steps by Year
-                </p>
-                <ResponsiveContainer width="100%" height="80%">
-                    <BarChart
-                        data={yearlyData}
-                        margin={{
-                            top: 5,
-                            right: 25,
-                            left: 10,
-                            bottom: 0,
-                        }}
-                    >
-                        <CartesianGrid 
-                            strokeDasharray="3 3" 
-                            stroke="#222"
-                            vertical={false}
-                        />
-                        <XAxis 
-                            dataKey="year"
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                        />
-                        <YAxis 
-                            stroke="#666"
-                            tick={{ fill: '#666' }}
-                            fontFamily='sf'
-                            fontSize={'0.9em'}
-                            tickFormatter={formatLargeNumber}
-                        />
-                        <Tooltip 
-                            contentStyle={{
-                                backgroundColor: '#1a1a1a',
-                                border: 'none',
-                                borderRadius: '4px',
-                                color: '#fff',
-                                fontFamily:'sf',
-                                display:'inline-block',
-                                whiteSpace:'nowrap'
-                            }}
-                            formatter={(value) => value.toLocaleString()}
-                        />
-                        <Bar 
-                            dataKey="total" 
-                            fill="#4CAF50"
-                            radius={[10, 10, 0, 0]}
-                            animationDuration={800}
-                            animationEasing="ease-in-out"
-                        >
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+                    {/* Pie Chart */}
+                    <div className='chart-weekly-distribution'>
+                        <p className="chart-title">
+                            Total Steps Distribution by Days of the Week
+                        </p>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <PieChart
+                                margin={{
+                                    top: 80,
+                                    right: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                }}
+                            >
+                                <Pie
+                                    data={pieChartData}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    startAngle={180}
+                                    endAngle={0}
+                                    cx="50%"
+                                    cy="40%"
+                                    outerRadius={85}
+                                    label={({ name }) => getDayAbbreviation(name)}
+                                    labelLine={false}
+                                >
+                                    {pieChartData.map((entry, index) => (
+                                        <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={'#4CAF50'}
+                                            stroke={'#000'}
+                                            fontSize={'0.8em'}
+                                            fontFamily='sf'
+                                            onClick={null}
+                                        />
+                                    ))}
+                                </Pie>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
 
-            {/* Mountain Valley Progress Chart */}
-            <div className='chart-mountain-valley'>
-                <p className="chart-title">
-                    Mountain Valley Progress
-                </p>
-                <ResponsiveContainer width="100%" height="80%">
-                    <AreaChart
-                        data={mountainData}
-                        margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 25,
-                        }}
-                    >
-                        <defs>
-                            <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0.2}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="2 4" vertical={true} opacity={'0.2'} />
-                        <XAxis 
-                            dataKey="x" 
-                            stroke="#666"
-                            tick={(props) => {
-                                // Only show tick for end point
-                                if (props.payload.value === 30) {
-                                    return (
-                                        <g transform={`translate(${props.x},${props.y})`}>
-                                            <text
-                                                x={0}
-                                                y={20}
-                                                textAnchor="middle"
-                                                fill="#666"
-                                                fontFamily="sf"
-                                                fontSize="0.9em"
-                                            >
-                                                5M steps
-                                            </text>
-                                        </g>
-                                    );
-                                }
-                                return null;
-                            }}
-                        />
-                        <Area
-                            type="basis"
-                            dataKey="y"
-                            stroke="#666"
-                            strokeWidth={2}
-                            fill='#666'
-                            dot={false}
-                            opacity={0.33}
-                        />
-                        <Area
-                            type="basis"
-                            dataKey="progressY"
-                            stroke="#4CAF50"
-                            strokeWidth={2}
-                            fill="url(#progressGradient)"
-                            dot={false}
-                            animationDuration={800}
-                            animationEasing="ease-in-out"
-                            connectNulls={false}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
+                    {/* Cumulative Steps Chart */}
+                    <div className='chart-cumulative-steps'>
+                        <p className="chart-title">
+                            Total Steps Over Time
+                        </p>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <AreaChart
+                                data={cumulativeData}
+                                margin={{
+                                    top: 5,
+                                    right: 25,
+                                    left: 10,
+                                    bottom: 0,
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid 
+                                    strokeDasharray="3 3" 
+                                    stroke="#222"
+                                    vertical={false}
+                                />
+                                <XAxis 
+                                    dataKey="year"
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                    ticks={cumulativeData.filter(d => d.showTick).map(d => d.year)}
+                                    tickFormatter={(value) => value}
+                                />
+                                <YAxis 
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                    tickFormatter={formatLargeNumber}
+                                />
+                                <Area 
+                                    type="natural"
+                                    dataKey="total"
+                                    stroke="#4CAF50"
+                                    strokeOpacity={1}
+                                    fill="url(#colorTotal)"
+                                    fillOpacity={1}
+                                    strokeWidth={2}
+                                    animationDuration={800}
+                                    animationEasing="ease-in-out"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
 
-            <div className='chart-step-deviation'>
-                <p className="chart-title">
-                    Step Count Deviation from UK Average (6,000)
-                </p>
-                <ReactECharts 
-                    option={deviationChartOption}
-                    style={{ height: '80%', width: '100%' }}
-                    theme="dark"
-                />
-            </div>
+                    {/* Yearly Total Steps Chart */}
+                    <div className='chart-yearly-steps'>
+                        <p className="chart-title">
+                            Total Steps by Year
+                        </p>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart
+                                data={yearlyData}
+                                margin={{
+                                    top: 5,
+                                    right: 25,
+                                    left: 10,
+                                    bottom: 0,
+                                }}
+                            >
+                                <CartesianGrid 
+                                    strokeDasharray="3 3" 
+                                    stroke="#222"
+                                    vertical={false}
+                                />
+                                <XAxis 
+                                    dataKey="year"
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                />
+                                <YAxis 
+                                    stroke="#666"
+                                    tick={{ fill: '#666' }}
+                                    fontFamily='sf'
+                                    fontSize={'0.9em'}
+                                    tickFormatter={formatLargeNumber}
+                                />
+                                <Tooltip 
+                                    contentStyle={{
+                                        backgroundColor: '#1a1a1a',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        color: '#fff',
+                                        fontFamily:'sf',
+                                        display:'inline-block',
+                                        whiteSpace:'nowrap'
+                                    }}
+                                    formatter={(value) => value.toLocaleString()}
+                                />
+                                <Bar 
+                                    dataKey="total" 
+                                    fill="#4CAF50"
+                                    radius={[10, 10, 0, 0]}
+                                    animationDuration={800}
+                                    animationEasing="ease-in-out"
+                                >
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
 
+                    {/* Mountain Valley Progress Chart */}
+                    <div className='chart-mountain-valley'>
+                        <p className="chart-title">
+                            Mountain Valley Progress
+                        </p>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <AreaChart
+                                data={mountainData}
+                                margin={{
+                                    top: 20,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 25,
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
+                                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0.2}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="2 4" vertical={true} opacity={'0.2'} />
+                                <XAxis 
+                                    dataKey="x" 
+                                    stroke="#666"
+                                    tick={(props) => {
+                                        // Only show tick for end point
+                                        if (props.payload.value === 30) {
+                                            return (
+                                                <g transform={`translate(${props.x},${props.y})`}>
+                                                    <text
+                                                        x={0}
+                                                        y={20}
+                                                        textAnchor="middle"
+                                                        fill="#666"
+                                                        fontFamily="sf"
+                                                        fontSize="0.9em"
+                                                    >
+                                                        5M steps
+                                                    </text>
+                                                </g>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
+                                <Area
+                                    type="basis"
+                                    dataKey="y"
+                                    stroke="#666"
+                                    strokeWidth={2}
+                                    fill='#666'
+                                    dot={false}
+                                    opacity={0.33}
+                                />
+                                <Area
+                                    type="basis"
+                                    dataKey="progressY"
+                                    stroke="#4CAF50"
+                                    strokeWidth={2}
+                                    fill="url(#progressGradient)"
+                                    dot={false}
+                                    animationDuration={800}
+                                    animationEasing="ease-in-out"
+                                    connectNulls={false}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className='chart-step-deviation'>
+                        <p className="chart-title">
+                            Step Count Deviation from UK Average (6,000)
+                        </p>
+                        <ReactECharts 
+                            option={deviationChartOption}
+                            style={{ height: '80%', width: '100%' }}
+                            theme="dark"
+                        />
+                    </div>
+
+                </div>
         </>
     );
 }

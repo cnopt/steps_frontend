@@ -237,3 +237,31 @@ button:disabled {
 .permission-button:hover {
     background: rgba(255, 255, 255, 0.1);
 }
+
+.orientation-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+    border-radius: 4px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.orientation-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.orientation-controls button {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.orientation-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

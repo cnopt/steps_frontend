@@ -13,8 +13,6 @@ const Compass = () => {
     const [manualMode, setManualMode] = useState(false);
     const simulationInterval = useRef(null);
     const compassRef = useRef(null);
-    const [hasPermission, setHasPermission] = useState(false);
-    const [deviceOrientationSupported, setDeviceOrientationSupported] = useState(null);
 
     // Spring animation for smooth compass movement
     const { transform, rotateZ } = useSpring({
@@ -23,27 +21,10 @@ const Compass = () => {
         config: { tension: 300, friction: 30 }
     });
 
-    const requestPermission = async () => {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            try {
-                const permission = await DeviceOrientationEvent.requestPermission();
-                setHasPermission(permission === 'granted');
-            } catch (error) {
-                console.error('Error requesting device orientation permission:', error);
-                setHasPermission(false);
-            }
-        } else {
-            setHasPermission(true);
-        }
-    };
-
     // Handle device orientation
     useEffect(() => {
-        if (!hasPermission) {
-            return;
-        }
-
         if (window.DeviceOrientationEvent) {
+            console.log("penis")
             const handleOrientation = (event) => {
                 if (!manualMode) {
                     // Handle compass heading
@@ -66,8 +47,9 @@ const Compass = () => {
             window.addEventListener('deviceorientation', handleOrientation);
             return () => window.removeEventListener('deviceorientation', handleOrientation);
         }
-    }, [manualMode, hasPermission]);
+    }, [manualMode]);
 
+    // Gesture handling for manual tilt control
     const bind = useGesture({
         onDrag: ({ movement: [mx, my], dragging }) => {
             if (manualMode && dragging) {
@@ -123,58 +105,10 @@ const Compass = () => {
         setManualMode(prev => !prev);
     };
 
-    useEffect(() => {
-        if (window.DeviceOrientationEvent) {
-            // add test listener to check if we actually get orientation
-            const testOrientation = (event) => {
-                if (event.alpha !== null) {
-                    setDeviceOrientationSupported(true);
-                } else {
-                    setDeviceOrientationSupported(false);
-                }
-                window.removeEventListener('deviceorientation', testOrientation);
-            };
-
-            window.addEventListener('deviceorientation', testOrientation, false);
-
-            const timeoutId = setTimeout(() => {
-                window.removeEventListener('deviceorientation', testOrientation);
-                if (deviceOrientationSupported === null) {
-                    setDeviceOrientationSupported(false);
-                }
-            }, 1000);
-
-            return () => {
-                clearTimeout(timeoutId);
-                window.removeEventListener('deviceorientation', testOrientation);
-            };
-        } else {
-            setDeviceOrientationSupported(false);
-        }
-    }, []);
-
     return (
         <>
             <NavBar/>
             <div className="compass-container">
-                {deviceOrientationSupported === false && (
-                    <div className="permission-request">
-                        <p className="error-message">
-                            Your device doesn't support compass functionality. 
-                            Using manual mode instead.
-                        </p>
-                    </div>
-                )}
-                {deviceOrientationSupported && !hasPermission && (
-                    <div className="permission-request">
-                        <button 
-                            onClick={requestPermission}
-                            className="permission-button"
-                        >
-                            Enable Compass Access
-                        </button>
-                    </div>
-                )}
                 <div className="compass">
                     <div 
                         className="compass-face"

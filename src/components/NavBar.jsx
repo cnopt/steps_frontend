@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
 import '../styles/NavBar.css'
+import { IoMdSettings } from "react-icons/io";
+
 
 export default function NavBar() {
     return(
@@ -20,9 +22,12 @@ export default function NavBar() {
                 <Link to={`/input`}>
                     <p>Input</p>
                 </Link>
-                <Link to={`/compass`}>
-                    <p>Compass</p>
+                <Link to={`/settings`}>
+                    <IoMdSettings />
                 </Link>
+                {/* <Link to={`/compass`}>
+                    <p>Compass</p>
+                </Link> */}
             </div>
         </>
     )

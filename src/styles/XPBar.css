@@ -9,11 +9,21 @@
     z-index: 102;
 }
 
+/* Female color scheme */
+.level-progress-container.female {
+    background-color: #260a1a;
+}
+
 .level-progress-bar {
     position: absolute;
     height: 100%;
     background-color: #112540;
     transition: width 0.3s ease;
+}
+
+/* Female color scheme */
+.level-progress-container.female .level-progress-bar {
+    background-color: #401125;
 }
 
 .level-progress-content {
@@ -27,42 +37,31 @@
 
 .current-level {
     padding-left: 1rem;
-    color:#4493f8;
-}
-.current-level span {
-    padding-right: 0.2rem;
+    color: #4493f8;
     font-family: sf-mono;
 }
 .next-level {
-    padding-right: 1rem;
-    color:#4493f8;
-}
-.next-level span {
-    padding-right: 0.2rem;
-}
-.current-level, .next-level {
+    color: #4493f8;
     font-family: sf-mono;
+    padding-right: 1rem;
+}
+
+/* Female color scheme */
+.level-progress-container.female .current-level,
+.level-progress-container.female .next-level {
+    color: #f844a4;
 }
 
 .total-steps {
     font-family: sf;
     text-align: center;
-    color:#4493f8 ;
+    color: #4493f8;
     font-size: 1.1em;
 }
 
-.total-steps span {
-    font-family: sf-semi;
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 100;
+/* Female color scheme */
+.level-progress-container.female .total-steps {
+    color: #f844a4;
 }
 
 .level-details {
@@ -72,6 +71,37 @@
     background-color: #0a1626;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Female color scheme */
+.level-details.female {
+    background-color: #260a1a;
+}
+
+.details-content p {
+    color: #385d8f;
+}
+
+/* Female color scheme */
+.level-details.female .details-content p {
+    color: #8f385d;
+}
+
+.current-level span {
+    padding-right: 0.2rem;
+}
+.next-level span {
+    padding-right: 0.2rem;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 100;
 }
 
 .level-details.expanded {

@@ -5,6 +5,8 @@ import { useStepsData } from '../hooks/useStepsData';
 import NavBar from './NavBar'
 import '../styles/NumberInput.css'
 import XPBar from "./XPBar";
+import PageTransition from './PageTransition';
+
 
 const NumberInput = () => {
   const [inputValue, setInputValue] = useState("");

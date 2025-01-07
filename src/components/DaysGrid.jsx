@@ -9,6 +9,9 @@ import { useWeatherData } from '../hooks/useWeatherData';
 // import steps from '../assets/allstepsdata.json'
 import '../styles/DaysGrid.css'
 import { useLocalStorage } from '@uidotdev/usehooks';
+import { motion, AnimatePresence } from 'framer-motion';
+import { calculateDistance, calculateCalories } from '../helpers/calculateDistance';
+import PageTransition from './PageTransition';
 
 const getWeatherIcon = (weatherString) => {
   const weatherIcons = {
@@ -119,8 +122,8 @@ const DaysGrid = () => {
     const date = parseISO(dateString);
     const dayOfWeek = format(date, 'EEEE');
     const day = format(date, 'do');
-    const month = format(date, 'MMMM');
-    return `${dayOfWeek} ${day} ${month}`;
+    const month = format(date, 'MMM');
+    return `${dayOfWeek}, ${day} ${month}`;
   };
 
   const getRarityColor = (rarity) => {
@@ -140,159 +143,188 @@ const DaysGrid = () => {
     <>
       <NavBar/>
       <XPBar/>
-      <div className="day-grid-area">
-        <div className="day-grid-date-selector">
-          <button className="prev" onClick={() => navigateMonth(-1)}>←</button>
-          <p>
-            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-            <br />
-            <p className="month-total-steps">
-              {monthData.reduce((sum, day) => sum + day.steps, 0).toLocaleString()} steps
+        <div className="day-grid-area">
+          <div className="day-grid-date-selector">
+            <button className="prev" onClick={() => navigateMonth(-1)}>←</button>
+            <p>
+              {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+              <br />
+              <p className="month-total-steps">
+                {monthData.reduce((sum, day) => sum + day.steps, 0).toLocaleString()} steps
+                {/* {calculateDistance(monthData.reduce((sum,day) => sum + day.steps, 0))} miles */}
+              </p>
             </p>
-          </p>
-          <button className="next" onClick={() => navigateMonth(1)}>→</button>
-        </div>
+            <button className="next" onClick={() => navigateMonth(1)}>→</button>
+          </div>
 
-        <div className="day-grid-both-divs">
-          <div className='day-grid'>
-            <p className='day-grid-days-label'>M</p>
-            <p className='day-grid-days-label'>T</p>
-            <p className='day-grid-days-label'>W</p>
-            <p className='day-grid-days-label'>T</p>
-            <p className='day-grid-days-label'>F</p>
-            <p className='day-grid-days-label'>S</p>
-            <p className='day-grid-days-label'>S</p>
+          <div className="day-grid-both-divs">
+            <div className='day-grid'>
+              <p className='day-grid-days-label'>M</p>
+              <p className='day-grid-days-label'>T</p>
+              <p className='day-grid-days-label'>W</p>
+              <p className='day-grid-days-label'>T</p>
+              <p className='day-grid-days-label'>F</p>
+              <p className='day-grid-days-label'>S</p>
+              <p className='day-grid-days-label'>S</p>
 
-            {Array.from({ length: totalSlots }, (_, index) => {
-              const day = index - offset + 1;
-              const dayData = daysWithData[day];
-              const dayDate = day > 0 && day <= daysInMonth
-                ? `${currentDate.getFullYear()}-${String(
-                    currentDate.getMonth() + 1
-                  ).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                : null;
+              {Array.from({ length: totalSlots }, (_, index) => {
+                const day = index - offset + 1;
+                const dayData = daysWithData[day];
+                const dayDate = day > 0 && day <= daysInMonth
+                  ? `${currentDate.getFullYear()}-${String(
+                      currentDate.getMonth() + 1
+                    ).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                  : null;
 
-              let backgroundColor = '#040405';
-              let color = '#222';
+                let backgroundColor = '#040405';
+                let color = '#222';
 
-              if (dayData) {
-                if (milestoneDays.has(dayDate)) {
-                  const milestone = milestoneDays.get(dayDate);
-                  if (milestone.rarity === 'rare') {
-                    color = 'blueviolet';
+                if (dayData) {
+                  if (milestoneDays.has(dayDate)) {
+                    const milestone = milestoneDays.get(dayDate);
+                    if (milestone.rarity === 'rare') {
+                      color = 'blueviolet';
+                    } else {
+                      color = getGreenShade(dayData.steps);
+                    }
                   } else {
                     color = getGreenShade(dayData.steps);
                   }
-                } else {
-                  color = getGreenShade(dayData.steps);
                 }
-              }
 
-              return (
-                <div className='day'
-                  key={day}
-                  onClick={() => setSelectedDay(daysWithData[day] || null)}
-                  style={{
-                    backgroundColor,
-                    color,
-                    position: 'relative'
-                  }}
-                >
-                  {dayData && (
-                    <>
-                      {/* {milestoneDays.has(dayDate) && milestoneDays.get(dayDate).rarity !== 'rare' && (
-                        <div 
-                          className="milestone-indicator"
-                          style={{
-                            position: 'absolute',
-                            top: '3px',
-                            left: '3px',
-                            width: '8px',
-                            height: '3px',
-                            backgroundColor: 'gold',
-                            borderRadius: '1px',
-                            zIndex: 3
-                          }}
-                        />
-                      )} */}
-                      {unlockedBadges
-                        .filter(badge => badge.unlockDate === dayDate)
-                        .map((badge, index) => (
+                return (
+                  <div className='day'
+                    key={day}
+                    onClick={() => setSelectedDay(daysWithData[day] || null)}
+                    style={{
+                      backgroundColor,
+                      color,
+                      position: 'relative'
+                    }}
+                  >
+                    {dayData && (
+                      <>
+                        {/* {milestoneDays.has(dayDate) && milestoneDays.get(dayDate).rarity !== 'rare' && (
                           <div 
-                            key={badge.id}
+                            className="milestone-indicator"
                             style={{
                               position: 'absolute',
-                              top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
+                              top: '3px',
                               left: '3px',
-                              width: '6px',
-                              height: '6px',
+                              width: '8px',
+                              height: '3px',
                               backgroundColor: 'gold',
-                              borderRadius: '50%',
-                              zIndex: 2
+                              borderRadius: '1px',
+                              zIndex: 3
                             }}
                           />
-                        ))}
-                    </>
-                  )}
-                  {dayData ? '■' : '.'}
-                </div>
-              );
-            })}
-          </div>
+                        )} */}
+                        {unlockedBadges
+                          .filter(badge => badge.unlockDate === dayDate)
+                          .map((badge, index) => (
+                            <div 
+                              key={badge.id}
+                              style={{
+                                position: 'absolute',
+                                top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
+                                left: '3px',
+                                width: '6px',
+                                height: '6px',
+                                backgroundColor: 'gold',
+                                borderRadius: '50%',
+                                zIndex: 2
+                              }}
+                            />
+                          ))}
+                      </>
+                    )}
+                    {dayData ? '■' : '.'}
+                  </div>
+                );
+              })}
+            </div>
 
-        <div className="day-details">
-          {selectedDay ? (
-            <>
-              <div className='day-details-top-row'>
-                <p>
-                  <span></span> {formatDate(selectedDay.formatted_date)}
-                </p>
-                {weatherQuery.data && weatherQuery.data[selectedDay.formatted_date] && (
-                  <p>
-                    <span className='weather-icon'>
-                      {getWeatherIcon(weatherQuery.data[selectedDay.formatted_date].weather_code)}
-                    </span>
-                    <span style={{ fontSize: '0.8em', color: '#666', fontFamily:'sf' }}>
-                      {weatherQuery.data[selectedDay.formatted_date].temperature_max}°C
-                    </span>
-                  </p>
-                )}
-              </div>
-              <p>
-                <span>󰖃</span> 
-                {selectedDay.steps.toLocaleString()} steps
-              </p>
-
-              {milestoneDays.has(selectedDay.formatted_date) && (
-                <p className='day-details-milestone'>
-                  <span>★</span>
-                  <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity), fontSize:'0.8em' }}>
-                    {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps milestone
-                  </span>
-                </p>
-              )}
-
-              {wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges) && (
-                <div className='day-details-badge'>
-                  {unlockedBadges
-                    .filter(badge => badge.unlockDate === selectedDay.formatted_date)
-                    .map(badge => (
-                      <p key={badge.id}>
-                        <span style={{color:'gold'}}>󰻂</span>
-                        <span style={{ color: 'gold', fontSize:'0.8em'}}>
-                          {badge.name} unlocked
+          <AnimatePresence mode="wait">
+            <motion.div 
+              className="day-details"
+              key={selectedDay ? selectedDay.formatted_date : 'empty'}
+              initial={{ opacity: 0, y: 5, x: 0 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, y: 0 }}
+              transition={{ duration: 0.1 }}
+            >
+              {selectedDay ? (
+                <>
+                  <div className='day-details-top-row'>
+                    <p>
+                      <span></span> <span className='day-details-top-row-date'>{formatDate(selectedDay.formatted_date)}</span>
+                    </p>
+                    {weatherQuery.data && weatherQuery.data[selectedDay.formatted_date] && (
+                      <p>
+                        <span className='weather-icon'>
+                          {getWeatherIcon(weatherQuery.data[selectedDay.formatted_date].weather_code)}
+                        </span>
+                        <span style={{ fontSize: '0.8em', color: '#999', fontFamily:'sf' }}>
+                          {weatherQuery.data[selectedDay.formatted_date].temperature_max}°C
                         </span>
                       </p>
-                    ))}
-                </div>
+                    )}
+                  </div>
+                  <div className='day-details-second-row'>
+                    <p>
+                      <span className='icon'>󰖃</span>
+                      <span className='day-details-steps'>{selectedDay.steps.toLocaleString()} steps</span>
+                    </p>
+                    <p>
+                      <span className='icon'>󰞁</span>
+                      <span className='day-details-distance'>
+                        {calculateDistance(selectedDay.steps)} mi
+                      </span>
+                    </p>
+                  </div>
+                  {/* <div className='day-details-third-row'>
+                    <p>
+                        <span className='icon'>󰈸</span>
+                        <span className='day-details-calories'>
+                          {calculateCalories(selectedDay.steps)} cal
+                        </span>
+                    </p>
+                  </div> */}
+                  {milestoneDays.has(selectedDay.formatted_date) && (
+                    <div className='day-details-milestones'>
+                      <p className='day-details-milestone'>
+                        <span>★</span>
+                        <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity), fontSize:'0.8em' }}>
+                          {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps milestone
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges) && (
+                    <div className='day-details-badges'>
+                      <div className='day-details-badge'>
+                        {unlockedBadges
+                          .filter(badge => badge.unlockDate === selectedDay.formatted_date)
+                          .map(badge => (
+                            <p key={badge.id}>
+                              <span style={{color:'gold'}}>󰻂</span>
+                              <span style={{ color: 'gold', fontSize:'0.8em'}}>
+                                {badge.name} unlocked
+                              </span>
+                            </p>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>Select a day to see details.</p>
               )}
-            </>
-          ) : (
-            <p>Select a day to see details.</p>
-          )}
+            </motion.div>
+          </AnimatePresence>
+          </div>
         </div>
-        </div>
-      </div>
     </>
   );
 };

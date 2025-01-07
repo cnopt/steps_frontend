@@ -3,49 +3,15 @@ import { useStepsData } from '../hooks/useStepsData';
 import '../styles/XPBar.css'
 import LoadingSpinner from './LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUserSettings } from '../hooks/useUserSettings';
 
 export default function XPBar() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [previousLevel, setPreviousLevel] = useState(null);
+    const [showCelebration, setShowCelebration] = useState(false);
     const detailsRef = useRef(null);
     const query = useStepsData();
-    const [showCelebration, setShowCelebration] = useState(false);
-
-    if (query.isLoading) {
-        return <LoadingSpinner/>;
-    }
-
-    if (query.isError || !query.data) {
-        return <div>Error fetching data.</div>;
-    }
-
-    const allSteps = query.data; // Steps data from API
-    //const allSteps = steps.dev;
-  
-    const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
-
-    const calculateLevel = (totalSteps) => {
-        // Each level requires more XP than the last
-        // Using a simple exponential formula: baseXP * (level ^ 1.3)
-        const baseXP = 8000;
-        let level = 1;
-        
-        while ((baseXP * (Math.pow(level, 1.3))) <= totalSteps) {
-          level++;
-        }
-        
-        return {
-          currentLevel: level - 1,
-          nextLevel: level,
-          currentLevelXP: baseXP * (Math.pow(level - 1, 1.3)),
-          nextLevelXP: baseXP * (Math.pow(level, 1.3)),
-        };
-      };
-
-    const levelInfo = calculateLevel(allTimeTotalSteps);
-
-    const progressPercentage = ((allTimeTotalSteps - levelInfo.currentLevelXP) /
-        (levelInfo.nextLevelXP - levelInfo.currentLevelXP)) * 100;
+    const { settings } = useUserSettings();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -59,26 +25,60 @@ export default function XPBar() {
     }, []);
 
     useEffect(() => {
-        if (previousLevel !== null && levelInfo.currentLevel > previousLevel) {
-            triggerCelebration();
-            if ('vibrate' in navigator) {
-                navigator.vibrate(200);
+        if (previousLevel !== null && query.data) {
+            const levelInfo = calculateLevel(query.data.reduce((acc, item) => acc + item.steps, 0));
+            if (levelInfo.currentLevel > previousLevel) {
+                triggerCelebration();
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(200);
+                }
             }
+            setPreviousLevel(levelInfo.currentLevel);
         }
-        setPreviousLevel(levelInfo.currentLevel);
-    }, [levelInfo.currentLevel, previousLevel]);
+    }, [query.data, previousLevel]);
 
     const triggerCelebration = () => {
         setShowCelebration(true);
         setTimeout(() => setShowCelebration(false), 1000);
     };
 
+    if (query.isLoading) {
+        return <LoadingSpinner/>;
+    }
+
+    if (query.isError || !query.data) {
+        return <div>Error fetching data.</div>;
+    }
+
+    const allSteps = query.data;
+    const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
+
+    const calculateLevel = (totalSteps) => {
+        const baseXP = 8000;
+        let level = 1;
+        
+        while ((baseXP * (Math.pow(level, 1.3))) <= totalSteps) {
+          level++;
+        }
+        
+        return {
+          currentLevel: level - 1,
+          nextLevel: level,
+          currentLevelXP: baseXP * (Math.pow(level - 1, 1.3)),
+          nextLevelXP: baseXP * (Math.pow(level, 1.3)),
+        };
+    };
+
+    const levelInfo = calculateLevel(allTimeTotalSteps);
+    const progressPercentage = ((allTimeTotalSteps - levelInfo.currentLevelXP) /
+        (levelInfo.nextLevelXP - levelInfo.currentLevelXP)) * 100;
+
     return(
         <>
             {isExpanded && <div className="overlay" />}
             <div ref={detailsRef}>
                 <div 
-                    className="level-progress-container" 
+                    className={`level-progress-container ${settings.gender === 'F' ? 'female' : ''}`}
                     onClick={() => setIsExpanded(!isExpanded)}
                 >
                     <div className="level-progress-bar" style={{ width: `${progressPercentage}%` }}></div>
@@ -152,10 +152,9 @@ export default function XPBar() {
 
                 
 
-                <div className={`level-details ${isExpanded ? 'expanded' : ''}`}>
+                <div className={`level-details ${isExpanded ? 'expanded' : ''} ${settings.gender === 'F' ? 'female' : ''}`}>
                     <div className="details-content">
                         {/* <p>󰇆</p> */}
-                        <p>Current XP: {Math.floor(allTimeTotalSteps).toLocaleString()}</p>
                         <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>
                         <p>XP Needed: {Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
                     </div>
