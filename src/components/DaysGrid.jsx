@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStepsData } from '../hooks/useStepsData';
 import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
 import { milestones, calculateMilestoneDays } from '../helpers/milestones'
@@ -12,6 +12,8 @@ import { useLocalStorage } from '@uidotdev/usehooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { calculateDistance, calculateCalories } from '../helpers/calculateDistance';
 import PageTransition from './PageTransition';
+import { convertToHourlyBuckets, getHourlySteps } from '../helpers/timeStepsBucketing';
+import HourlyStepsGraph from './HourlyStepsGraph';
 
 const getWeatherIcon = (weatherString) => {
   const weatherIcons = {
@@ -47,6 +49,7 @@ const DaysGrid = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
+  const [hourlyStepsData, setHourlyStepsData] = useState(null);
   
   // Get unique dates for weather data
   const dates = React.useMemo(() => {
@@ -56,6 +59,15 @@ const DaysGrid = () => {
 
   // Get weather data
   const weatherQuery = useWeatherData(dates);
+
+  useEffect(() => {
+    if (query.data) {
+        const bucketedData = convertToHourlyBuckets(query.data);
+        console.log('Bucketed Data:', bucketedData);
+        console.log('Selected Day:', selectedDay?.formatted_date);
+        setHourlyStepsData(bucketedData);
+    }
+  }, [query.data]);
 
   if (query.isLoading || weatherQuery.isLoading) return <LoadingSpinner/>;
   if (query.isError || weatherQuery.isError) return <div>Error fetching data.</div>;
@@ -138,6 +150,8 @@ const DaysGrid = () => {
         return '#c0c0c0';
     }
   };
+
+  const isHourlyStepsEnabled = true
 
   return (
     <>
@@ -257,7 +271,7 @@ const DaysGrid = () => {
                 <>
                   <div className='day-details-top-row'>
                     <p>
-                      <span></span> <span className='day-details-top-row-date'>{formatDate(selectedDay.formatted_date)}</span>
+                      <span className='icon'></span> <span className='day-details-top-row-date'>{formatDate(selectedDay.formatted_date)}</span>
                     </p>
                     {weatherQuery.data && weatherQuery.data[selectedDay.formatted_date] && (
                       <p>
@@ -316,6 +330,22 @@ const DaysGrid = () => {
                           ))}
                       </div>
                     </div>
+                  )}
+                  {console.log(hourlyStepsData)}
+                  {console.log(selectedDay.formatted_date)}
+                  {console.log(hourlyStepsData[selectedDay.formatted_date])}
+
+                  {isHourlyStepsEnabled && hourlyStepsData && selectedDay && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <HourlyStepsGraph 
+                            hourlySteps={hourlyStepsData[selectedDay.formatted_date]?.simulatedHourlySteps}
+                        />
+                    </motion.div>
                   )}
                 </>
               ) : (
