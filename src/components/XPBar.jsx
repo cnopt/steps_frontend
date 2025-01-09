@@ -9,6 +9,11 @@ export default function XPBar() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [previousLevel, setPreviousLevel] = useState(null);
     const [showCelebration, setShowCelebration] = useState(false);
+    const [prestigeLevel, setPrestigeLevel] = useState(() => {
+        const saved = localStorage.getItem('prestigeLevel');
+        return saved ? parseInt(saved) : 0;
+    });
+    const [showPrestigeButton, setShowPrestigeButton] = useState(false);
     const detailsRef = useRef(null);
     const query = useStepsData();
     const { settings } = useUserSettings();
@@ -56,22 +61,34 @@ export default function XPBar() {
     const calculateLevel = (totalSteps) => {
         const baseXP = 8000;
         let level = 1;
+        const MAX_LEVEL = 70;
         
-        while ((baseXP * (Math.pow(level, 1.3))) <= totalSteps) {
-          level++;
+        while ((baseXP * (Math.pow(level, 1.3))) <= totalSteps && level <= MAX_LEVEL) {
+            level++;
         }
         
+        const currentLevel = Math.min(level - 1, MAX_LEVEL);
+        const nextLevel = Math.min(level, MAX_LEVEL);
+        
         return {
-          currentLevel: level - 1,
-          nextLevel: level,
-          currentLevelXP: baseXP * (Math.pow(level - 1, 1.3)),
-          nextLevelXP: baseXP * (Math.pow(level, 1.3)),
+            currentLevel,
+            nextLevel,
+            currentLevelXP: baseXP * (Math.pow(currentLevel, 1.3)),
+            nextLevelXP: baseXP * (Math.pow(nextLevel, 1.3)),
+            isMaxLevel: currentLevel === MAX_LEVEL
         };
     };
 
     const levelInfo = calculateLevel(allTimeTotalSteps);
     const progressPercentage = ((allTimeTotalSteps - levelInfo.currentLevelXP) /
         (levelInfo.nextLevelXP - levelInfo.currentLevelXP)) * 100;
+
+    const handlePrestige = () => {
+        const newPrestigeLevel = prestigeLevel + 1;
+        setPrestigeLevel(newPrestigeLevel);
+        localStorage.setItem('prestigeLevel', newPrestigeLevel.toString());
+        triggerCelebration();
+    };
 
     return(
         <>
@@ -137,7 +154,8 @@ export default function XPBar() {
 
                     <div className="level-progress-content">
                         <span className="current-level">
-                            <span></span>
+                            <span></span>
+                            {prestigeLevel > 0 && <span className="prestige-level">P{prestigeLevel}</span>}
                             {levelInfo.currentLevel}
                         </span>
                         <div className="total-steps">
@@ -154,9 +172,22 @@ export default function XPBar() {
 
                 <div className={`level-details ${isExpanded ? 'expanded' : ''} ${settings.gender === 'F' ? 'female' : ''}`}>
                     <div className="details-content">
-                        {/* <p>󰇆</p> */}
-                        <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>
-                        <p>XP Needed: {Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
+                        {levelInfo.isMaxLevel ? (
+                            <div className="prestige-section">
+                                <p>Maximum level reached!</p>
+                                <button 
+                                    className="prestige-button"
+                                    onClick={handlePrestige}
+                                >
+                                    Prestige to P{prestigeLevel + 1}
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>
+                                <p>XP Needed: {Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

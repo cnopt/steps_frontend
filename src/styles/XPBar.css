@@ -136,3 +136,37 @@
 .level-details.expanded .details-content p:nth-child(2) { transition-delay: 0.13s; }
 .level-details.expanded .details-content p:nth-child(3) { transition-delay: 0.17s; }
 .level-details.expanded .details-content p:nth-child(4) { transition-delay: 0.20s; }
+
+.prestige-level {
+    font-size: 0.8em;
+    color: #ffd700;
+    margin-right: 4px;
+}
+
+.prestige-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.prestige-button {
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.prestige-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.prestige-button:active {
+    transform: translateY(0);
+}
