@@ -22,7 +22,8 @@ export class WeatherService {
         'temperature_2m_max',
         'rain_sum',
         'precipitation_sum',
-        'wind_speed_10m_max'
+        'wind_speed_10m_max',
+        'sunset'
       ].join(',')
     };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import '../styles/HourlyStepsGraph.css';
 import { useUserSettings } from '../hooks/useUserSettings';
 
-const HourlyStepsGraph = ({ hourlySteps }) => {
+const HourlyStepsGraph = ({ hourlySteps, sunsetTime }) => {
     const { settings } = useUserSettings();
     const maxSteps = Math.max(...Object.values(hourlySteps));
     
@@ -21,9 +21,33 @@ const HourlyStepsGraph = ({ hourlySteps }) => {
 
     const shouldShowLabel = (hour) => hour % 4 === 0;
 
+    // Convert sunset time string to hour number (e.g., "18:30" -> 18.5)
+    const getSunsetHour = (timeString) => {
+        if (!timeString) return null;
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return hours + (minutes / 60);
+    };
+
+    const sunsetHour = getSunsetHour(sunsetTime);
+    const sunsetPosition = sunsetHour ? `${(sunsetHour / 24) * 100}%` : null;
+
     return (
         <div className="hourly-steps-graph">
             <div className="graph-container">
+                {sunsetHour && (
+                    <div 
+                        className="sunset-line"
+                        style={{
+                            left: sunsetPosition,
+                            position: 'absolute',
+                            height: '100%',
+                            width: '1px',
+                            background: 'rgba(255, 180, 0, 0.3)',
+                            zIndex: 1,
+                            pointerEvents: 'none'
+                        }}
+                    />
+                )}
                 {Object.entries(hourlySteps).map(([hour, steps]) => {
                     const height = getBarHeight(steps)*0.65;
                     return (

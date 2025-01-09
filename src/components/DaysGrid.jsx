@@ -331,9 +331,6 @@ const DaysGrid = () => {
                       </div>
                     </div>
                   )}
-                  {console.log(hourlyStepsData)}
-                  {console.log(selectedDay.formatted_date)}
-                  {console.log(hourlyStepsData[selectedDay.formatted_date])}
 
                   {isHourlyStepsEnabled && hourlyStepsData && selectedDay && (
                     <motion.div
@@ -344,6 +341,7 @@ const DaysGrid = () => {
                     >
                         <HourlyStepsGraph 
                             hourlySteps={hourlyStepsData[selectedDay.formatted_date]?.simulatedHourlySteps}
+                            sunsetTime={weatherQuery.data[selectedDay.formatted_date]?.sunset}
                         />
                     </motion.div>
                   )}

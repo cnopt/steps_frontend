@@ -55,7 +55,8 @@ export function useWeatherData(dates) {
             temperature_max: data.temperature_max,
             rain: data.rain,
             precipitation: data.precipitation,
-            wind_speed_max: data.wind_speed_max
+            wind_speed_max: data.wind_speed_max,
+            sunset: data.sunset
           }
         ])
       );

@@ -12,7 +12,7 @@
     color: #8f8f8f;
     font-size: 1.2em;
     padding-left: 1rem;
-    padding-top: 1.2rem;
+    padding-top: 1rem;
     margin-bottom: 1.5rem;
     line-height: 1.5;
     width: 80%;
@@ -79,5 +79,59 @@
 
 .chart-step-deviation .chart-title {
     margin-bottom: 20px;
+}
+
+.total-distance-card {
+    background-color: #0a0a0a;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.card-title {
+    margin: 0;
+    font-family: 'sf-med';
+    color: #8f8f8f;
+    font-size: 1.2em;
+    margin-bottom: 0.25rem;
+    width: 80%;
+}
+
+.distance-value {
+    font-size: 2em;
+    font-family: sf-med;
+    color: #4CAF50;
+    display: flex;
+    flex-direction: column;
+}
+
+.distance-unit {
+    font-size: 0.5em;
+    color: #666;
+    font-family: 'sf';
+}
+
+.stats-distance-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.total-distance-card {
+    margin-top: 0;  /* Override the previous margin since we're using grid gap */
+}
+
+
+
+/* Make it responsive for mobile */
+@media (max-width: 768px) {
+    .stats-distance-row {
+        grid-template-columns: 1fr;
+    }
 }
 

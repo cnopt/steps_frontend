@@ -26,20 +26,29 @@ export const convertToHourlyBuckets = (stepsData) => {
 const simulateHourlyDistribution = (totalSteps) => {
     const hourlySteps = createEmptyHourBuckets();
     
-    // realistic distribution (only steps during awake hours)
-    const activeHours = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+    // split hours into regular and evening periods
+    const regularHours = [10, 11, 12, 13, 14, 15, 16, 17];
+    const eveningHours = [18, 19, 20, 21, 22, 23, 24];
     let remainingSteps = totalSteps;
     
-    // distribute last steps randomly
-    activeHours.forEach(hour => {
+    eveningHours.forEach(hour => {
         if (remainingSteps <= 0) return;
         
-        const portion = Math.random() * 0.1; // 10% of leftover steps
+        const portion = 0.10 + Math.random() * 0.05;   
         const hourlyCount = Math.floor(remainingSteps * portion);
         hourlySteps[hour] = hourlyCount;
         remainingSteps -= hourlyCount;
     });
     
+    // regular hours get smaller portions 
+    regularHours.forEach(hour => {
+        if (remainingSteps <= 0) return;
+        
+        const portion = 0.05 + Math.random() * 0.08; 
+        const hourlyCount = Math.floor(remainingSteps * portion);
+        hourlySteps[hour] = hourlyCount;
+        remainingSteps -= hourlyCount;
+    });
     
     return hourlySteps;
 };
