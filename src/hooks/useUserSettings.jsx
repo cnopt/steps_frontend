@@ -6,7 +6,8 @@ export const useUserSettings = () => {
   const [settings, setSettings] = useState({
     height: parseInt(localStorage.getItem('userHeight')) || 170,
     weight: parseInt(localStorage.getItem('userWeight')) || 70,
-    gender: localStorage.getItem('userGender') || 'M'
+    gender: localStorage.getItem('userGender') || 'M',
+    enableWeather: localStorage.getItem('userEnableWeather') === 'true' || false
   });
 
   useEffect(() => {
@@ -14,7 +15,8 @@ export const useUserSettings = () => {
       setSettings({
         height: parseInt(localStorage.getItem('userHeight')) || 170,
         weight: parseInt(localStorage.getItem('userWeight')) || 70,
-        gender: localStorage.getItem('userGender') || 'M'
+        gender: localStorage.getItem('userGender') || 'M',
+        enableWeather: localStorage.getItem('userEnableWeather') === 'true' || false
       });
     };
 

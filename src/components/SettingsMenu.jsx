@@ -112,14 +112,23 @@ const SettingsMenu = () => {
               </button>
             </div>
           </div>
-          {/* <div className="save-button-container">
-              <button 
-                  className="save-settings-button"
-                  onClick={saveSettings}
-              >
-                  Save Settings
-              </button>
-          </div> */}
+
+          <div className="weather-settings">
+            <h2>Weather Data</h2>
+            <div className="weather-toggle">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={settings.enableWeather}
+                  onChange={() => updateSettings({ enableWeather: !settings.enableWeather })}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+              <span className="toggle-label">
+                {settings.enableWeather ? 'Weather data is currently enabled' : 'Weather data is currently disabled'}
+              </span>
+            </div>
+          </div>
         </div>
       </PageTransition>
     </>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStepsData } from '../hooks/useStepsData';
-import { format, parseISO, startOfMonth, getDay, addDays } from 'date-fns';
+import { format, parseISO, startOfMonth, getDay, addDays, subMonths, isSameMonth, isAfter, isBefore, endOfMonth, isSameDay } from 'date-fns';
 import { milestones, calculateMilestoneDays } from '../helpers/milestones'
 import NavBar from './NavBar';
 import XPBar from './XPBar';
@@ -14,6 +14,7 @@ import { calculateDistance, calculateCalories } from '../helpers/calculateDistan
 import PageTransition from './PageTransition';
 import { convertToHourlyBuckets, getHourlySteps } from '../helpers/timeStepsBucketing';
 import HourlyStepsGraph from './HourlyStepsGraph';
+import { useUserSettings } from '../hooks/useUserSettings';
 
 const getWeatherIcon = (weatherString) => {
   const weatherIcons = {
@@ -37,7 +38,7 @@ const getWeatherIcon = (weatherString) => {
     'storm': '⛈️'
   };
 
-  return weatherIcons[weatherString.toLowerCase()] || '🌡️'; // Default icon if string not found
+  return weatherIcons[weatherString.toLowerCase()] || '🌡️'; // else
 };
 
 const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
@@ -50,15 +51,47 @@ const DaysGrid = () => {
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
   const [hourlyStepsData, setHourlyStepsData] = useState(null);
+  const { settings } = useUserSettings();
   
-  // Get unique dates for weather data
-  const dates = React.useMemo(() => {
-    if (!query.data) return [];
-    return [...new Set(query.data.map(day => new Date(day.formatted_date)))];
-  }, [query.data]);
+  // separate dates for current month and prev (-1) month
+  const { currentMonthDates, prevMonthDates } = React.useMemo(() => {
+    if (!query.data || !settings.enableWeather) return { currentMonthDates: [], prevMonthDates: [] };
+    
+    const startOfPrevMonth = startOfMonth(subMonths(currentDate, 1));
+    const endOfPrevMonth = endOfMonth(startOfPrevMonth);
+    const startOfCurrentMonth = startOfMonth(currentDate);
+    const endOfCurrentMonth = endOfMonth(currentDate);
+    
+    const currentMonthDates = [...new Set(query.data
+      .filter(day => {
+        const dayDate = new Date(day.formatted_date);
+        return !isBefore(dayDate, startOfCurrentMonth) && !isAfter(dayDate, endOfCurrentMonth);
+      })
+      .map(day => new Date(day.formatted_date)))];
 
-  // Get weather data
-  const weatherQuery = useWeatherData(dates);
+    const prevMonthDates = [...new Set(query.data
+      .filter(day => {
+        const dayDate = new Date(day.formatted_date);
+        return !isBefore(dayDate, startOfPrevMonth) && !isAfter(dayDate, endOfPrevMonth);
+      })
+      .map(day => new Date(day.formatted_date)))];
+
+    return { currentMonthDates, prevMonthDates };
+  }, [query.data, settings.enableWeather, currentDate]);
+
+  // separate queries for current and previous (-1) month
+  const currentMonthWeatherQuery = useWeatherData(currentMonthDates);
+  const prevMonthWeatherQuery = useWeatherData(prevMonthDates);
+
+  // combine weather data from both queries
+  const weatherData = React.useMemo(() => {
+    if (!settings.enableWeather) return null;
+    
+    return {
+      ...prevMonthWeatherQuery.data,
+      ...currentMonthWeatherQuery.data
+    };
+  }, [settings.enableWeather, prevMonthWeatherQuery.data, currentMonthWeatherQuery.data]);
 
   useEffect(() => {
     if (query.data) {
@@ -69,11 +102,13 @@ const DaysGrid = () => {
     }
   }, [query.data]);
 
-  if (query.isLoading || weatherQuery.isLoading) return <LoadingSpinner/>;
-  if (query.isError || weatherQuery.isError) return <div>Error fetching data.</div>;
+  // only show loading for steps data or current month weather data + if enabled
+  if (query.isLoading || (settings.enableWeather && currentMonthWeatherQuery.isLoading)) return <LoadingSpinner/>;
+  if (query.isError) return <div>Error fetching steps data.</div>;
+  if (settings.enableWeather && currentMonthWeatherQuery.isError) return <div>Error fetching weather data.</div>;
 
 
-  const allSteps = query.data; // Steps data from API
+  const allSteps = query.data; // steps from API
   //const allSteps = steps.dev;
 
   const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
@@ -273,13 +308,13 @@ const DaysGrid = () => {
                     <p>
                       <span className='icon'></span> <span className='day-details-top-row-date'>{formatDate(selectedDay.formatted_date)}</span>
                     </p>
-                    {weatherQuery.data && weatherQuery.data[selectedDay.formatted_date] && (
+                    {settings.enableWeather && weatherData && weatherData[selectedDay.formatted_date] && (
                       <p>
                         <span className='weather-icon'>
-                          {getWeatherIcon(weatherQuery.data[selectedDay.formatted_date].weather_code)}
+                          {getWeatherIcon(weatherData[selectedDay.formatted_date].weather_code)}
                         </span>
                         <span style={{ fontSize: '0.8em', color: '#999', fontFamily:'sf' }}>
-                          {weatherQuery.data[selectedDay.formatted_date].temperature_max}°C
+                          {weatherData[selectedDay.formatted_date].temperature_max}°C
                         </span>
                       </p>
                     )}
@@ -341,7 +376,7 @@ const DaysGrid = () => {
                     >
                         <HourlyStepsGraph 
                             hourlySteps={hourlyStepsData[selectedDay.formatted_date]?.simulatedHourlySteps}
-                            sunsetTime={weatherQuery.data[selectedDay.formatted_date]?.sunset}
+                            sunsetTime={settings.enableWeather ? weatherData?.[selectedDay.formatted_date]?.sunset : undefined}
                         />
                     </motion.div>
                   )}

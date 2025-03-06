@@ -91,6 +91,76 @@ button.gender-button.girl.active {
     background-color: #3b113a !important;
 }
 
+
+.weather-settings {
+  font-family: sf;
+  margin: 2rem 0;
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.weather-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #454545;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #818181;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #11233b;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+  background-color: #317fd3;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+
+
+
+
 .save-button-container {
     width: 70%;
     margin: auto;
