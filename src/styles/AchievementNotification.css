@@ -19,6 +19,12 @@
   perspective: 1000px;
 }
 
+/* Milestone theme styling */
+.achievement-notifications-container.milestone-theme {
+  border: 2px solid blueviolet;
+  box-shadow: 0 8px 32px rgba(138, 43, 226, 0.3);
+}
+
 .achievement-notifications-header {
   display: flex;
   justify-content: space-between;
@@ -29,6 +35,11 @@
   height: 2.2rem;
 }
 
+.milestone-theme .achievement-notifications-header {
+  border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+  background: rgba(138, 43, 226, 0.1);
+}
+
 .achievement-notifications-header h3 {
   margin: 0;
   padding: 0;
@@ -37,6 +48,10 @@
   font-style: italic;
   color: gold;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.milestone-theme .achievement-notifications-header h3 {
+  color: blueviolet;
 }
 
 .close-all-btn {
@@ -55,6 +70,10 @@
 
 .close-all-btn:hover {
   color: gold;
+}
+
+.milestone-theme .close-all-btn:hover {
+  color: blueviolet;
 }
 
 .achievement-notifications-list {
@@ -82,6 +101,10 @@
   border-radius: 2px;
 }
 
+.milestone-theme .achievement-notifications-list::-webkit-scrollbar-thumb {
+  background: blueviolet;
+}
+
 .achievement-notification-item {
   display: flex;
   align-items: center;
@@ -101,8 +124,19 @@
   touch-action: manipulation;
 }
 
+.achievement-notification-item.milestone {
+  background-color: #352847;
+}
+.achievement-notification-item.milestone:hover {
+  background-color: #3b2f4d !important;
+}
+
 .achievement-notification-item:hover {
   background: rgba(255, 215, 0, 0.05);
+}
+
+.milestone-theme .achievement-notification-item:hover {
+  background: rgba(138, 43, 226, 0.05);
 }
 
 .achievement-notification-item:last-child {
@@ -146,6 +180,7 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
 
 .achievement-image {
   width: 100%;
@@ -221,6 +256,12 @@
   display: none;
 }
 
+.milestone-theme .achievement-type-badge {
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  color: blueviolet;
+}
+
 .achievement-notifications-footer {
   padding: 12px 20px;
   background: rgba(0, 0, 0, 0.2);
@@ -291,6 +332,16 @@
   100% { box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3); }
 }
 
+@keyframes pulse-milestone {
+  0% { box-shadow: 0 8px 32px rgba(138, 43, 226, 0.3); }
+  50% { box-shadow: 0 8px 32px rgba(138, 43, 226, 0.6); }
+  100% { box-shadow: 0 8px 32px rgba(138, 43, 226, 0.3); }
+}
+
 .achievement-notifications-container {
   animation: pulse 2s infinite;
+}
+
+.achievement-notifications-container.milestone-theme {
+  animation: pulse-milestone 2s infinite;
 } 

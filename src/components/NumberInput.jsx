@@ -31,7 +31,6 @@ const NumberInput = () => {
   useEffect(() => {
     const onboardingStatus = localDataService.getOnboardingStatus();
     setIsFirstTime(onboardingStatus.isFirstTime);
-    setShowWelcome(onboardingStatus.isFirstTime);
   }, []);
 
   // Cleanup timeout on unmount
@@ -93,7 +92,6 @@ const NumberInput = () => {
       if (isFirstTime) {
         localDataService.markFirstEntryCompleted();
         setIsFirstTime(false);
-        setShowWelcome(false);
         setShowFirstEntrySuccess(true);
         // Hide the success message after 5 seconds
         const timeoutId = setTimeout(() => {
@@ -163,21 +161,6 @@ const NumberInput = () => {
           </div>
         )}
         <div className="container">
-          {showWelcome && (
-            <div className="welcome-hint" style={{
-              background: 'rgba(68, 147, 248, 0.1)',
-              border: '1px solid rgba(68, 147, 248, 0.3)',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '16px',
-              textAlign: 'center',
-              fontSize: '14px',
-              color: '#4493f8'
-            }}>
-              👋 Welcome! Enter your daily steps below to get started
-            </div>
-          )}
-          
           <div className="dateNav">
             <button onClick={() => handleDateChange(-1)}>
               ←

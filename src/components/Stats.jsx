@@ -426,7 +426,7 @@ export default function Stats() {
                         <p className="card-title">
                             This month
                         </p>
-                        <div style={{display:'flex',width:'70%',justifyContent:'space-between'}}>
+                        <div style={{display:'flex',width:'80%',justifyContent:'space-between'}}>
                             <div className="distance-value">
                                 {calculateMonthlySteps().toLocaleString()}
                                 <span className="distance-unit">steps</span>
@@ -606,7 +606,7 @@ export default function Stats() {
                 </div>
 
                 {/* Mountain Valley Progress Chart */}
-                <div className='chart-mountain-valley'>
+                {/* <div className='chart-mountain-valley'>
                     <p className="chart-title">
                         Mountain Valley Progress
                     </p>
@@ -673,7 +673,7 @@ export default function Stats() {
                             />
                         </AreaChart>
                     </ResponsiveContainer>
-                </div>
+                </div> */}
 
                 {/* <div className='chart-step-deviation'>
                     <p className="chart-title">

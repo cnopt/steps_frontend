@@ -12,14 +12,14 @@ const SmartRouter = ({ children }) => {
       const onboardingStatus = localDataService.getOnboardingStatus();
       
       if (onboardingStatus.isFirstTime) {
-        // First-time user - route to input screen for immediate action
-        navigate('/input', { replace: true });
+        // First-time user - route to calendar grid page
+        navigate('/month', { replace: true });
       } else if (onboardingStatus.hasStepsData) {
         // Returning user with data - go to their main view
         navigate('/month', { replace: true });
       } else {
-        // Edge case - route to input
-        navigate('/input', { replace: true });
+        // Edge case - route to calendar grid
+        navigate('/month', { replace: true });
       }
     }
   }, [navigate, location.pathname]);

@@ -20,6 +20,11 @@ const AchievementNotification = ({
     }
   }, [achievements, onClearAll, autoDismissTime]);
 
+  // Check if there are any milestones in the achievements
+  const hasMilestones = achievements.some(achievement => achievement.type === 'milestone');
+  const hasOnlyMilestones = achievements.every(achievement => achievement.type === 'milestone');
+  const hasOnlyBadges = achievements.every(achievement => achievement.type === 'badge');
+
   const getRarityColor = (rarity) => {
     switch (rarity) {
       case 'common': return 'silver';
@@ -41,7 +46,7 @@ const AchievementNotification = ({
     <AnimatePresence mode="sync">
       {achievements.length > 0 && (
         <motion.div
-          className="achievement-notifications-container"
+          className={`achievement-notifications-container ${hasMilestones ? 'has-milestones' : ''} ${hasOnlyMilestones ? 'milestone-theme' : ''}`}
           initial={{ opacity: 0, x: -200 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -200 }}
@@ -54,7 +59,14 @@ const AchievementNotification = ({
           }}
         >
           <div className="achievement-notifications-header">
-            <h3>Badge{achievements.length > 1 ? 's' : ''} Unlocked</h3>
+            <h3>
+              {hasOnlyMilestones 
+                ? `Milestone${achievements.length > 1 ? 's' : ''} Unlocked`
+                : hasOnlyBadges 
+                ? `Badge${achievements.length > 1 ? 's' : ''} Unlocked`
+                : `Achievement${achievements.length > 1 ? 's' : ''} Unlocked`
+              }
+            </h3>
             <button 
               className="close-all-btn"
               onClick={onClearAll}

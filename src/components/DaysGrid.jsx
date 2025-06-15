@@ -51,6 +51,7 @@ const DaysGrid = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedEmptyDay, setSelectedEmptyDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
+  const [newlyAddedDays, setNewlyAddedDays] = useState(new Set());
   const query = useStepsData();
   const [hourlyStepsData, setHourlyStepsData] = useState(null);
   const { settings } = useUserSettings();
@@ -264,6 +265,8 @@ const DaysGrid = () => {
                   }
                 };
 
+                const isNewlyAdded = newlyAddedDays.has(dayDate);
+
                 return (
                   <div className='day'
                     key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
@@ -312,7 +315,55 @@ const DaysGrid = () => {
                           ))}
                       </>
                     )}
-                    {dayData ? '■' : '·'}
+                    {/* White circle for selected day */}
+                    {selectedDay && dayDate === selectedDay.formatted_date && (
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '10px',
+                          height: '10px',
+                          backgroundColor: '#040405',
+                          borderRadius: '50%',
+                          zIndex: 4,
+                          fontFamily:'sf-mono',
+                          color:'black',
+                          fontSize:'0.65em'
+                        }}
+                      ></div>
+                    )}
+                    {/* Animated ■ for days with data */}
+                    {dayData ? (
+                      <motion.span
+                        key={`${dayDate}-filled`}
+                        initial={isNewlyAdded ? { scale: 0, rotate: 0 } : false}
+                        animate={isNewlyAdded ? { 
+                          scale: [0, 1.4, 1], 
+                          rotate: [0, 15, -10, 0] 
+                        } : { scale: 1 }}
+                        transition={isNewlyAdded ? {
+                          duration: 0.6,
+                          ease: "easeOut",
+                          times: [0, 0.6, 1]
+                        } : { duration: 0 }}
+                        onAnimationComplete={() => {
+                          if (isNewlyAdded) {
+                            setNewlyAddedDays(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(dayDate);
+                              return newSet;
+                            });
+                          }
+                        }}
+                        style={{ display: 'inline-block' }}
+                      >
+                        ■
+                      </motion.span>
+                    ) : (
+                      '·'
+                    )}
                   </div>
                 );
               })}
@@ -406,6 +457,9 @@ const DaysGrid = () => {
                     </motion.div>
                   )}
                 </>
+              ) : selectedEmptyDay ? (
+                // hide "Select a day" text when modal is open
+                null
               ) : (
                 <p>Select a day to see details.</p>
               )}
@@ -419,8 +473,12 @@ const DaysGrid = () => {
           isOpen={!!selectedEmptyDay}
           selectedDate={selectedEmptyDay}
           onSuccess={(response) => {
+            // Mark the day as newly added for animation
+            setNewlyAddedDays(prev => new Set(prev).add(selectedEmptyDay));
+            
             // Clear the selected empty day
             setSelectedEmptyDay(null);
+            
             // Auto-select the newly created day after a brief delay to allow data refresh
             setTimeout(() => {
               const newDayData = {
