@@ -9,36 +9,31 @@ import { useLocalStorage } from '@uidotdev/usehooks';
 import XPBar from './XPBar';
 import { checkBadgeUnlock } from '../components/Badges';
 import Badges from './Badges';
-import { useWeatherData } from '../hooks/useWeatherData';
+import { useUserSettings } from '../hooks/useUserSettings';
 import '../styles/Achievements.css'
 import LoadingSpinner from './LoadingSpinner';
 import PageTransition from './PageTransition';
-
-
 
 const Achievements = () => {
   const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
+  const { settings } = useUserSettings();
   
-  // Get unique dates from steps data
-  const dates = React.useMemo(() => {
-    if (!query.data) return [];
-    return [...new Set(query.data.map(day => new Date(day.formatted_date)))];
-  }, [query.data]);
-
-  // Get weather data only for dates we have steps for
-  const weatherQuery = useWeatherData(dates);
-
   useEffect(() => {
-    if (query.data && weatherQuery.data) {
-      const newUnlockedBadges = checkBadgeUnlock(query.data, weatherQuery.data);
+    if (query.data) {
+      // Get cached weather data from localStorage
+      const cachedWeatherData = settings.enableWeather ? 
+        JSON.parse(localStorage.getItem('weatherData') || '{}') : {};
+
+      const newUnlockedBadges = checkBadgeUnlock(query.data, cachedWeatherData, settings.enableWeather);
       setUnlockedBadges(newUnlockedBadges);
     }
-  }, [query.data, weatherQuery.data]);
+  }, [query.data, settings.enableWeather]);
 
-  if (query.isLoading || weatherQuery.isLoading) return <LoadingSpinner/>;
-  if (query.isError || weatherQuery.isError) return <div>Error fetching data.</div>;
+  // Only show loading for steps data
+  if (query.isLoading) return <LoadingSpinner/>;
+  if (query.isError) return <div>Error fetching steps data.</div>;
 
   //const allSteps = query.data.dev; // Steps data from API
   //const allSteps = steps.dev;

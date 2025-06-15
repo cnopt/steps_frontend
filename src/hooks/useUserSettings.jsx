@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
+import localDataService from '../services/localDataService';
 
 export const settingsUpdateEvent = new Event('settingsUpdate');
 
 export const useUserSettings = () => {
-  const [settings, setSettings] = useState({
-    height: parseInt(localStorage.getItem('userHeight')) || 170,
-    weight: parseInt(localStorage.getItem('userWeight')) || 70,
-    gender: localStorage.getItem('userGender') || 'M',
-    enableWeather: localStorage.getItem('userEnableWeather') === 'true' || false
-  });
+  // Get initial settings from the userProfile in local data service
+  const getInitialSettings = () => {
+    const profile = localDataService.getUserProfile();
+    return {
+      height: profile.height || 170,
+      weight: profile.weight || 70,
+      gender: profile.gender || 'M',
+      enableWeather: profile.enableWeather || false
+    };
+  };
+
+  const [settings, setSettings] = useState(getInitialSettings);
 
   useEffect(() => {
     const handleSettingsUpdate = () => {
+      const profile = localDataService.getUserProfile();
       setSettings({
-        height: parseInt(localStorage.getItem('userHeight')) || 170,
-        weight: parseInt(localStorage.getItem('userWeight')) || 70,
-        gender: localStorage.getItem('userGender') || 'M',
-        enableWeather: localStorage.getItem('userEnableWeather') === 'true' || false
+        height: profile.height || 170,
+        weight: profile.weight || 70,
+        gender: profile.gender || 'M',
+        enableWeather: profile.enableWeather || false
       });
     };
 
@@ -30,17 +38,21 @@ export const useUserSettings = () => {
   }, []);
 
   const updateSettings = (newSettings) => {
-    // update localStorage
-    Object.entries(newSettings).forEach(([key, value]) => {
-      localStorage.setItem(`user${key.charAt(0).toUpperCase() + key.slice(1)}`, value.toString());
-    });
+    try {
+      // Update the userProfile using the local data service
+      localDataService.updateUserProfile(newSettings);
 
-    // immediately update state
-    setSettings(prev => ({
-      ...prev,
-      ...newSettings
-    }));
-    window.dispatchEvent(settingsUpdateEvent);
+      // Immediately update state
+      setSettings(prev => ({
+        ...prev,
+        ...newSettings
+      }));
+      
+      // Dispatch event for other components that might be listening
+      window.dispatchEvent(settingsUpdateEvent);
+    } catch (error) {
+      console.error('Error updating settings:', error);
+    }
   };
 
   return { settings, updateSettings };

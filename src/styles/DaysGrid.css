@@ -25,6 +25,19 @@
     gap: 20px;
     font-family: sf;
 }
+body::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  body::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+  }
+
 
 .day-grid-date-selector {
     display: flex;
@@ -80,7 +93,7 @@
     border-radius: 5px;
     width: 94%;
     margin:auto;
-    margin-top: 2rem;
+    margin-top: 1.33rem;
     padding-top: 0.25rem;
     padding-bottom: 1rem;
     margin-bottom: 3rem;
@@ -169,4 +182,8 @@
 }
 .day-details-badges {
     margin-top: 0.8rem;
+}
+
+.hourly-steps-graph {
+    display: none;
 }

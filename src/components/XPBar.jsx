@@ -80,6 +80,7 @@ export default function XPBar() {
                 <div 
                     className={`level-progress-container ${settings.gender === 'F' ? 'female' : ''}`}
                     onClick={() => setIsExpanded(!isExpanded)}
+                    style={isExpanded ? {borderBottomLeftRadius: '0', borderBottomRightRadius: '0'} : {borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px'}}
                 >
                     <div className="level-progress-bar" style={{ width: `${progressPercentage}%` }}></div>
                     

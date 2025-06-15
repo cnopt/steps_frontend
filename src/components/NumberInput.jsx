@@ -1,19 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from 'axios';
-import { useStepsData } from '../hooks/useStepsData';
+import { useStepsData, useAddStepsData } from '../hooks/useStepsData';
+import { useAchievementChecker } from '../hooks/useAchievementChecker';
+import localDataService from '../services/localDataService';
 import NavBar from './NavBar'
 import '../styles/NumberInput.css'
 import XPBar from "./XPBar";
+import AchievementNotification from './AchievementNotification';
 import PageTransition from './PageTransition';
 
 
 const NumberInput = () => {
   const [inputValue, setInputValue] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [successMessage, setSuccessMessage] = useState(null);  // Add this state
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showFirstEntrySuccess, setShowFirstEntrySuccess] = useState(false);
+  const [successTimeoutId, setSuccessTimeoutId] = useState(null);
   const queryClient = useQueryClient();
   const { data: stepsData } = useStepsData();
+  const { addStepsData } = useAddStepsData();
+  const { 
+    checkForNewAchievements, 
+    achievementNotifications, 
+    clearNotifications, 
+    dismissNotification 
+  } = useAchievementChecker();
+
+  useEffect(() => {
+    const onboardingStatus = localDataService.getOnboardingStatus();
+    setIsFirstTime(onboardingStatus.isFirstTime);
+    setShowWelcome(onboardingStatus.isFirstTime);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutId) {
+        clearTimeout(successTimeoutId);
+      }
+    };
+  }, [successTimeoutId]);
 
 
   const formatDate = (date) => {
@@ -57,13 +85,34 @@ const NumberInput = () => {
       formatted_date: formattedDate,
     };
     try {
-      const response = await axios.post("https://yxa.gr/steps/add", data);
-      setSuccessMessage(response.data);  // Store response in state instead of alert
+      const response = await addStepsData(data);
+      setSuccessMessage(response);  // Store response in state instead of alert
       setInputValue(""); // Clear the input field
-      queryClient.invalidateQueries({
+      
+      // Mark first entry completed for new users
+      if (isFirstTime) {
+        localDataService.markFirstEntryCompleted();
+        setIsFirstTime(false);
+        setShowWelcome(false);
+        setShowFirstEntrySuccess(true);
+        // Hide the success message after 5 seconds
+        const timeoutId = setTimeout(() => {
+          setShowFirstEntrySuccess(false);
+        }, 5000);
+        setSuccessTimeoutId(timeoutId);
+      }
+      
+      // Invalidate and refetch the steps data
+      await queryClient.invalidateQueries({
         queryKey: ['stepsData'],
         refetchType: 'all' // refetch both active and inactive queries
        });
+
+      // Wait for the query to refetch, then check for new achievements
+      const updatedStepsData = queryClient.getQueryData(['stepsData']);
+      if (updatedStepsData) {
+        await checkForNewAchievements(updatedStepsData);
+      }
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
@@ -99,7 +148,36 @@ const NumberInput = () => {
     <>
         <NavBar/>
         <XPBar/>
+        {showFirstEntrySuccess && (
+          <div style={{
+            background: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            margin: '16px',
+            textAlign: 'center',
+            fontSize: '14px',
+            color: '#4CAF50'
+          }}>
+            🎉 Great start! Check out your progress in the calendar view
+          </div>
+        )}
         <div className="container">
+          {showWelcome && (
+            <div className="welcome-hint" style={{
+              background: 'rgba(68, 147, 248, 0.1)',
+              border: '1px solid rgba(68, 147, 248, 0.3)',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              textAlign: 'center',
+              fontSize: '14px',
+              color: '#4493f8'
+            }}>
+              👋 Welcome! Enter your daily steps below to get started
+            </div>
+          )}
+          
           <div className="dateNav">
             <button onClick={() => handleDateChange(-1)}>
               ←
@@ -142,11 +220,19 @@ const NumberInput = () => {
           {successMessage && (
             <div className="success-message">
               <p><span>󰸞</span> 
-              added {JSON.stringify(successMessage.data_added.steps)} steps
+              added {successMessage.data_added.steps} steps
               for {formatShortDate(successMessage.data_added.formatted_date)}</p>
             </div>
           )}
         </div>
+        
+        {/* Achievement Notifications */}
+        <AchievementNotification
+          achievements={achievementNotifications}
+          onDismiss={dismissNotification}
+          onClearAll={clearNotifications}
+          autoDismissTime={3000}
+        />
     </>
   );
 };

@@ -9,6 +9,7 @@ import PageTransition from './PageTransition';
 import { FaUserMinus, FaUserPlus, FaMars, FaVenus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserSettings } from '../hooks/useUserSettings';
+import localDataService from '../services/localDataService';
 
 const SettingsMenu = () => {
   const { settings, updateSettings } = useUserSettings();
@@ -26,6 +27,43 @@ const SettingsMenu = () => {
 
   const saveSettings = () => {
     alert('Settings saved');
+  };
+
+  const wipeAllData = () => {
+    const confirmWipe = window.confirm(
+      'Are you sure you want to wipe all your data? This action cannot be undone.'
+    );
+    
+    if (confirmWipe) {
+      try {
+        // Clear steps and user profile data through localDataService
+        localDataService.clearAllData();
+        
+        // Clear all achievement/badge related data
+        localStorage.removeItem('unlockedBadges');
+        localStorage.removeItem('unwrappedMilestones');
+        localStorage.removeItem('viewedBadges');
+        
+        // Clear weather data
+        localStorage.removeItem('weatherData');
+        
+        // Clear any legacy user settings
+        localStorage.removeItem('userHeight');
+        localStorage.removeItem('userWeight');
+        localStorage.removeItem('userGender');
+        localStorage.removeItem('userEnableWeather');
+        
+        // Clear any other potential app data
+        localStorage.removeItem('appVersion');
+        
+        //alert('All data has been wiped successfully. The page will reload.');
+        // Reload the page to refresh all components and reset state
+        window.location.reload();
+      } catch (error) {
+        console.error('Error wiping data:', error);
+        alert('There was an error wiping your data. Please try again.');
+      }
+    }
   };
 
   return (
@@ -77,7 +115,7 @@ const SettingsMenu = () => {
                 className="height-button increase"
                 onClick={() => adjustHeight(1)}
               >
-                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1090_6)"><path d="M24.1 20.21C23.66 20.72 23.4 21.74 23.4 23.75V42.3H22.76C22.4444 42.3 22.1417 42.4254 21.9185 42.6485C21.6954 42.8717 21.57 43.1744 21.57 43.49C21.57 43.8056 21.6954 44.1083 21.9185 44.3315C22.1417 44.5546 22.4444 44.68 22.76 44.68H24.29C24.4445 44.6787 24.5972 44.6468 24.7393 44.5862C24.8814 44.5256 25.0101 44.4374 25.118 44.3267C25.2258 44.2161 25.3107 44.0852 25.3677 43.9416C25.4247 43.798 25.4526 43.6445 25.45 43.49C25.4484 43.2009 25.3458 42.9215 25.16 42.7V33.07C25.1638 32.9811 25.1853 32.8938 25.2232 32.8133C25.2611 32.7328 25.3147 32.6607 25.3808 32.6011C25.4469 32.5415 25.5242 32.4957 25.6082 32.4663C25.6922 32.437 25.7812 32.4246 25.87 32.43C25.9588 32.4246 26.0478 32.437 26.1318 32.4663C26.2158 32.4957 26.2931 32.5415 26.3592 32.6011C26.4253 32.6607 26.4789 32.7328 26.5168 32.8133C26.5547 32.8938 26.5762 32.9811 26.58 33.07V42.68C26.3913 42.9005 26.2853 43.1798 26.28 43.47C26.2787 43.625 26.3079 43.7787 26.366 43.9223C26.4241 44.066 26.5099 44.1968 26.6185 44.3073C26.7272 44.4178 26.8565 44.5059 26.9992 44.5664C27.1419 44.6269 27.295 44.6587 27.45 44.66H29C29.2865 44.6226 29.5496 44.4823 29.7403 44.2651C29.9309 44.048 30.0361 43.7689 30.0361 43.48C30.0361 43.1911 29.9309 42.912 29.7403 42.6949C29.5496 42.4777 29.2865 42.3374 29 42.3H28.35V23.75C28.35 21.75 28.09 20.75 27.64 20.21C27.0635 20.3706 26.4684 20.4547 25.87 20.46C25.2716 20.454 24.6766 20.37 24.1 20.21ZM31.74 17.87C31.74 16.709 31.3957 15.5741 30.7507 14.6088C30.1057 13.6435 29.189 12.8911 28.1164 12.4468C27.0438 12.0025 25.8635 11.8863 24.7248 12.1128C23.5862 12.3393 22.5402 12.8984 21.7193 13.7193C20.8984 14.5402 20.3393 15.5862 20.1128 16.7248C19.8863 17.8635 20.0025 19.0438 20.4468 20.1164C20.8911 21.189 21.6435 22.1057 22.6088 22.7507C23.5741 23.3957 24.709 23.74 25.87 23.74C27.4268 23.74 28.9199 23.1216 30.0207 22.0207C31.1216 20.9199 31.74 19.4268 31.74 17.87Z" fill="currentColor"></path></g><defs><clipPath id="clip0_1090_6"><rect width="11.74" height="36.68" fill="white" transform="translate(20 8)"></rect></clipPath></defs></svg>
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1090_6)"><path d="M24.1 20.21C23.66 20.72 23.4 21.74 23.4 23.75V42.3H22.76C22.4444 42.3 22.1417 42.4254 21.9185 42.6485C21.6954 42.8717 21.57 43.1744 21.57 43.49C21.57 43.8056 21.6954 44.1083 21.8385 44.3315C22.0617 44.5546 22.3644 44.68 22.76 44.68H24.29C24.4445 44.6787 24.5972 44.6468 24.7393 44.5862C24.8814 44.5256 25.0101 44.4374 25.118 44.3267C25.2258 44.2161 25.3107 44.0852 25.3677 43.9416C25.4247 43.798 25.4526 43.6445 25.45 43.49C25.4484 43.2009 25.3458 42.9215 25.16 42.7V33.07C25.1638 32.9811 25.1853 32.8938 25.2232 32.8133C25.2611 32.7328 25.3147 32.6607 25.3808 32.6011C25.4469 32.5415 25.5242 32.4957 25.6082 32.4663C25.6922 32.437 25.7812 32.4246 25.87 32.43C25.9588 32.4246 26.0478 32.437 26.1318 32.4663C26.2158 32.4957 26.2931 32.5415 26.3592 32.6011C26.4253 32.6607 26.4789 32.7328 26.5168 32.8133C26.5547 32.8938 26.5762 32.9811 26.58 33.07V42.68C26.3913 42.9005 26.2853 43.1798 26.28 43.47C26.2787 43.625 26.3079 43.7787 26.366 43.9223C26.4241 44.066 26.5099 44.1968 26.6185 44.3073C26.7272 44.4178 26.8565 44.5059 26.9992 44.5664C27.1419 44.6269 27.295 44.6587 27.45 44.66H29C29.2865 44.6226 29.5496 44.4823 29.7403 44.2651C29.9309 44.048 30.0361 43.7689 30.0361 43.48C30.0361 43.1911 29.9309 42.912 29.7403 42.6949C29.5496 42.4777 29.2865 42.3374 29 42.3H28.35V23.75C28.35 21.75 28.09 20.75 27.64 20.21C27.0635 20.3706 26.4684 20.4547 25.87 20.46C25.2716 20.454 24.6766 20.37 24.1 20.21ZM31.74 17.87C31.74 16.709 31.3957 15.5741 30.7507 14.6088C30.1057 13.6435 29.189 12.8911 28.1164 12.4468C27.0438 12.0025 25.8635 11.8863 24.7248 12.1128C23.5862 12.3393 22.5402 12.8984 21.7193 13.7193C20.8984 14.5402 20.3393 15.5862 20.1128 16.7248C19.8863 17.8635 20.0025 19.0438 20.4468 20.1164C20.8911 21.189 21.6435 22.1057 22.6088 22.7507C23.5741 23.3957 24.709 23.74 25.87 23.74C27.4268 23.74 28.9199 23.1216 30.0207 22.0207C31.1216 20.9199 31.74 19.4268 31.74 17.87Z" fill="currentColor"></path></g><defs><clipPath id="clip0_1090_6"><rect width="11.74" height="36.68" fill="white" transform="translate(20 8)"></rect></clipPath></defs></svg>
               </button>
             </div>
           </div>
@@ -125,8 +163,23 @@ const SettingsMenu = () => {
                 <span className="toggle-slider"></span>
               </label>
               <span className="toggle-label">
-                {settings.enableWeather ? 'Weather data is currently enabled' : 'Weather data is currently disabled'}
+                {settings.enableWeather ? 'Weather data is enabled' : 'Weather data is disabled'}
               </span>
+            </div>
+          </div>
+
+          <div className="data-settings">
+            <h2>Data Management</h2>
+            <div className="wipe-data-section">
+              <button 
+                className="wipe-data-button"
+                onClick={wipeAllData}
+              >
+                Wipe All Data
+              </button>
+              <p className="wipe-data-warning">
+                Permanently delete all your steps data
+              </p>
             </div>
           </div>
         </div>

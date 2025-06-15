@@ -15,6 +15,7 @@ import PageTransition from './PageTransition';
 import { convertToHourlyBuckets, getHourlySteps } from '../helpers/timeStepsBucketing';
 import HourlyStepsGraph from './HourlyStepsGraph';
 import { useUserSettings } from '../hooks/useUserSettings';
+import StepsInputModal from './StepsInputModal';
 
 const getWeatherIcon = (weatherString) => {
   const weatherIcons = {
@@ -48,6 +49,7 @@ const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
 const DaysGrid = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedEmptyDay, setSelectedEmptyDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const query = useStepsData();
   const [hourlyStepsData, setHourlyStepsData] = useState(null);
@@ -226,7 +228,11 @@ const DaysGrid = () => {
                   : null;
 
                 let backgroundColor = '#040405';
-                let color = '#222';
+                let color = '#444';
+
+                // Check if this is today's date
+                const today = new Date();
+                const isToday = dayDate && dayDate === today.toISOString().split('T')[0];
 
                 if (dayData) {
                   if (milestoneDays.has(dayDate)) {
@@ -241,14 +247,33 @@ const DaysGrid = () => {
                   }
                 }
 
+                // Override color for today's date only if no steps data
+                if (isToday && !dayData) {
+                  color = '#ffffff';
+                }
+
+                const handleDayClick = () => {
+                  if (daysWithData[day]) {
+                    // Day has data - show day details
+                    setSelectedDay(daysWithData[day]);
+                    setSelectedEmptyDay(null);
+                  } else if (day > 0 && day <= daysInMonth) {
+                    // Day has no data and is a valid day - show input
+                    setSelectedEmptyDay(dayDate);
+                    setSelectedDay(null);
+                  }
+                };
+
                 return (
                   <div className='day'
-                    key={day}
-                    onClick={() => setSelectedDay(daysWithData[day] || null)}
+                    key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
+                    onClick={handleDayClick}
                     style={{
                       backgroundColor,
                       color,
-                      position: 'relative'
+                      position: 'relative',
+                      cursor: (day > 0 && day <= daysInMonth) ? 'pointer' : 'default',
+                      opacity: (day <= 0 || day > daysInMonth) ? 0.2 : 1
                     }}
                   >
                     {dayData && (
@@ -287,7 +312,7 @@ const DaysGrid = () => {
                           ))}
                       </>
                     )}
-                    {dayData ? '■' : '.'}
+                    {dayData ? '■' : '·'}
                   </div>
                 );
               })}
@@ -296,7 +321,7 @@ const DaysGrid = () => {
           <AnimatePresence mode="wait">
             <motion.div 
               className="day-details"
-              key={selectedDay ? selectedDay.formatted_date : 'empty'}
+              key={selectedDay ? selectedDay.formatted_date : selectedEmptyDay ? selectedEmptyDay : 'empty'}
               initial={{ opacity: 0, y: 5, x: 0 }}
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: 0 }}
@@ -388,6 +413,27 @@ const DaysGrid = () => {
           </AnimatePresence>
           </div>
         </div>
+
+        {/* Steps Input Modal */}
+        <StepsInputModal
+          isOpen={!!selectedEmptyDay}
+          selectedDate={selectedEmptyDay}
+          onSuccess={(response) => {
+            // Clear the selected empty day
+            setSelectedEmptyDay(null);
+            // Auto-select the newly created day after a brief delay to allow data refresh
+            setTimeout(() => {
+              const newDayData = {
+                ...response.data_added,
+                steps: response.data_added.steps
+              };
+              setSelectedDay(newDayData);
+            }, 100);
+          }}
+          onClose={() => {
+            setSelectedEmptyDay(null);
+          }}
+        />
     </>
   );
 };
