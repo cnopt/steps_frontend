@@ -303,7 +303,7 @@ const DaysGrid = () => {
                               key={badge.id}
                               style={{
                                 position: 'absolute',
-                                top: `${8 + (index * 8)}px`, // if more than one badge, move down properly
+                                top: `${8 + (index * 9)}px`, // if more than one badge, move down properly
                                 left: '3px',
                                 width: '6px',
                                 height: '6px',
@@ -315,16 +315,19 @@ const DaysGrid = () => {
                           ))}
                       </>
                     )}
-                    {/* White circle for selected day */}
+                    {/* circle for selected day */}
                     {selectedDay && dayDate === selectedDay.formatted_date && (
-                      <div 
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
                         style={{
                           position: 'absolute',
                           top: '50%',
                           left: '50%',
                           transform: 'translate(-50%, -50%)',
-                          width: '10px',
-                          height: '10px',
+                          width: '8px',
+                          height: '8px',
                           backgroundColor: '#040405',
                           borderRadius: '50%',
                           zIndex: 4,
@@ -332,21 +335,20 @@ const DaysGrid = () => {
                           color:'black',
                           fontSize:'0.65em'
                         }}
-                      ></div>
+                      ></motion.div>
                     )}
-                    {/* Animated ■ for days with data */}
+                    {/* ■ for days with data, pop in if newly added */}
                     {dayData ? (
                       <motion.span
                         key={`${dayDate}-filled`}
-                        initial={isNewlyAdded ? { scale: 0, rotate: 0 } : false}
+                        initial={isNewlyAdded ? { opacity: 0, y: 10 } : false}
                         animate={isNewlyAdded ? { 
-                          scale: [0, 1.4, 1], 
-                          rotate: [0, 15, -10, 0] 
-                        } : { scale: 1 }}
+                          opacity: 1,
+                          y: 0
+                        } : { opacity: 1, y: 0 }}
                         transition={isNewlyAdded ? {
-                          duration: 0.6,
-                          ease: "easeOut",
-                          times: [0, 0.6, 1]
+                          duration: 0.4,
+                          ease:'easeOut'
                         } : { duration: 0 }}
                         onAnimationComplete={() => {
                           if (isNewlyAdded) {

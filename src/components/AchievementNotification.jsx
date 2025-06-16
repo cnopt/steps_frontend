@@ -99,36 +99,36 @@ const AchievementNotification = ({
                 }}
                 transition={{ duration: 0.4 }}
               >
-                <motion.div 
-                  className="achievement-icon"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.5 }}
-                >
-                  {achievement.image ? (
-                    <img 
-                      src={achievement.image} 
-                      alt={achievement.name}
-                      className="achievement-image"
-                      onError={(e) => {
-                        // Fallback to text icon if image fails to load
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'inline';
-                      }}
-                    />
-                  ) : null}
-                  <span 
-                    className="achievement-icon-fallback"
-                    style={{ 
-                      color: achievement.type === 'milestone' 
-                        ? getRarityColor(achievement.rarity) 
-                        : 'gold',
-                      display: achievement.image ? 'none' : 'inline'
-                    }}
+                {achievement.type !== 'milestone' && (
+                  <motion.div 
+                    className="achievement-icon"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.5 }}
                   >
-                    {getAchievementIcon(achievement.type)}
-                  </span>
-                </motion.div>
+                    {achievement.image ? (
+                      <img 
+                        src={achievement.image} 
+                        alt={achievement.name}
+                        className="achievement-image"
+                        onError={(e) => {
+                          // Fallback to text icon if image fails to load
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'inline';
+                        }}
+                      />
+                    ) : null}
+                    <span 
+                      className="achievement-icon-fallback"
+                      style={{ 
+                        color: 'gold',
+                        display: achievement.image ? 'none' : 'inline'
+                      }}
+                    >
+                      {getAchievementIcon(achievement.type)}
+                    </span>
+                  </motion.div>
+                )}
                 
                 <div className="achievement-details">
                   <motion.div 

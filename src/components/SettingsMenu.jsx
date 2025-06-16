@@ -156,6 +156,7 @@ const SettingsMenu = () => {
             <div className="weather-toggle">
               <label className="toggle-switch">
                 <input
+                  disabled
                   type="checkbox"
                   checked={settings.enableWeather}
                   onChange={() => updateSettings({ enableWeather: !settings.enableWeather })}
@@ -178,7 +179,7 @@ const SettingsMenu = () => {
                 Wipe All Data
               </button>
               <p className="wipe-data-warning">
-                Permanently delete all your steps data
+                Permanently delete all of your steps data
               </p>
             </div>
           </div>

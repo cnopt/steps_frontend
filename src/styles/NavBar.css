@@ -6,6 +6,8 @@
     margin-top: 2rem;
     margin-bottom: 0.8rem;
     height: 2rem;
+    display: flex;
+    justify-content: space-between;
     white-space: nowrap;
     &::-webkit-scrollbar {
         display: none;
@@ -14,7 +16,7 @@
 .title-bar-nav p {
     display: inline-block;
     margin: 0;
-    margin-right: 2rem;
+    /* margin-right: 2rem; */
 }
 .title-bar-nav a {
     color:rgb(158, 158, 158);

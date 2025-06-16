@@ -19,9 +19,9 @@ export default function NavBar() {
                 <Link to={`/achievements`}>
                     <p>Achievements</p>
                 </Link>
-                <Link to={`/input`}>
+                {/* <Link to={`/input`}>
                     <p>Input</p>
-                </Link>
+                </Link> */}
                 <Link to={`/settings`}>
                     <IoMdSettings />
                 </Link>

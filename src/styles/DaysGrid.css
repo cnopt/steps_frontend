@@ -88,7 +88,7 @@ body::-webkit-scrollbar {
 
 .day-details {
     /* flex: 1, fontSize: '16px', textAlign: 'left' */
-    height: 5rem;
+    /* height: 5rem; */
     /* background-color: #0b0b0e; */
     border-radius: 5px;
     width: 94%;

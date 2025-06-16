@@ -7,6 +7,7 @@ import { useUserSettings } from './useUserSettings';
 export function useAchievementChecker() {
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
   const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
+  const [dismissedMilestoneNotifications, setDismissedMilestoneNotifications] = useLocalStorage('dismissedMilestoneNotifications', []);
   const [achievementNotifications, setAchievementNotifications] = useState([]);
   const { settings } = useUserSettings();
 
@@ -25,8 +26,9 @@ export function useAchievementChecker() {
         const milestone = milestones[currentMilestoneIndex];
         milestoneDays.set(milestone.value, dayData.formatted_date);
         
-        // Check if this milestone is newly unlocked
-        if (!unwrappedMilestones.includes(milestone.value)) {
+        // Check if this milestone is newly unlocked and notification hasn't been dismissed
+        if (!unwrappedMilestones.includes(milestone.value) && 
+            !dismissedMilestoneNotifications.includes(milestone.value)) {
           newMilestones.push({
             type: 'milestone',
             value: milestone.value,
@@ -41,7 +43,7 @@ export function useAchievementChecker() {
     }
 
     return { milestoneDays, newMilestones };
-  }, [unwrappedMilestones]);
+  }, [unwrappedMilestones, dismissedMilestoneNotifications]);
 
   // Main function to check for new achievements
   const checkForNewAchievements = useCallback(async (stepsData) => {
@@ -102,13 +104,32 @@ export function useAchievementChecker() {
 
   // Function to clear notifications (called when user acknowledges them)
   const clearNotifications = useCallback(() => {
+    // Mark any milestones in current notifications as dismissed (but not unwrapped)
+    const milestoneValues = achievementNotifications
+      .filter(achievement => achievement.type === 'milestone')
+      .map(milestone => milestone.value);
+    
+    if (milestoneValues.length > 0) {
+      setDismissedMilestoneNotifications(prev => 
+        [...prev, ...milestoneValues.filter(value => !prev.includes(value))]
+      );
+    }
+    
     setAchievementNotifications([]);
-  }, []);
+  }, [achievementNotifications, setDismissedMilestoneNotifications]);
 
   // Function to dismiss a specific notification
   const dismissNotification = useCallback((index) => {
+    // If the dismissed notification is a milestone, mark it as dismissed (but not unwrapped)
+    const dismissedAchievement = achievementNotifications[index];
+    if (dismissedAchievement && dismissedAchievement.type === 'milestone') {
+      setDismissedMilestoneNotifications(prev => 
+        prev.includes(dismissedAchievement.value) ? prev : [...prev, dismissedAchievement.value]
+      );
+    }
+    
     setAchievementNotifications(prev => prev.filter((_, i) => i !== index));
-  }, []);
+  }, [achievementNotifications, setDismissedMilestoneNotifications]);
 
   return {
     checkForNewAchievements,

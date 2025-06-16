@@ -99,6 +99,12 @@ button.gender-button.girl.active {
   border-radius: 12px;
 }
 
+.weather-settings h2, .data-settings h2 {
+  font-size: 1.2em;
+  opacity: 0.9;
+  font-family: 'sf-semi';
+}
+
 .weather-toggle {
   display: flex;
   align-items: center;
@@ -185,6 +191,7 @@ input:checked + .toggle-slider:before {
   transition: all 0.2s ease;
   min-width: 150px;
   width: 90%;
+  height: 3rem;
 }
 
 .wipe-data-button:hover {
