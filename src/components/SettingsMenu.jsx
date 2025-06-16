@@ -131,6 +131,118 @@ const SettingsMenu = () => {
       });
   };
 
+  const importData = () => {
+    try {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.json,application/json';
+      fileInput.style.display = 'none';
+      
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          return;
+        }
+        
+        // josn file type
+        if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+          alert('Please select a valid JSON file.');
+          return;
+        }
+        
+        // limit size
+        const maxSize = 10 * 1024 * 1024; // 10mb
+        if (file.size > maxSize) {
+          alert('File is too large. Please select a file smaller than 10MB.');
+          return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // validate structure
+            if (!importedData.stepsData || !importedData.userProfile) {
+              alert('Invalid file format. Please select a valid Stepno export file');
+              return;
+            }
+            
+            // show confirmation window
+            const stepsCount = importedData.stepsData.length;
+            const exportDate = importedData.exportDate ? new Date(importedData.exportDate).toLocaleDateString() : 'Unknown';
+            
+            const confirmMessage = `Import data with ${stepsCount} step entries from ${exportDate}?\n\nThis will merge with your existing data. Newer entries will take precedence.`;
+            
+            if (window.confirm(confirmMessage)) {
+              const result = localDataService.importUserData(importedData, { merge: true });
+              
+              if (result.success) {
+                // import additional data if present
+                if (importedData.additionalData) {
+                  const additional = importedData.additionalData;
+                  
+                  if (additional.unlockedBadges && Array.isArray(additional.unlockedBadges)) {
+                    const currentBadges = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+                    const mergedBadges = [...new Set([...currentBadges, ...additional.unlockedBadges])];
+                    localStorage.setItem('unlockedBadges', JSON.stringify(mergedBadges));
+                  }
+                  
+                  if (additional.unwrappedMilestones && Array.isArray(additional.unwrappedMilestones)) {
+                    const currentMilestones = JSON.parse(localStorage.getItem('unwrappedMilestones') || '[]');
+                    const mergedMilestones = [...new Set([...currentMilestones, ...additional.unwrappedMilestones])];
+                    localStorage.setItem('unwrappedMilestones', JSON.stringify(mergedMilestones));
+                  }
+                  
+                  if (additional.viewedBadges && Array.isArray(additional.viewedBadges)) {
+                    const currentViewed = JSON.parse(localStorage.getItem('viewedBadges') || '[]');
+                    const mergedViewed = [...new Set([...currentViewed, ...additional.viewedBadges])];
+                    localStorage.setItem('viewedBadges', JSON.stringify(mergedViewed));
+                  }
+                  
+                  if (additional.weatherData && additional.weatherData !== null) {
+                    localStorage.setItem('weatherData', JSON.stringify(additional.weatherData));
+                  }
+                }
+                
+                alert(`Data imported successfully! ${result.importedEntries} entries were processed.`);
+                
+                // trigger settings update event
+                window.dispatchEvent(new Event('settingsUpdate'));
+                
+                // reload the page just in case
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1000);
+              } else {
+                alert('Import failed. Please try again.');
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing JSON file:', error);
+            alert('Invalid JSON file. Please select a valid Stepno export file.');
+          }
+        };
+        
+        reader.onerror = () => {
+          alert('Error reading file. Please try again.');
+        };
+        
+        reader.readAsText(file);
+      });
+      
+      // trigger file picker
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      document.body.removeChild(fileInput);
+      
+    } catch (error) {
+      console.error('Error importing data:', error);
+      alert('There was an error importing your data. Please try again.');
+    }
+  };
+
   const downloadFile = (blob, filename) => {
     try {
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -303,12 +415,20 @@ const SettingsMenu = () => {
             <h2>Data Management</h2>
             <div className="data-actions-section">
               <div className="import-export-section">
-                <button 
-                  className="export-data-button"
-                  onClick={exportData}
-                >
-                  Export Data
-                </button>
+                <div className="import-export-buttons">
+                  <button 
+                    className="import-data-button"
+                    onClick={importData}
+                  >
+                    Import Data
+                  </button>
+                  <button 
+                    className="export-data-button"
+                    onClick={exportData}
+                  >
+                    Export Data
+                  </button>
+                </div>
               </div>
               <div className="wipe-data-section">
                 <button 
