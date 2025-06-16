@@ -29,6 +29,144 @@ const SettingsMenu = () => {
     alert('Settings saved');
   };
 
+  const exportData = () => {
+    try {
+      const exportData = localDataService.exportUserData();
+      
+      // include additional data that might not be in localDataService
+      const additionalData = {
+        unlockedBadges: JSON.parse(localStorage.getItem('unlockedBadges') || '[]'),
+        unwrappedMilestones: JSON.parse(localStorage.getItem('unwrappedMilestones') || '[]'),
+        viewedBadges: JSON.parse(localStorage.getItem('viewedBadges') || '[]'),
+        weatherData: JSON.parse(localStorage.getItem('weatherData') || 'null')
+      };
+      
+      // combine 
+      const completeExportData = {
+        ...exportData,
+        additionalData
+      };
+      
+      // create a blob
+      const jsonString = JSON.stringify(completeExportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // create filename with current date
+      const now = new Date();
+      const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const filename = `Stepno-export_${dateString}.json`;
+      
+      // check if in a secure context for web share API
+      const isSecureContext = window.isSecureContext || location.protocol === 'https:';
+      console.log('Secure context:', isSecureContext);
+      console.log('User agent:', navigator.userAgent);
+      
+      if (isSecureContext && navigator.share) {
+        console.log('Web Share API is available in secure context');
+        
+        // Check if this is a mobile device
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log('Mobile device detected:', isMobileDevice);
+        
+        if (navigator.canShare && typeof navigator.canShare === 'function') {
+          const file = new File([blob], filename, { type: 'application/json' });
+          const shareDataWithFile = {
+            title: 'Stepno Data Export',
+            text: `Your exported steps data from ${dateString}`,
+            files: [file]
+          };
+          
+          try {
+            if (navigator.canShare(shareDataWithFile)) {
+              console.log('File sharing is supported, attempting to share with file');
+              navigator.share(shareDataWithFile)
+                .then(() => {
+                  console.log('Data exported successfully via share with file');
+                  alert('Data exported successfully');
+                })
+                .catch((error) => {
+                  console.log('File share failed:', error);
+                  fallbackToTextShare(blob, filename, dateString);
+                });
+              return;
+            }
+          } catch (error) {
+            console.log('canShare check failed:', error);
+          }
+        }
+        
+        // fallback to text only share
+        fallbackToTextShare(blob, filename, dateString);
+      } else {
+        // fallback again
+        console.log('Web Share API not available - using download fallback');
+        console.log('Reasons: Secure context:', isSecureContext, 'Navigator.share:', !!navigator.share);
+        downloadFile(blob, filename);
+      }
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('There was an error exporting your data. Please try again.');
+    }
+  };
+  
+  const fallbackToTextShare = (blob, filename, dateString) => {
+    // Try text-only share with informative message
+    const shareData = {
+      title: 'Stepno Data Export',
+      text: `Export your Stepno data from ${dateString}. The file will be downloaded after sharing.`,
+      url: window.location.href
+    };
+    
+    console.log('Attempting text-only share');
+    navigator.share(shareData)
+      .then(() => {
+        console.log('Text share completed, now triggering download');
+        setTimeout(() => {
+          downloadFile(blob, filename);
+        }, 800);
+      })
+      .catch((error) => {
+        console.log('Text share failed, falling back to download only:', error);
+        downloadFile(blob, filename);
+      });
+  };
+
+  const downloadFile = (blob, filename) => {
+    try {
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      
+      link.style.display = 'none';
+      link.setAttribute('download', filename);
+      
+      // trigger download
+      document.body.appendChild(link);
+      
+      // ensure the link is in the DOM
+      setTimeout(() => {
+        link.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 10);
+      
+      const message = isMobileDevice && navigator.clipboard && window.isSecureContext 
+        ? 'Data exported successfully! File downloaded'
+        : 'Data exported successfully!';
+      
+      alert(message);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed. Please try again or check your browser settings.');
+    }
+  };
+
   const wipeAllData = () => {
     const confirmWipe = window.confirm(
       'Are you sure you want to wipe all your data? This action cannot be undone.'
@@ -36,24 +174,16 @@ const SettingsMenu = () => {
     
     if (confirmWipe) {
       try {
-        // Clear steps and user profile data through localDataService
         localDataService.clearAllData();
         
-        // Clear all achievement/badge related data
         localStorage.removeItem('unlockedBadges');
         localStorage.removeItem('unwrappedMilestones');
         localStorage.removeItem('viewedBadges');
-        
-        // Clear weather data
         localStorage.removeItem('weatherData');
-        
-        // Clear any legacy user settings
         localStorage.removeItem('userHeight');
         localStorage.removeItem('userWeight');
         localStorage.removeItem('userGender');
         localStorage.removeItem('userEnableWeather');
-        
-        // Clear any other potential app data
         localStorage.removeItem('appVersion');
         
         //alert('All data has been wiped successfully. The page will reload.');
@@ -171,16 +301,26 @@ const SettingsMenu = () => {
 
           <div className="data-settings">
             <h2>Data Management</h2>
-            <div className="wipe-data-section">
-              <button 
-                className="wipe-data-button"
-                onClick={wipeAllData}
-              >
-                Wipe All Data
-              </button>
-              <p className="wipe-data-warning">
-                Permanently delete all of your steps data
-              </p>
+            <div className="data-actions-section">
+              <div className="import-export-section">
+                <button 
+                  className="export-data-button"
+                  onClick={exportData}
+                >
+                  Export Data
+                </button>
+              </div>
+              <div className="wipe-data-section">
+                <button 
+                  className="wipe-data-button"
+                  onClick={wipeAllData}
+                >
+                  Wipe All Data
+                </button>
+                <p className="wipe-data-warning">
+                  Permanently delete all of your steps data
+                </p>
+              </div>
             </div>
           </div>
         </div>
