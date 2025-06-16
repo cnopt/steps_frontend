@@ -47,16 +47,33 @@ const AchievementNotification = ({
       {achievements.length > 0 && (
         <motion.div
           className={`achievement-notifications-container ${hasMilestones ? 'has-milestones' : ''} ${hasOnlyMilestones ? 'milestone-theme' : ''}`}
-          initial={{ opacity: 0, x: -200 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -200 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 400, 
-            damping: 40,
-            duration: 0.8,
-            delay: 0.3
+          variants={{
+            initial: { opacity: 0, x: -200 },
+            animate: { 
+              opacity: 1, 
+              x: 0,
+              transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 40,
+                duration: 0.8,
+                delay: 0.3
+              }
+            },
+            exit: { 
+              opacity: 0, 
+              x: -200,
+              transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 40,
+                duration: 0.8
+              }
+            }
           }}
+          initial="initial"
+          animate="animate"
+          exit="exit"
         >
           <div className="achievement-notifications-header">
             <h3>
