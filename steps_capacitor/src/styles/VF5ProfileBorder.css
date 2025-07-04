@@ -1,0 +1,102 @@
+.vf5-profile-border {
+    margin-top: 1.5rem;
+    width: 99%;
+    height: 5rem;
+    /* background-color: #000e7b; */
+    background-image: url('../../public/titles/green.jpg');
+    background-size: inherit;
+    background-position: bottom;
+    border-radius: 8px;
+    border: 2px solid #444;
+    /* box-shadow: inset 0 0 22px 6px #075fe2; */
+    position: relative;
+    z-index:1;
+}
+.glare {
+    content: "";
+    position: absolute;
+    border-radius: 7px;
+    width: 100%;
+    height: 16px;
+    background-color: rgba(255,255,255,0.25);
+    z-index:2;
+}
+/* .vf5-profile-border::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 90%;
+    background: #000000;
+    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 33%, rgba(255, 255, 255, 0) 100%);
+    z-index:2;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+} */
+.vf5-profile-border::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80%;
+    background: #000000;
+    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 27%, rgba(255, 255, 255, 0) 100%);
+    z-index:2;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+.vf5-profile-border .username {
+    font-family: sf-semi;
+    margin: 0;
+    padding: 0;
+    padding-top: 18px;
+    padding-left: 28px;
+    font-size: 22px;
+    font-weight: normal;
+    position: relative;
+    z-index: 3;
+    text-shadow:0px 0 14px rgba(0,0,0.6);
+}
+
+.profile-box {
+    height: 4.75rem;
+    margin-top: -0.5rem;
+    position: relative;
+    z-index: -1;
+    border: 1px solid #0050c9;
+    box-shadow: inset 0 0 10px 2px #075fe2;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding-left: 1.33rem;
+    padding-top: 1.75rem;
+}
+.profile-box-steps {
+    margin: 0;
+    padding: 0;
+    font-family: sf-semi;
+    font-size: 18px;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    padding-left: 28px;
+    position: relative;
+    z-index: 3;
+}
+.profile-box-days {
+    margin: 0;
+    padding: 0;
+    font-family: sf;
+    font-size: 16px;
+    padding-left: 28px;
+    opacity: 0.5;
+    position: relative;
+    z-index: 3;
+}
+
+.profile-desc {
+    font-size: 12px;
+    opacity: 0.5;
+    margin:0;
+    padding: 0;
+    text-align: center;
+    margin-top: 0.6rem;
+}

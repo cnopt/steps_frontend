@@ -1,0 +1,212 @@
+.player-home-container {
+    padding: 20px;
+    color: #fff;
+    font-family: 'sf';
+}
+
+.today-date {
+    text-align: center;
+    font-size: 1.2em;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.playerhome-total-steps {
+    text-align: center;
+    font-size: 2em;
+    color: #4CAF50;
+    margin-bottom: 40px;
+}
+
+.level-gauge-container {
+    background: #000;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'digital', monospace;
+    color: #4CAF50;
+    display: grid;
+    grid-template-areas:
+        "fuel gauge gauge gauge"
+        "stats gauge gauge gauge"
+        "info info info info";
+    gap: 15px;
+    height: auto;
+    min-height: 200px;
+}
+
+.fuel-indicator {
+    grid-area: fuel;
+    position: relative;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fuel-bar {
+    width: 92%;
+    height: 40px;
+    background: transparent;
+    border-radius: 60px 60px 0 0;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #222;
+    border-bottom: none;
+}
+
+.fuel-markings {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+.fuel-marking {
+    width: 1px;
+    height: 15px;
+    background: #444;
+    position: relative;
+    transform-origin: bottom center;
+}
+
+.fuel-markings .fuel-marking:nth-child(1) { transform: rotate(-60deg) translateY(8px); }
+.fuel-markings .fuel-marking:nth-child(2) { transform: rotate(-45deg) translateY(6px); }
+.fuel-markings .fuel-marking:nth-child(3) { transform: rotate(-30deg) translateY(4px); }
+.fuel-markings .fuel-marking:nth-child(4) { transform: rotate(-15deg) translateY(2px); }
+.fuel-markings .fuel-marking:nth-child(5) { transform: rotate(0deg); }
+.fuel-markings .fuel-marking:nth-child(6) { transform: rotate(15deg) translateY(2px); }
+.fuel-markings .fuel-marking:nth-child(7) { transform: rotate(30deg) translateY(4px); }
+.fuel-markings .fuel-marking:nth-child(8) { transform: rotate(45deg) translateY(6px); }
+.fuel-markings .fuel-marking:nth-child(9) { transform: rotate(60deg) translateY(8px); }
+
+.fuel-needle {
+    position: absolute;
+    left: 50%;
+    top: 91%;
+    width: 40%;
+    height: 2px;
+    background: #4CAF50;
+    transform-origin: center left;
+    transition: transform 0.3s ease;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.fuel-needle::after {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    background: #4CAF50;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.fuel-labels {
+    width: 92%;
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.7em;
+    margin-top: 4px;
+    padding: 0 10px;
+}
+
+.level-gauge {
+    grid-area: gauge;
+    position: relative;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.gauge-segment {
+    flex: 1;
+    height: 40px;
+    background-color: #333;
+}
+
+.gauge-segment.filled {
+    background-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.gauge-numbers {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.8em;
+    padding: 0 10px;
+}
+
+.stats-display {
+    grid-area: stats;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-right: 1px solid #333;
+    padding-right: 15px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-label {
+    font-size: 0.7em;
+    color: #666;
+}
+
+.stat-value {
+    font-size: 1.2em;
+}
+
+.info-bar {
+    grid-area: info;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+    font-size: 0.9em;
+}
+
+.clock {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #4CAF50;
+    border-radius: 50%;
+    position: relative;
+}
+
+.clock-hand {
+    position: absolute;
+    background: #4CAF50;
+    transform-origin: bottom center;
+    left: 50%;
+    bottom: 50%;
+}
+
+.hour-hand {
+    width: 2px;
+    height: 10px;
+}
+
+.minute-hand {
+    width: 1px;
+    height: 15px;
+}

@@ -1,0 +1,240 @@
+.leaderboard-container {
+  max-width: 600px;
+  margin: 0 auto;
+  color: #fff;
+  font-family: 'sf', sans-serif;
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.leaderboard-header h2 {
+  margin: 0;
+  font-size: 2em;
+  color: #4CAF50;
+  font-family: 'sf-semi', sans-serif;
+}
+
+.leaderboard-subtitle {
+  margin: 10px 0 0 0;
+  color: #999;
+  font-size: 1em;
+}
+
+/* User Rank Section */
+.user-rank-section {
+  margin-top: 30px;
+}
+
+.user-rank-card {
+  background: linear-gradient(135deg, #1a2332 0%, #2d4059 100%);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-rank-emoji {
+  font-size: 2.5em;
+}
+
+.user-rank-info {
+  flex: 1;
+}
+
+.user-rank-position {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.user-rank-steps {
+  font-size: 1.1em;
+  color: #ccc;
+}
+
+/* Leaderboard Section */
+.leaderboard-section {
+  margin-bottom: 30px;
+}
+
+.leaderboard-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5em;
+  color: #fff;
+  text-align: center;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leaderboard-item {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+  background: #222;
+}
+
+/* Special styling for top 3 */
+.leaderboard-item.rank-1 {
+  background: linear-gradient(135deg, #2a1810 0%, #4a2c1a 100%);
+  border-color: #FFD700;
+}
+
+.leaderboard-item.rank-2 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  border-color: #C0C0C0;
+}
+
+.leaderboard-item.rank-3 {
+  background: linear-gradient(135deg, #1a1110 0%, #2a1f1a 100%);
+  border-color: #CD7F32;
+}
+
+.rank-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 45px;
+}
+
+.rank-emoji {
+  font-size: 1.8em;
+}
+
+.rank-number {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.user-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.user-id {
+  font-size: 0.8em;
+  color: #666;
+  font-family: 'sf-mono', monospace;
+  display: none;
+}
+
+.leaderboard-steps-section {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.leaderboard-step-count {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #4CAF50;
+  font-family: 'sf-mono', monospace;
+}
+
+.leaderboard-steps-label {
+  font-size: 0.8em;
+  color: #999;
+}
+
+/* Error and Empty States */
+.error-message, .empty-leaderboard {
+  text-align: center;
+  padding: 40px 20px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  border: 2px solid #f44336;
+}
+
+.empty-leaderboard {
+  border-color: #666;
+}
+
+.error-message p:first-child, .empty-leaderboard p:first-child {
+  font-size: 1.2em;
+  margin: 0 0 10px 0;
+}
+
+.error-details, .empty-subtitle {
+  color: #999;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+.leaderboard-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+  font-size: 0.8em;
+}
+
+/* Instructions Section */
+.instructions-section {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #333;
+}
+
+.instructions-section h4 {
+  margin: 0 0 15px 0;
+  color: #4CAF50;
+  font-size: 1.2em;
+}
+
+.instructions-section ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #ccc;
+}
+
+.instructions-section li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .leaderboard-item {
+    padding: 9px 15px;
+  }
+  
+  .user-rank-card {
+    padding: 15px;
+  }
+  
+  .rank-emoji, .user-rank-emoji {
+    font-size: 1.5em;
+  }
+  
+  .username {
+    font-size: 1em;
+  }
+  
+  .step-count {
+    font-size: 1.1em;
+  }
+} 

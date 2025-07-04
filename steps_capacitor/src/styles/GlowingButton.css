@@ -1,0 +1,69 @@
+@property --border-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  @keyframes border-rotate {
+    to {
+      --border-angle: 360deg;
+    }
+  }
+
+  @property --border-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  @keyframes rotate-border {
+    to {
+      --border-angle: 360deg;
+    }
+  }
+
+  :root {
+    --background: #000; /* or whatever color your site uses */
+    --green-600: #16a34a; /* tailwind green-600 */
+  }
+
+  .gradient-border {
+    --border-size: 2px;
+    --border-angle: 0deg;
+    width: 95%;
+    margin: auto;
+    position: relative;
+    height: 2.5rem;
+    background: var(--background);
+    color: #16a34a;
+    /* Border using a background gradient */
+    border: var(--border-size) solid transparent;
+    background-image: 
+      conic-gradient(
+        from var(--border-angle),
+        var(--background) 80%,
+        var(--green-600) 90%,
+        var(--background) 100%
+      );
+    background-origin: border-box;
+    background-clip: border-box;
+
+    animation: rotate-border 3s linear infinite;
+    border-radius: 12px;
+  }
+
+  .inner-border-box {
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    border-radius: 12px;
+    text-align: center;
+    font-family: sf-med;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap-reverse;
+    align-content: center;
+  }
+  .inner-border-box p {
+    text-shadow:0px 0px 4px #16a34a;
+  }

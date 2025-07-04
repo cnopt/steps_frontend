@@ -1,0 +1,83 @@
+.hourly-steps-graph {
+    width: 90%;
+    margin: auto;
+    padding: 15px;
+    /* background: rgba(255, 255, 255, 0.05); */
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hourly-steps-graph h3 {
+    margin-bottom: 15px;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.graph-container {
+    display: flex;
+    height: 150px;
+    justify-content: space-between;
+    position: relative;
+    margin-top: 10px;
+}
+
+.hour-bar-container {
+    display: flex;
+    align-items: start;
+    height: 100%;
+    position: relative;
+}
+
+.hour-bar {
+    width: 4px;
+    background: #1c2e48;
+    transition: height 0.3s ease;
+    position: relative;
+    min-height: 1px;
+    border-radius: 20px;
+}
+
+.hour-bar:hover {
+    background: red;
+}
+
+.step-count {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    background-color: black;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.hour-bar:hover .step-count {
+    opacity: 1;
+}
+
+.hour-label {
+    position: absolute;
+    top: -20px;
+    font-size: 0.7rem;
+    color: #555;
+    transform: translateX(-50%);
+    left: 50%;
+}
+
+.sunset-line::after {
+    content: '🌅';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sunset-line:hover::after {
+    opacity: 1;
+} 

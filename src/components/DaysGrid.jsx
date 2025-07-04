@@ -309,7 +309,8 @@ const DaysGrid = () => {
                                 height: '6px',
                                 backgroundColor: 'gold',
                                 borderRadius: '50%',
-                                zIndex: 2
+                                zIndex: 2,
+                                border:'1px solid black'
                               }}
                             />
                           ))}

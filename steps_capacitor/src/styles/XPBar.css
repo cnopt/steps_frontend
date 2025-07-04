@@ -1,0 +1,139 @@
+.level-progress-container {
+    width: 100%;
+    position: relative;
+    background-color: #0a1626;
+    border-radius: 8px;
+    height: 40px;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 102;
+    margin-top: 1.25rem;
+}
+
+/* Female color scheme */
+.level-progress-container.female {
+    background-color: #260a1a;
+}
+
+.level-progress-bar {
+    position: absolute;
+    height: 100%;
+    background-color: #112540;
+    transition: width 0.3s ease;
+}
+
+/* Female color scheme */
+.level-progress-container.female .level-progress-bar {
+    background-color: #401125;
+}
+
+.level-progress-content {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    color: white;
+}
+
+.current-level {
+    padding-left: 1rem;
+    color: #4493f8;
+    font-family: sf-mono;
+}
+.next-level {
+    color: #4493f8;
+    font-family: sf-mono;
+    padding-right: 1rem;
+}
+
+/* Female color scheme */
+.level-progress-container.female .current-level,
+.level-progress-container.female .next-level {
+    color: #f844a4;
+}
+
+.total-steps {
+    font-family: sf;
+    text-align: center;
+    color: #4493f8;
+    font-size: 1.1em;
+}
+
+/* Female color scheme */
+.level-progress-container.female .total-steps {
+    color: #f844a4;
+}
+
+.level-details {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.2s ease-out;
+    background-color: #0a1626;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Female color scheme */
+.level-details.female {
+    background-color: #260a1a;
+}
+
+.details-content p {
+    color: #385d8f;
+}
+
+/* Female color scheme */
+.level-details.female .details-content p {
+    color: #8f385d;
+}
+
+.current-level span {
+    padding-right: 0.2rem;
+}
+.next-level span {
+    padding-right: 0.2rem;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+}
+
+.level-details.expanded {
+    height: 5rem;
+    position: relative;
+    z-index: 101;
+}
+
+.details-content {
+    padding-top: 1.1rem;
+}
+
+.details-content p {
+    margin: 0;
+    padding: 0;
+    font-family: sf;
+    text-align: center;
+    color:#385d8f;
+    padding-bottom: 0.35rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.1s ease-out, transform 0.1s ease-out;
+}
+
+.level-details.expanded .details-content p {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Add staggered animation delays for each paragraph */
+.level-details.expanded .details-content p:nth-child(1) { transition-delay: 0.10s; }
+.level-details.expanded .details-content p:nth-child(2) { transition-delay: 0.13s; }
+.level-details.expanded .details-content p:nth-child(3) { transition-delay: 0.17s; }
+.level-details.expanded .details-content p:nth-child(4) { transition-delay: 0.20s; }

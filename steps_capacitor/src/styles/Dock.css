@@ -1,0 +1,37 @@
+.dock-container {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+    padding-top: 0.5rem; 
+    padding-bottom: 0.75rem;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 1000;
+}
+
+.dock-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3rem;
+    color: #aeaeae;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-family: 'sf-semi';
+}
+
+.dock-item svg {
+    font-size: 1.6em;
+}
+.dock-item p {
+
+    display: none;
+}

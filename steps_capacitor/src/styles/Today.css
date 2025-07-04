@@ -1,0 +1,54 @@
+.today-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 1rem;
+}
+
+.today-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.today-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.today-day {
+  font-family: 'sf-semi', sans-serif;
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.today-date-number {
+  font-family: 'sf', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.today-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0px;
+}
+
+.today-steps-number {
+  font-family: 'sf-mono-med', monospace;
+  font-size: 24px;
+  color: #ffffff;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+
+.today-steps-label {
+  font-family: 'sf', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: lowercase;
+} 
