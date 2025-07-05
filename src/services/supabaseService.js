@@ -14,7 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export const testConnection = async () => {
   try {
     const { data, error } = await supabase
-      .from('stepno')
+      .from('user_daily_steps')
       .select('*')
       .limit(1)
     
@@ -246,6 +246,81 @@ export const getById = async (tableName, id, idColumn = 'id', columns = '*') => 
     return { data: null, error: err }
   }
 }
+
+/**
+ * Upsert user profile data into the user_profiles table
+ * @param {object} profileData - User profile data to upsert
+ * @returns {Promise<{data: object|null, error: object|null, success: boolean}>}
+ */
+export const upsertUserProfile = async (profileData) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert(profileData, { 
+        onConflict: 'user_id',
+        ignoreDuplicates: false 
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error upserting user profile:', error);
+      return { data: null, error, success: false };
+    }
+
+    console.log('Successfully upserted user profile:', data);
+    return { data, error: null, success: true };
+  } catch (err) {
+    console.error('Unexpected error upserting user profile:', err);
+    return { data: null, error: err, success: false };
+  }
+};
+
+/**
+ * Get leaderboard data with user profiles (joins user_daily_steps with user_profiles)
+ * @param {string} date - Date to filter by (YYYY-MM-DD format)
+ * @param {number} limit - Maximum number of entries to return
+ * @returns {Promise<{data: array|null, error: object|null, success: boolean}>}
+ */
+export const getLeaderboardWithProfiles = async (date, limit = 10) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_daily_steps')
+      .select(`
+        user_id,
+        username,
+        step_count,
+        date,
+        user_profiles (
+          username,
+          selected_badge,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('date', date)
+      .order('step_count', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching leaderboard with profiles:', error);
+      return { data: null, error, success: false };
+    }
+
+    // Transform the data to include profile information at the top level
+    const transformedData = (data || []).map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+      profile: entry.user_profiles || null
+    }));
+
+    console.log('Successfully fetched leaderboard with profiles:', transformedData);
+    return { data: transformedData, error: null, success: true };
+  } catch (err) {
+    console.error('Unexpected error fetching leaderboard with profiles:', err);
+    return { data: null, error: err, success: false };
+  }
+};
 
 // Export the Supabase client for direct use if needed
 export default supabase 

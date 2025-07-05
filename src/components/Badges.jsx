@@ -5,6 +5,7 @@ import { useDrag } from '@use-gesture/react';
 import { badges } from '../helpers/badge-list';
 import { format, parseISO } from 'date-fns';
 import { useUserSettings } from '../hooks/useUserSettings';
+import localDataService from '../services/localDataService';
 
 export const checkBadgeUnlock = (stepsData, weatherData = {}, weatherEnabled = false) => {
   const unlockedBadges = [];
@@ -592,6 +593,10 @@ const Badges = ({ unlockedBadges }) => {
     const saved = localStorage.getItem('viewedBadges');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+  const [userSelectedBadgeId, setUserSelectedBadgeId] = useState(() => {
+    // Initialize from userProfile if available
+    return localDataService.getUserSelectedBadge();
+  });
   const { settings } = useUserSettings();
   const lockedBadgeImage = '/locked.png';
 
@@ -624,6 +629,22 @@ const Badges = ({ unlockedBadges }) => {
     }
   };
 
+  const handleBadgeSelection = (badge) => {
+    try {
+      // Save selected badge to userProfile
+      const result = localDataService.setUserSelectedBadge(badge);
+      
+      if (result.success) {
+        setUserSelectedBadgeId(result.selectedBadgeId);
+      }
+      
+      // Close modal after selection
+      setSelectedBadge(null);
+    } catch (error) {
+      console.error('Error selecting badge:', error);
+    }
+  };
+
 
   return (
     <>
@@ -643,7 +664,7 @@ const Badges = ({ unlockedBadges }) => {
           return (
             <motion.div 
               key={badge.id}
-              className={`badge-item ${isUnlocked ? 'unlocked' : 'locked'} ${isWeatherDisabled ? 'weather-disabled' : ''}`}
+              className={`badge-item ${isUnlocked ? 'unlocked' : 'locked'} ${isWeatherDisabled ? 'weather-disabled' : ''} ${userSelectedBadgeId === badge.id ? 'user-selected' : ''}`}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ 
@@ -713,6 +734,14 @@ const Badges = ({ unlockedBadges }) => {
                 <p className="modal-badge-date">
                     Unlocked on:<br/>{format(parseISO(selectedBadge.unlockDate), 'do MMMM yyyy')}
                 </p>
+                <div className="modal-badge-actions">
+                  <button 
+                    className={`select-badge-button ${userSelectedBadgeId === selectedBadge.id ? 'selected' : ''}`}
+                    onClick={() => handleBadgeSelection(selectedBadge)}
+                  >
+                    {userSelectedBadgeId === selectedBadge.id ? 'Selected' : 'Select'}
+                  </button>
+                </div>
               </motion.div>
             </div>
           </>

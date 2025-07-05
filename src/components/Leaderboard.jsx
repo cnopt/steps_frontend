@@ -3,6 +3,7 @@ import { useLeaderboard, useUserRank } from '../hooks/useLeaderboard';
 import XPBar from './XPBar';
 import LoadingSpinner from './LoadingSpinner';
 import PageTransition from './PageTransition';
+import VF5ProfileBorder from './VF5ProfileBorder';
 import { format, parseISO } from 'date-fns';
 import '../styles/Leaderboard.css';
 
@@ -93,8 +94,12 @@ const Leaderboard = () => {
                     </div>
                     
                     <div className="user-section">
-                      <span className="username">{entry.name || `User${entry.user_id}`}</span>
-                      <span className="user-id">ID: {entry.user_id}</span>
+                      <VF5ProfileBorder 
+                        username={entry.profile?.username || entry.name || `User${entry.user_id}`}
+                        badgeId={entry.profile?.selected_badge}
+                        showDescription={false}
+                        size="small"
+                      />
                     </div>
                     
                     <div className="leaderboard-steps-section">

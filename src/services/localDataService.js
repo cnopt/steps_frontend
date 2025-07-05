@@ -56,6 +56,7 @@ class LocalDataService {
       weight: parseInt(localStorage.getItem('userWeight')) || 70,
       gender: localStorage.getItem('userGender') || 'M',
       enableWeather: localStorage.getItem('userEnableWeather') === 'true' || false,
+      selectedBadge: null,
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString()
     };
@@ -194,6 +195,11 @@ class LocalDataService {
       };
       
       localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(updatedProfile));
+      
+      // Dispatch event to notify components of the profile update
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('settingsUpdate'));
+      }
       
       return {
         success: true,
@@ -474,6 +480,39 @@ class LocalDataService {
       hasProfileSetup: this.hasProfileSetup(),
       totalEntries: this.getAllStepsData().length
     };
+  }
+
+  // Get user's selected badge ID
+  getUserSelectedBadge() {
+    try {
+      const profile = this.getUserProfile();
+      return profile.selectedBadge || null;
+    } catch (error) {
+      console.error('Error fetching user selected badge:', error);
+      return null;
+    }
+  }
+
+  // Set user's selected badge (now only stores ID)
+  setUserSelectedBadge(badgeData) {
+    try {
+      const badgeId = badgeData.id;
+      
+      // Update the user profile with just the selected badge ID
+      const result = this.updateUserProfile({ 
+        selectedBadge: badgeId,
+        selectedBadgeUpdatedAt: new Date().toISOString()
+      });
+      
+      return {
+        success: result.success,
+        message: 'Selected badge updated successfully',
+        selectedBadgeId: badgeId
+      };
+    } catch (error) {
+      console.error('Error setting user selected badge:', error);
+      throw error;
+    }
   }
 }
 

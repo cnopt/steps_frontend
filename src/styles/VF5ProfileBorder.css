@@ -5,7 +5,7 @@
     /* background-color: #000e7b; */
 
 
-    /* -- GREEN  SHARP EDGES title */
+    /* -- GREEN  SHARP EDGES title
     background-image: url('../../public/titles/green.jpg');
     background-size: 200%;
     background-position: 62% 66%;
@@ -122,4 +122,98 @@
     padding: 0;
     text-align: center;
     margin-top: 0.6rem;
+}
+
+/* Small variant for leaderboard usage */
+.vf5-profile-border-small {
+    margin-top: 0;
+    width: 100%;
+    height: 3.5rem;
+    border-radius: 6px;
+    border: 1px solid #444;
+    position: relative;
+    z-index: 1;
+}
+
+.vf5-profile-border-small .glare {
+    content: "";
+    position: absolute;
+    border-radius: 5px;
+    width: 100%;
+    height: 12px;
+    background-color: rgba(255,255,255,0.25);
+    z-index: 2;
+}
+
+.vf5-profile-border-small::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80%;
+    background: #000000;
+    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 27%, rgba(255, 255, 255, 0) 100%);
+    z-index: 2;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.vf5-profile-border-small .username {
+    font-family: sf-semi;
+    margin: 0;
+    padding: 0;
+    padding-top: 12px;
+    padding-left: 18px;
+    font-size: 17px;
+    font-weight: normal;
+    position: relative;
+    z-index: 3;
+    text-shadow: 0px 0 14px rgba(0,0,0.5);
+}
+
+/* Large variant for special displays */
+.vf5-profile-border-large {
+    margin-top: 1.5rem;
+    width: 99%;
+    height: 7rem;
+    border-radius: 12px;
+    border: 3px solid #444;
+    position: relative;
+    z-index: 1;
+}
+
+.vf5-profile-border-large .glare {
+    content: "";
+    position: absolute;
+    border-radius: 9px;
+    width: 100%;
+    height: 20px;
+    background-color: rgba(255,255,255,0.25);
+    z-index: 2;
+}
+
+.vf5-profile-border-large::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80%;
+    background: #000000;
+    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 27%, rgba(255, 255, 255, 0) 100%);
+    z-index: 2;
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+}
+
+.vf5-profile-border-large .username {
+    font-family: sf-semi;
+    margin: 0;
+    padding: 0;
+    padding-top: 26px;
+    padding-left: 36px;
+    font-size: 28px;
+    font-weight: normal;
+    position: relative;
+    z-index: 3;
+    text-shadow: 0px 0 14px rgba(0,0,0.5);
 }

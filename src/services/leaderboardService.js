@@ -1,4 +1,4 @@
-import { selectAllData } from './supabaseService';
+import { selectAllData, getLeaderboardWithProfiles } from './supabaseService';
 import { getLocalDateString } from '../helpers/dateUtils';
 
 class LeaderboardService {
@@ -15,31 +15,17 @@ class LeaderboardService {
     try {
       const yesterdayDate = this.getYesterdayDate();
       
-      const { data, error } = await selectAllData('stepno', {
-        columns: 'user_id, name, step_count, date',
-        filters: { date: yesterdayDate },
-        orderBy: { 
-          column: 'step_count', 
-          ascending: false 
-        },
-        limit: limit
-      });
+      const { data, error, success } = await getLeaderboardWithProfiles(yesterdayDate, limit);
 
-      if (error) {
-        throw new Error(error.message);
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch leaderboard data');
       }
-
-      // Add rank to each entry
-      const leaderboard = (data || []).map((entry, index) => ({
-        ...entry,
-        rank: index + 1
-      }));
 
       return {
         success: true,
-        data: leaderboard,
+        data: data || [],
         date: yesterdayDate,
-        totalEntries: leaderboard.length
+        totalEntries: (data || []).length
       };
     } catch (error) {
       console.error('Error fetching yesterday leaderboard:', error);
@@ -54,30 +40,17 @@ class LeaderboardService {
   // Get leaderboard for a specific date
   async getLeaderboardForDate(date, limit = 10) {
     try {
-      const { data, error } = await selectAllData('stepno', {
-        columns: 'user_id, name, step_count, date',
-        filters: { date: date },
-        orderBy: { 
-          column: 'step_count', 
-          ascending: false 
-        },
-        limit: limit
-      });
+      const { data, error, success } = await getLeaderboardWithProfiles(date, limit);
 
-      if (error) {
-        throw new Error(error.message);
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch leaderboard data');
       }
-
-      const leaderboard = (data || []).map((entry, index) => ({
-        ...entry,
-        rank: index + 1
-      }));
 
       return {
         success: true,
-        data: leaderboard,
+        data: data || [],
         date: date,
-        totalEntries: leaderboard.length
+        totalEntries: (data || []).length
       };
     } catch (error) {
       console.error('Error fetching leaderboard for date:', error);
@@ -95,7 +68,7 @@ class LeaderboardService {
       const yesterdayDate = this.getYesterdayDate();
       
       // Get all entries for yesterday, ordered by step count
-      const { data, error } = await selectAllData('stepno', {
+      const { data, error } = await selectAllData('user_daily_steps', {
         columns: 'user_id, step_count',
         filters: { date: yesterdayDate },
         orderBy: { 

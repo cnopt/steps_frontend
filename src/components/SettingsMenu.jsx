@@ -12,7 +12,7 @@ import { useUserSettings } from '../hooks/useUserSettings';
 import localDataService from '../services/localDataService';
 import HealthService from '../services/healthService';
 import userService from "../services/userService";
-import { upsertData, testConnection } from '../services/supabaseService';
+import { upsertData, testConnection, upsertUserProfile } from '../services/supabaseService';
 import { getTodayLocalDateString } from '../helpers/dateUtils';
 
 const SettingsMenu = () => {
@@ -266,7 +266,7 @@ const SettingsMenu = () => {
     }
   };
 
-  // Function to upload step data to Supabase
+  // Function to upload step data and user profile to Supabase
   const uploadStepDataToDatabase = async () => {
     try {
       setDbUploadStatus({ isUploading: true, error: null, success: null });
@@ -288,7 +288,7 @@ const SettingsMenu = () => {
       // Get user data from user service
       const userData = userService.getUserDataForDatabase();
 
-      // Prepare data for insertion
+      // Prepare steps data for insertion
       const recordData = {
         user_id: userData.user_id,
         name: userData.name,
@@ -296,17 +296,36 @@ const SettingsMenu = () => {
         step_count: todayStepsData.steps
       };
 
-      // Upsert data into stepno table (insert or update if exists)
-      const { data, error } = await upsertData('stepno', recordData, { select: '*' });
+      // Upsert steps data into user_daily_steps table (insert or update if exists)
+      const { data: stepsData, error: stepsError } = await upsertData('user_daily_steps', recordData, { select: '*' });
 
-      if (error) {
-        throw new Error(error.message);
+      if (stepsError) {
+        throw new Error(`Steps upload failed: ${stepsError.message}`);
+      }
+
+      // Get user profile data from localStorage
+      const userProfile = localDataService.getUserProfile();
+      
+      // Prepare user profile data for insertion
+      const profileData = {
+        user_id: userProfile.userId || userData.user_id,
+        username: userProfile.username || userData.name,
+        selected_badge: userProfile.selectedBadge || null,
+        created_at: userProfile.createdAt || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Upsert user profile data into user_profiles table
+      const { data: profileUploadData, error: profileError } = await upsertUserProfile(profileData);
+
+      if (profileError) {
+        throw new Error(`Profile upload failed: ${profileError.message}`);
       }
 
       setDbUploadStatus({ 
         isUploading: false, 
         error: null, 
-        success: `Successfully saved ${todayStepsData.steps} steps for ${today}` 
+        success: `Successfully saved ${todayStepsData.steps} steps and updated profile for ${today}` 
       });
 
       // Clear success message after 5 seconds
@@ -1122,7 +1141,7 @@ const SettingsMenu = () => {
                   marginBottom: '10px'
                 }}
               >
-                {dbUploadStatus.isUploading ? 'Uploading...' : 'Upload Today\'s Steps to Database'}
+                {dbUploadStatus.isUploading ? 'Uploading...' : 'Upload Steps & Profile to Database'}
               </button>
               
               {dbUploadStatus.success && (
@@ -1158,7 +1177,7 @@ const SettingsMenu = () => {
                 color: '#666',
                 margin: '0'
               }}>
-                Upload today's step count to the remote Supabase database
+                Upload today's step count and your profile (including selected badge) to the remote Supabase database
               </p>
             </div>
           </div>

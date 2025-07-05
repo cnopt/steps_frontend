@@ -300,6 +300,9 @@ export const badges = [
         name: "Blue",
         description: "Unlocked by default",
         image: '/badges/default-blue.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null
     },
     {
@@ -307,6 +310,9 @@ export const badges = [
         name: "Orange",
         description: "Unlocked by default",
         image: '/badges/default-orange.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null
     },
     {
@@ -314,6 +320,9 @@ export const badges = [
         name: "Yellow",
         description: "Unlocked by default",
         image: '/badges/default-yellow.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
 ];
