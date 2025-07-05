@@ -1,4 +1,4 @@
-import { selectAllData, getLeaderboardWithProfiles } from './supabaseService';
+import { selectAllData, getLeaderboardWithProfiles, getWeeklyLeaderboardWithProfiles, getAllTimeLeaderboardWithProfiles } from './supabaseService';
 import { getLocalDateString } from '../helpers/dateUtils';
 
 class LeaderboardService {
@@ -11,7 +11,7 @@ class LeaderboardService {
   }
 
   // Get top users for yesterday's steps
-  async getYesterdayLeaderboard(limit = 5) {
+  async getYesterdayLeaderboard(limit = 50) {
     try {
       const yesterdayDate = this.getYesterdayDate();
       
@@ -109,20 +109,125 @@ class LeaderboardService {
     }
   }
 
-  // Get weekly leaderboard (sum of last 7 days)
-  async getWeeklyLeaderboard(limit = 10) {
+  // Get user's rank for this week
+  async getUserRankWeekly(userId) {
     try {
-      // Get dates for last 7 days (using local timezone)
-      const dates = [];
-      for (let i = 1; i <= 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        dates.push(getLocalDateString(date));
+      // Get current week's date range (Monday to Sunday)
+      const now = new Date();
+      const currentDay = now.getDay();
+      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+      
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      
+      const startDate = getLocalDateString(monday);
+      const endDate = getLocalDateString(sunday);
+
+      // Get all weekly data and calculate ranks
+      const { data, error, success } = await getWeeklyLeaderboardWithProfiles(startDate, endDate, 1000); // Get all users
+
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch weekly leaderboard data');
       }
 
-      // This would require a more complex query, for now return yesterday's data
-      // In a full implementation, you'd use SQL to sum steps across multiple dates
-      return await this.getYesterdayLeaderboard(limit);
+      // Find user's rank
+      const userIndex = (data || []).findIndex(entry => entry.user_id === userId);
+      
+      if (userIndex === -1) {
+        return {
+          success: false,
+          message: 'User not found in this week\'s data',
+          rank: null
+        };
+      }
+
+      return {
+        success: true,
+        rank: userIndex + 1,
+        stepCount: data[userIndex].step_count,
+        totalEntries: data.length,
+        date: `${startDate} to ${endDate}`
+      };
+    } catch (error) {
+      console.error('Error fetching user weekly rank:', error);
+      return {
+        success: false,
+        error: error.message,
+        rank: null
+      };
+    }
+  }
+
+  // Get user's rank for all-time
+  async getUserRankAllTime(userId) {
+    try {
+      // Get all-time data and calculate ranks
+      const { data, error, success } = await getAllTimeLeaderboardWithProfiles(1000); // Get all users
+
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch all-time leaderboard data');
+      }
+
+      // Find user's rank
+      const userIndex = (data || []).findIndex(entry => entry.user_id === userId);
+      
+      if (userIndex === -1) {
+        return {
+          success: false,
+          message: 'User not found in all-time data',
+          rank: null
+        };
+      }
+
+      return {
+        success: true,
+        rank: userIndex + 1,
+        stepCount: data[userIndex].step_count,
+        totalEntries: data.length,
+        date: 'All Time'
+      };
+    } catch (error) {
+      console.error('Error fetching user all-time rank:', error);
+      return {
+        success: false,
+        error: error.message,
+        rank: null
+      };
+    }
+  }
+
+  // Get this week's leaderboard (sum from Monday to Sunday)
+  async getWeeklyLeaderboard(limit = 100) {
+    try {
+      // Get current week's date range (Monday to Sunday)
+      const now = new Date();
+      const currentDay = now.getDay();
+      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Handle Sunday as day 0
+      
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      
+      const startDate = getLocalDateString(monday);
+      const endDate = getLocalDateString(sunday);
+
+      const { data, error, success } = await getWeeklyLeaderboardWithProfiles(startDate, endDate, limit);
+
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch weekly leaderboard data');
+      }
+
+      return {
+        success: true,
+        data: data || [],
+        date: `${startDate} to ${endDate}`,
+        totalEntries: (data || []).length
+      };
     } catch (error) {
       console.error('Error fetching weekly leaderboard:', error);
       return {
@@ -132,6 +237,32 @@ class LeaderboardService {
       };
     }
   }
+
+  // Get all-time leaderboard (sum of all steps across all dates)
+  async getAllTimeLeaderboard(limit = 100) {
+    try {
+      const { data, error, success } = await getAllTimeLeaderboardWithProfiles(limit);
+
+      if (!success || error) {
+        throw new Error(error?.message || 'Failed to fetch all-time leaderboard data');
+      }
+
+      return {
+        success: true,
+        data: data || [],
+        date: 'All Time',
+        totalEntries: (data || []).length
+      };
+    } catch (error) {
+      console.error('Error fetching all-time leaderboard:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  }
+
 }
 
 // Create and export singleton instance

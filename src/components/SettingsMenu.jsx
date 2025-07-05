@@ -288,38 +288,38 @@ const SettingsMenu = () => {
       // Get user data from user service
       const userData = userService.getUserDataForDatabase();
 
-      // Prepare steps data for insertion
-      const recordData = {
-        user_id: userData.user_id,
-        name: userData.name,
-        date: today,
-        step_count: todayStepsData.steps
-      };
-
-      // Upsert steps data into user_daily_steps table (insert or update if exists)
-      const { data: stepsData, error: stepsError } = await upsertData('user_daily_steps', recordData, { select: '*' });
-
-      if (stepsError) {
-        throw new Error(`Steps upload failed: ${stepsError.message}`);
-      }
-
       // Get user profile data from localStorage
       const userProfile = localDataService.getUserProfile();
       
-      // Prepare user profile data for insertion
+      // Prepare user profile data for insertion (do this FIRST to satisfy foreign key constraint)
       const profileData = {
         user_id: userProfile.userId || userData.user_id,
-        username: userProfile.username || userData.name,
+        username: userProfile.username || userData.username,
         selected_badge: userProfile.selectedBadge || null,
         created_at: userProfile.createdAt || new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      // Upsert user profile data into user_profiles table
+      // Upsert user profile data into user_profiles table FIRST
       const { data: profileUploadData, error: profileError } = await upsertUserProfile(profileData);
 
       if (profileError) {
         throw new Error(`Profile upload failed: ${profileError.message}`);
+      }
+
+      // Now prepare steps data for insertion (after profile exists)
+      const recordData = {
+        user_id: userData.user_id,
+        username: userData.username,
+        date: today,
+        step_count: todayStepsData.steps
+      };
+
+      // Upsert steps data into user_daily_steps table (insert or update if exists)
+      const { data: uploadedStepsData, error: stepsError } = await upsertData('user_daily_steps', recordData, { select: '*' });
+
+      if (stepsError) {
+        throw new Error(`Steps upload failed: ${stepsError.message}`);
       }
 
       setDbUploadStatus({ 

@@ -27,8 +27,6 @@ const Leaderboard = () => {
     isSuccess: rankSuccess 
   } = useUserRank(selectedType);
 
-  if (isLoading) return <LoadingSpinner />;
-
   const formatDate = (dateString) => {
     if (!dateString) return '';
     try {
@@ -57,31 +55,51 @@ const Leaderboard = () => {
       <PageTransition>
         <div className="leaderboard-container">
           <div className="leaderboard-header">
-            <h2>Leaderboard</h2>
-            <p className="leaderboard-subtitle">
-              {date ? formatDate(date) : 'Yesterday\'s Top Steps'}
-            </p>
+            <p>Leaderboards</p>
+          </div>
+
+          {/* Leaderboard Type Selection */}
+          <div className="leaderboard-type-selection">
+            <button 
+              className={`type-button ${selectedType === 'yesterday' ? 'active' : ''}`}
+              onClick={() => setSelectedType('yesterday')}
+            >
+              Yesterday
+            </button>
+            <button 
+              className={`type-button ${selectedType === 'weekly' ? 'active' : ''}`}
+              onClick={() => setSelectedType('weekly')}
+            >
+              This Week
+            </button>
+            <button 
+              className={`type-button ${selectedType === 'alltime' ? 'active' : ''}`}
+              onClick={() => setSelectedType('alltime')}
+            >
+              All-time
+            </button>
           </div>
 
           {/* Leaderboard Section */}
           <div className="leaderboard-section">
-            <h3>Top 5 Users</h3>
             
-            {isError && (
+            {isLoading && <LoadingSpinner />}
+
+            {!isLoading && isError && (
               <div className="error-message">
                 <p>Failed to load leaderboard</p>
                 <p className="error-details">{error?.message || 'Unknown error'}</p>
               </div>
             )}
 
-            {isSuccess && leaderboard.length === 0 && (
+            {!isLoading && isSuccess && leaderboard.length === 0 && (
               <div className="empty-leaderboard">
-                <p>🚶 No data available for yesterday</p>
+                <p>🚶 No data available for {selectedType === 'yesterday' ? 'yesterday' : selectedType === 'weekly' ? 'this week' : 'all-time'}</p>
                 <p className="empty-subtitle">Be the first to upload your steps!</p>
               </div>
             )}
 
-            {isSuccess && leaderboard.length > 0 && (
+            {!isLoading && isSuccess && leaderboard.length > 0 && (
               <div className="leaderboard-list">
                 {leaderboard.map((entry, index) => (
                   <div 
@@ -111,15 +129,17 @@ const Leaderboard = () => {
               </div>
             )}
 
-            {totalEntries > 0 && (
+            {!isLoading && totalEntries > 0 && (
               <div className="leaderboard-footer">
-                <p>Showing top 5 of {totalEntries} users</p>
+                <p>Showing top {Math.min(leaderboard.length, totalEntries)} of {totalEntries} users</p>
               </div>
             )}
           </div>
 
           {/* User's Rank Section */}
-          {rankSuccess && userRank && (
+          {rankLoading && <LoadingSpinner />}
+
+          {!rankLoading && rankSuccess && userRank && (
           <div className="user-rank-section">
             <div className="user-rank-card">
               {/* <span className="user-rank-emoji">{getRankEmoji(userRank)}</span> */}

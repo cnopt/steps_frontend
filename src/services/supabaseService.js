@@ -322,5 +322,161 @@ export const getLeaderboardWithProfiles = async (date, limit = 10) => {
   }
 };
 
+/**
+ * Get weekly leaderboard data with user profiles (aggregated from Monday to Sunday)
+ * @param {string} startDate - Start date (Monday) in YYYY-MM-DD format
+ * @param {string} endDate - End date (Sunday) in YYYY-MM-DD format
+ * @param {number} limit - Maximum number of entries to return
+ * @returns {Promise<{data: array|null, error: object|null, success: boolean}>}
+ */
+export const getWeeklyLeaderboardWithProfiles = async (startDate, endDate, limit = 10) => {
+  try {
+    // First get all step data within the date range
+    const { data: stepData, error: stepError } = await supabase
+      .from('user_daily_steps')
+      .select('user_id, username, step_count, date')
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (stepError) {
+      console.error('Error fetching weekly step data:', stepError);
+      return { data: null, error: stepError, success: false };
+    }
+
+    // Group by user and sum steps
+    const weeklyData = {};
+    (stepData || []).forEach(entry => {
+      if (!weeklyData[entry.user_id]) {
+        weeklyData[entry.user_id] = {
+          user_id: entry.user_id,
+          username: entry.username,
+          step_count: 0
+        };
+      }
+      weeklyData[entry.user_id].step_count += entry.step_count;
+    });
+
+    // Get user IDs for profile lookup
+    const userIds = Object.keys(weeklyData);
+    
+    if (userIds.length === 0) {
+      return { data: [], error: null, success: true };
+    }
+
+    // Fetch user profiles
+    const { data: profiles, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('user_id, username, selected_badge, created_at, updated_at')
+      .in('user_id', userIds);
+
+    if (profileError) {
+      console.error('Error fetching user profiles:', profileError);
+      // Continue without profiles rather than failing completely
+    }
+
+    // Create profile lookup map
+    const profileMap = {};
+    (profiles || []).forEach(profile => {
+      profileMap[profile.user_id] = profile;
+    });
+
+    // Combine step data with profiles and sort
+    const combinedData = Object.values(weeklyData)
+      .map(entry => ({
+        ...entry,
+        user_profiles: profileMap[entry.user_id] || null
+      }))
+      .sort((a, b) => b.step_count - a.step_count)
+      .slice(0, limit)
+      .map((entry, index) => ({
+        ...entry,
+        rank: index + 1,
+        profile: entry.user_profiles || null
+      }));
+
+    console.log('Successfully fetched weekly leaderboard with profiles:', combinedData);
+    return { data: combinedData, error: null, success: true };
+  } catch (err) {
+    console.error('Unexpected error fetching weekly leaderboard with profiles:', err);
+    return { data: null, error: err, success: false };
+  }
+};
+
+/**
+ * Get all-time leaderboard data with user profiles (aggregated across all dates)
+ * @param {number} limit - Maximum number of entries to return
+ * @returns {Promise<{data: array|null, error: object|null, success: boolean}>}
+ */
+export const getAllTimeLeaderboardWithProfiles = async (limit = 10) => {
+  try {
+    // First get all step data
+    const { data: stepData, error: stepError } = await supabase
+      .from('user_daily_steps')
+      .select('user_id, username, step_count');
+
+    if (stepError) {
+      console.error('Error fetching all-time step data:', stepError);
+      return { data: null, error: stepError, success: false };
+    }
+
+    // Group by user and sum steps
+    const allTimeData = {};
+    (stepData || []).forEach(entry => {
+      if (!allTimeData[entry.user_id]) {
+        allTimeData[entry.user_id] = {
+          user_id: entry.user_id,
+          username: entry.username,
+          step_count: 0
+        };
+      }
+      allTimeData[entry.user_id].step_count += entry.step_count;
+    });
+
+    // Get user IDs for profile lookup
+    const userIds = Object.keys(allTimeData);
+    
+    if (userIds.length === 0) {
+      return { data: [], error: null, success: true };
+    }
+
+    // Fetch user profiles
+    const { data: profiles, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('user_id, username, selected_badge, created_at, updated_at')
+      .in('user_id', userIds);
+
+    if (profileError) {
+      console.error('Error fetching user profiles:', profileError);
+      // Continue without profiles rather than failing completely
+    }
+
+    // Create profile lookup map
+    const profileMap = {};
+    (profiles || []).forEach(profile => {
+      profileMap[profile.user_id] = profile;
+    });
+
+    // Combine step data with profiles and sort
+    const combinedData = Object.values(allTimeData)
+      .map(entry => ({
+        ...entry,
+        user_profiles: profileMap[entry.user_id] || null
+      }))
+      .sort((a, b) => b.step_count - a.step_count)
+      .slice(0, limit)
+      .map((entry, index) => ({
+        ...entry,
+        rank: index + 1,
+        profile: entry.user_profiles || null
+      }));
+
+    console.log('Successfully fetched all-time leaderboard with profiles:', combinedData);
+    return { data: combinedData, error: null, success: true };
+  } catch (err) {
+    console.error('Unexpected error fetching all-time leaderboard with profiles:', err);
+    return { data: null, error: err, success: false };
+  }
+};
+
 // Export the Supabase client for direct use if needed
 export default supabase 

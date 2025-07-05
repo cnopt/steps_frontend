@@ -13,6 +13,8 @@ export function useLeaderboard(type = 'yesterday', options = {}) {
           return await leaderboardService.getYesterdayLeaderboard(limit);
         case 'weekly':
           return await leaderboardService.getWeeklyLeaderboard(limit);
+        case 'alltime':
+          return await leaderboardService.getAllTimeLeaderboard(limit);
         default:
           throw new Error(`Unknown leaderboard type: ${type}`);
       }
@@ -47,6 +49,10 @@ export function useUserRank(type = 'yesterday', options = {}) {
       switch (type) {
         case 'yesterday':
           return await leaderboardService.getUserRankYesterday(userId);
+        case 'weekly':
+          return await leaderboardService.getUserRankWeekly(userId);
+        case 'alltime':
+          return await leaderboardService.getUserRankAllTime(userId);
         default:
           throw new Error(`Unknown rank type: ${type}`);
       }

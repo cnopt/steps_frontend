@@ -92,7 +92,7 @@ class UserService {
     const profile = this.getUserProfile();
     return {
       user_id: profile.userId,
-      name: profile.username || `User${profile.userId}`
+      username: profile.username || `User${profile.userId}`
     };
   }
 
