@@ -1,16 +1,10 @@
-import { useState, useEffect } from 'react';
 import { GiRank2 } from "react-icons/gi";
 import userService from '../services/userService';
 import '../styles/VF5ProfileBorder.css'
 
 export default function VF5ProfileBorder() {
-    const [username, setUsername] = useState('');
-
-    useEffect(() => {
-        // Get the username from userService when component mounts
-        const currentUsername = userService.getUsername();
-        setUsername(currentUsername);
-    }, []);
+    // Get username directly since it's available synchronously
+    const username = userService.getUsername();
 
     return(
         <>

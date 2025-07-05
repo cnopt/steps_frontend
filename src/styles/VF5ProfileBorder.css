@@ -3,22 +3,37 @@
     width: 99%;
     height: 5rem;
     /* background-color: #000e7b; */
-    /* -- GREEN sharp edges title
+
+
+    /* -- GREEN  SHARP EDGES title */
     background-image: url('../../public/titles/green.jpg');
     background-size: 200%;
     background-position: 62% 66%;
-    /* -- GREEN sharp edges title */
-    /* -- BLUE sharp edges title */
+    /* -- GREEN SHARP EDGES title */
+    /* -- BLUE SHARP EDGES title
     background-image: url('../../public/titles/sharp-blue.jpg');
     background-size: 115%;
     background-position: 30% 45%;
-    /* -- BLUE sharp edges title */ 
-    border-radius: 8px;
+    /* -- BLUE SHARP EDGES title */ 
+    /* -- VF KIDS title
+    background-image: url('../../public/titles/vf-kids.jpg');
+    background-size: 158%;
+    background-position: -5% 79%;
+    /* -- VF KIDS title */ 
+    /* -- BLUE YELLOW BLOCKS title
+    background-image: url('../../public/titles/blue-yellow-blocks.jpg');
+    background-size: 100%;
+    background-position: 0% 45%;
+    /* -- BLUE YELLOW BLOCKS title */ 
+
+
+    border-radius: 9px;
     border: 2px solid #444;
     /* box-shadow: inset 0 0 22px 6px #075fe2; */
     position: relative;
     z-index:1;
 }
+
 .glare {
     content: "";
     position: absolute;
@@ -100,6 +115,7 @@
 }
 
 .profile-desc {
+    font-family: sf;
     font-size: 12px;
     opacity: 0.5;
     margin:0;
