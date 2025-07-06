@@ -263,6 +263,64 @@ class LeaderboardService {
     }
   }
 
+  // Get leaderboard entries around a user's position (contextual ranking)
+  async getLeaderboardAroundUser(userId, type = 'yesterday', contextSize = 3) {
+    try {
+      let allData;
+      let userRankData;
+
+      // Get all leaderboard data and user rank based on type
+      switch (type) {
+        case 'yesterday':
+          allData = await this.getYesterdayLeaderboard(1000); // Get all users
+          userRankData = await this.getUserRankYesterday(userId);
+          break;
+        case 'weekly':
+          allData = await this.getWeeklyLeaderboard(1000);
+          userRankData = await this.getUserRankWeekly(userId);
+          break;
+        case 'alltime':
+          allData = await this.getAllTimeLeaderboard(1000);
+          userRankData = await this.getUserRankAllTime(userId);
+          break;
+        default:
+          throw new Error(`Unknown leaderboard type: ${type}`);
+      }
+
+      if (!allData.success || !userRankData.success) {
+        throw new Error('Failed to fetch leaderboard or user rank data');
+      }
+
+      const userRank = userRankData.rank;
+      const allEntries = allData.data;
+
+      // Calculate the range around the user's position
+      const startIndex = Math.max(0, userRank - contextSize - 1);
+      const endIndex = Math.min(allEntries.length, userRank + contextSize);
+
+      // Get the contextual entries
+      const contextualEntries = allEntries.slice(startIndex, endIndex);
+
+      return {
+        success: true,
+        data: contextualEntries,
+        userRank: userRank,
+        userSteps: userRankData.stepCount,
+        totalEntries: allEntries.length,
+        date: allData.date,
+        startRank: startIndex + 1,
+        endRank: endIndex
+      };
+    } catch (error) {
+      console.error('Error fetching contextual leaderboard:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  }
+
 }
 
 // Create and export singleton instance
