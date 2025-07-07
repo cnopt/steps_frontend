@@ -457,18 +457,24 @@ export const getAllTimeLeaderboardWithProfiles = async (limit = 10) => {
     });
 
     // Combine step data with profiles and sort
-    const combinedData = Object.values(allTimeData)
+    let combinedData = Object.values(allTimeData)
       .map(entry => ({
         ...entry,
         user_profiles: profileMap[entry.user_id] || null
       }))
-      .sort((a, b) => b.step_count - a.step_count)
-      .slice(0, limit)
-      .map((entry, index) => ({
-        ...entry,
-        rank: index + 1,
-        profile: entry.user_profiles || null
-      }));
+      .sort((a, b) => b.step_count - a.step_count);
+
+    // Only apply limit if it's specified and greater than 0
+    if (limit && limit > 0) {
+      combinedData = combinedData.slice(0, limit);
+    }
+
+    // Add rank information
+    combinedData = combinedData.map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+      profile: entry.user_profiles || null
+    }));
 
     console.log('Successfully fetched all-time leaderboard with profiles:', combinedData);
     return { data: combinedData, error: null, success: true };

@@ -41,7 +41,7 @@ const Leaderboard = () => {
     totalEntries,
     isSuccess 
   } = useLeaderboard(selectedType, { 
-    limit: showContextualRanking ? 50 : 5 
+    limit: showContextualRanking ? 50 : (selectedType === 'alltime' ? null : 5)
   });
 
   const { 
@@ -366,8 +366,7 @@ const Leaderboard = () => {
 
             {!isLoading && isSuccess && displayLeaderboard.length === 0 && (
               <div className="empty-leaderboard">
-                <p>🚶 No data available for {selectedType === 'yesterday' ? 'yesterday' : selectedType === 'weekly' ? 'this week' : 'all-time'}</p>
-                <p className="empty-subtitle">Be the first to upload your steps!</p>
+                <p>No data for {selectedType === 'yesterday' ? 'yesterday' : selectedType === 'weekly' ? 'this week' : 'all-time'}</p>
               </div>
             )}
 
@@ -384,6 +383,22 @@ const Leaderboard = () => {
                       key={`${entry.user_id}-${entry.rank}`} 
                       className={`leaderboard-item rank-${entry.rank} ${isCurrentUser ? 'current-user' : ''}`}
                     >
+                      {entry.rank === 1 && (
+                        <img 
+                          src="./1st-border.png"
+                          alt="First Place"
+                          className="rank-1-image"
+                        />
+                      )}
+
+                      {entry.rank === 2 && (
+                        <img 
+                          src="./2nd-border.png"
+                          alt="First Place"
+                          className="rank-2-image"
+                        />
+                      )}
+                      
                       <div className="rank-section">
                         <span className="rank-number">#{entry.rank}</span>
                       </div>
@@ -431,7 +446,7 @@ const Leaderboard = () => {
                 <div className="user-rank-section">
                   <div className="user-rank-card">
                     <div className="user-rank-info">
-                      <div className="user-rank-position"><span>Your position:</span> #{userRank}</div>
+                      <div className="user-rank-position"><span>Your position:</span> {userRank}</div>
                       <div className="user-rank-steps">{formatSteps(userSteps)} steps</div>
                     </div>
                   </div>

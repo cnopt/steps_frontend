@@ -3,7 +3,7 @@
   margin: 0 auto;
   color: #fff;
   font-family: 'sf', sans-serif;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .leaderboard-header {
@@ -28,7 +28,7 @@
 .leaderboard-type-selection {
   display: flex;
   gap: 8px;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   padding: 4px;
   background: #101010;
   border-radius: 12px;
@@ -41,7 +41,7 @@
   border: none;
   color: #666;
   font-size: 0.9em;
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 8px;
   cursor: pointer;
   font-family: 'sf', sans-serif;
@@ -57,16 +57,13 @@
 
 /* User Rank Section */
 .user-rank-section {
-  margin-top: 30px;
+  margin-top: 20px;
+  opacity: 0.6;
 }
 
 .user-rank-card {
-  border: 1px solid #555;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  /* border: 2px solid #2f2f2f;
+  border-radius: 10px; */
 }
 
 .user-rank-emoji {
@@ -74,13 +71,13 @@
 }
 
 .user-rank-info {
-  flex: 1;
+  display: flex;
+  justify-content: space-between;
 }
 
 .user-rank-position {
   font-size: 16px;
   font-family: sf-semi;
-  margin-bottom: 4px;
 }
 .user-rank-position span {
   opacity: 0.4;
@@ -89,13 +86,15 @@
 }
 
 .user-rank-steps {
-  font-size: 16px;
+  font-size: 15px;
   color: #ccc;
 }
 
 /* Leaderboard Section */
 .leaderboard-section {
-  margin-bottom: 30px;
+  height: 56vh;
+  max-height: 56vh;
+  overflow-y: scroll;
 }
 
 
@@ -136,7 +135,28 @@
   justify-content: space-between;
   transition: all 0.3s ease;
   min-height: 70px;
+  position: relative;
+  z-index: 1;
 }
+
+
+.rank-1-image {
+  position: absolute;
+  bottom: 0px;
+  left: -10px;
+  width: 105px;
+  z-index: 2;
+  display: none;
+}
+.rank-2-image {
+  position: absolute;
+  bottom: 0px;
+  left: -10px;
+  width: 105px;
+  z-index: 2;
+  display: none;
+}
+
 
 
 .rank-section {
@@ -160,7 +180,7 @@
   flex: 1;
   display: flex;
   align-items: center;
-  margin: 0 20px 0 0;
+  margin: 0 0 0 0;
   position: relative;
 }
 
@@ -183,6 +203,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  width: 82px;
 }
 
 .leaderboard-step-count {
@@ -271,10 +292,6 @@
     padding: 2px;
   }
   
-  .user-rank-card {
-    padding: 13px;
-  }
-  
   .rank-emoji, .user-rank-emoji {
     font-size: 1.5em;
   }
@@ -290,7 +307,7 @@
 
 /* Upload Button Section */
 .upload-section {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -301,16 +318,19 @@
   background: transparent;
   color: #4CAF50;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   transition: all 0.3s ease;
-  width: 70%;
   justify-content: center;
   height: 2.25rem;
   font-family: sf-med;
+}
+.upload-button svg {
+  width: 1.4em;
+  height: 1.4em;
 }
 .uptodate {
   color:white;
