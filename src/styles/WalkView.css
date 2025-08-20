@@ -1,6 +1,6 @@
 .map-container {
     width: 100%;
-    height: 55vh;
+    height: 60vh;
     position: relative;
 }
 
@@ -34,4 +34,30 @@
 }
 .mapboxgl-control-container {
     display: none !important;
+}
+
+/* Black overlay that fades away once the map is fully ready */
+.map-fade-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 2;
+    opacity: 1;
+    transition: opacity 500ms ease;
+    pointer-events: none;
+}
+
+.map-fade-overlay.is-hidden {
+    opacity: 0;
+}
+
+/* Centered spinner overlay above fade overlay */
+.map-loading-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    pointer-events: none;
 }

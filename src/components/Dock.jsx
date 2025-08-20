@@ -34,10 +34,10 @@ export default function Dock() {
                 <p>Badges</p>
             </Link>
 
-            <Link to={`/walkview`} className='dock-item'>
+            {/* <Link to={`/walkview`} className='dock-item'>
                 <PiSneakerFill />
                 <p>Shoes</p>
-            </Link>
+            </Link> */}
             
             <Link to={`/settings`} className='dock-item'>
                 <TiSpanner />
