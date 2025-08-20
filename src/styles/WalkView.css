@@ -1,0 +1,37 @@
+.map-container {
+    width: 100%;
+    height: 55vh;
+    position: relative;
+}
+
+.map-container canvas {
+    /* border-radius: 30px; */
+    position: relative;
+    z-index: 1;
+}
+
+/*.map-container::after {
+    position: absolute;
+    top:0;
+    content:"";
+    height: 40vh;
+    width: 100%;
+    /* box-shadow: inset 0 0 5em 1em #000 !important;
+    background: linear-gradient(90deg, transparent 0%, black 0%, transparent 90%, black 100%);
+    z-index: 2;
+}*/
+
+/* Ensure proper WebGL context for 3D rendering */
+.mapboxgl-canvas {
+    outline: none;
+}
+
+.mapboxgl-map {
+    font-family: inherit;
+}
+.mapboxgl-ctrl-attrib-inner {
+    display: none !important;
+}
+.mapboxgl-control-container {
+    display: none !important;
+}

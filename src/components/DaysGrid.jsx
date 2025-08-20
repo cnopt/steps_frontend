@@ -19,6 +19,7 @@ import StepsInputModal from './StepsInputModal';
 import HealthDataImportModal from './HealthDataImportModal';
 import localDataService from '../services/localDataService';
 import Today from './Today';
+import { useNavigate } from 'react-router-dom';
 import { getTodayLocalDateString, isToday as isTodayLocal } from '../helpers/dateUtils';
 
 const getWeatherIcon = (weatherString) => {
@@ -51,6 +52,7 @@ const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
 };
 
 const DaysGrid = () => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedEmptyDay, setSelectedEmptyDay] = useState(null);
@@ -474,6 +476,47 @@ const DaysGrid = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Walk Buttons */}
+                  <div style={{ marginTop: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {selectedDay.walks?.length > 0 && (
+                      <button
+                        onClick={() => navigate('/walkview', { 
+                          state: { 
+                            date: selectedDay.formatted_date,
+                            walkFile: selectedDay.walks[0].filename // For now, just use the first walk
+                          }
+                        })}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#2ecc71',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px',
+                          cursor: 'pointer',
+                          fontSize: '0.9em',
+                          fontFamily: 'sf'
+                        }}
+                      >
+                        View Walk
+                      </button>
+                    )}
+                    <button
+                      onClick={() => navigate('/insert-walk', { state: { selectedDate: selectedDay.formatted_date } })}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#037bfc',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '0.9em',
+                        fontFamily: 'sf'
+                      }}
+                    >
+                      Add Walk
+                    </button>
+                  </div>
 
                   {isHourlyStepsEnabled && hourlyStepsData && selectedDay && (
                     <motion.div

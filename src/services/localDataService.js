@@ -67,8 +67,8 @@ class LocalDataService {
   // Initialize sync tracking with default values
   initializeSyncTracking() {
     const defaultSyncTracking = {
-      lastSyncedDate: null, // Last date we successfully synced data for
-      lastSyncedTime: null, // Last time we performed any sync operation
+      lastSyncedDate: null,
+      lastSyncedTime: null,
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString()
     };
@@ -114,15 +114,18 @@ class LocalDataService {
         steps: parseInt(steps),
         formatted_date,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        walks: [] // Initialize empty walks array for new entries
       };
 
       if (existingEntryIndex >= 0) {
-        // Update existing entry
+        // Update existing entry but preserve any existing walks
         currentData[existingEntryIndex] = {
           ...currentData[existingEntryIndex],
           steps: parseInt(steps),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          // Keep existing walks array or initialize if it doesn't exist
+          walks: currentData[existingEntryIndex].walks || []
         };
       } else {
         // Add new entry
@@ -140,6 +143,46 @@ class LocalDataService {
       };
     } catch (error) {
       console.error('Error adding steps data:', error);
+      throw error;
+    }
+  }
+
+  // Add a walk to a specific date
+  addWalkToDate(date, walkFileName) {
+    try {
+      const currentData = this.getAllStepsData();
+      const dayEntry = currentData.find(entry => entry.formatted_date === date);
+
+      if (!dayEntry) {
+        throw new Error('No steps data found for this date. Please add steps first.');
+      }
+
+      // Initialize walks array if it doesn't exist
+      if (!dayEntry.walks) {
+        dayEntry.walks = [];
+      }
+
+      // Add the walk file reference
+      dayEntry.walks.push({
+        filename: walkFileName,
+        added_at: new Date().toISOString()
+      });
+
+      // Update the entry
+      const updatedData = currentData.map(entry => 
+        entry.formatted_date === date ? { ...entry, walks: dayEntry.walks } : entry
+      );
+
+      // Save back to localStorage
+      localStorage.setItem(STORAGE_KEYS.STEPS_DATA, JSON.stringify(updatedData));
+
+      return {
+        success: true,
+        message: 'Walk added successfully',
+        walks: dayEntry.walks
+      };
+    } catch (error) {
+      console.error('Error adding walk:', error);
       throw error;
     }
   }
@@ -350,10 +393,19 @@ class LocalDataService {
         const importedDate = new Date(importedEntry.updated_at || importedEntry.created_at);
         
         if (importedDate > existingDate) {
-          mergedData[existingIndex] = importedEntry;
+          // Preserve existing walks when updating
+          const existingWalks = mergedData[existingIndex].walks || [];
+          mergedData[existingIndex] = {
+            ...importedEntry,
+            walks: existingWalks
+          };
         }
       } else {
-        mergedData.push(importedEntry);
+        // Initialize walks array for new entries
+        mergedData.push({
+          ...importedEntry,
+          walks: importedEntry.walks || []
+        });
       }
     });
     

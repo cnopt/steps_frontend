@@ -19,9 +19,9 @@
 
 .dock-item {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    height: 3rem;
+    height: 2.5rem;
     color: #aeaeae;
     text-decoration: none;
     transition: all 0.3s ease;
@@ -29,7 +29,7 @@
 }
 
 .dock-item svg {
-    font-size: 1.6em;
+    font-size: 1.45em;
 }
 .dock-item p {
 

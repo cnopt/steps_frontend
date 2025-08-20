@@ -12,6 +12,9 @@ import Stats from './components/Stats';
 import SmartRouter from './components/SmartRouter';
 import { AnimatePresence } from 'framer-motion';
 import SettingsMenu from './components/SettingsMenu';
+import Shoes from './components/Shoes';
+import WalkView from './components/WalkView';
+import InsertWalk from './components/InsertWalk';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ function App() {
               <Route path='/input' element={<NumberInput/>}/>
               <Route path='/stats' element={<Stats/>}/>
               <Route path='/settings' element={<SettingsMenu/>}/>
+              <Route path='/shoes' element={<Shoes/>}/>
+              <Route path='/walkview' element={<WalkView/>}/>
+              <Route path='/insert-walk' element={<InsertWalk/>}/>
             </Routes>
           </AnimatePresence>
         </SmartRouter>

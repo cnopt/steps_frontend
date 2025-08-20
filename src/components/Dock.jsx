@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import '../styles/Dock.css'
-import { IoMdSettings } from "react-icons/io";
 import { IoGrid, IoStatsChart, IoTrophy } from "react-icons/io5";
 import { BiStats, BiBadge } from "react-icons/bi";
 import { TiSpanner } from "react-icons/ti";
 import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
+import { PiSneakerFill } from "react-icons/pi";
+
 
 
 
@@ -31,6 +32,11 @@ export default function Dock() {
             <Link to={`/achievements`} className='dock-item'>
                 <HiIdentification />
                 <p>Badges</p>
+            </Link>
+
+            <Link to={`/walkview`} className='dock-item'>
+                <PiSneakerFill />
+                <p>Shoes</p>
             </Link>
             
             <Link to={`/settings`} className='dock-item'>
