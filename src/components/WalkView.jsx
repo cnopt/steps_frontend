@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import GPXParser from "gpxparser";
+import { XMLParser } from "fast-xml-parser";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import '../styles/WalkView.css';
@@ -45,12 +46,42 @@ export default function WalkView() {
         });
 
         const gpxText = result.data;
+        
+        // Parse with GPXParser
         const gpx = new GPXParser();
         gpx.parse(gpxText);
         
         if (gpx.tracks.length === 0) {
           throw new Error("No tracks found in GPX file");
         }
+
+        // log GPX data structure from GPXParser
+        console.log('GPXParser result:', {
+          metadata: gpx.metadata,
+          tracks: gpx.tracks.map(track => ({
+            name: track.name,
+            distance: track.distance.total,
+            elevation: track.elevation,
+            slopes: track.slopes,
+            points: track.points,
+            points_length: track.points.length
+          }))
+        });
+
+        // Parse with fast-xml-parser
+        const xmlParser = new XMLParser({
+          ignoreAttributes: false,
+          attributeNamePrefix: "@_",
+          parseAttributeValue: true
+        });
+        const xmlResult = xmlParser.parse(gpxText);
+        
+        // Log the raw XML parsing result
+        console.log('fast-xml-parser result:', xmlResult);
+
+        console.log(xmlResult.gpx.name);
+        console.log(xmlResult.gpx.extensions['os:distance']);
+
         
         setGpxData(gpx);
         setLoading(false);

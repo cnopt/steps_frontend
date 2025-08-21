@@ -98,6 +98,21 @@ const InsertWalk = () => {
       />
       
       <button 
+        onClick={() => navigate('/recorder', { state: { selectedDate } })}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          width: '100%'
+        }}
+      >
+        Start Recording Walk
+      </button>
+
+      <button 
         onClick={() => fileInputRef.current.click()}
         style={{
           padding: '10px 20px',
@@ -105,11 +120,15 @@ const InsertWalk = () => {
           color: 'white',
           border: 'none',
           borderRadius: '5px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          marginBottom: '10px',
+          width: '100%'
         }}
       >
         Select GPX File
       </button>
+
+      
 
       {status && (
         <p style={{ 

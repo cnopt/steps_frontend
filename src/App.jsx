@@ -15,6 +15,7 @@ import SettingsMenu from './components/SettingsMenu';
 import Shoes from './components/Shoes';
 import WalkView from './components/WalkView';
 import InsertWalk from './components/InsertWalk';
+import Recorder from './components/Recorder';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ function App() {
               <Route path='/shoes' element={<Shoes/>}/>
               <Route path='/walkview' element={<WalkView/>}/>
               <Route path='/insert-walk' element={<InsertWalk/>}/>
+              <Route path='/recorder' element={<Recorder/>}/>
             </Routes>
           </AnimatePresence>
         </SmartRouter>
