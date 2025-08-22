@@ -1,0 +1,56 @@
+/* .recorder {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.recorder__map {
+  flex: 1;
+} */
+@font-face {
+    font-family: sf;
+    src: url('../assets/sf-regular.otf');
+}
+
+.mapboxgl-map {
+    height: 60vh;
+}
+.mapboxgl-canvas-container canvas {
+    height: 50vh;
+}
+
+.recorder__controls {
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  font-size: 0.7em;
+}
+
+.recorder__button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: sf;
+}
+
+.recorder__button--start,
+.recorder__button--resume,
+.recorder__button--pause,
+.recorder__button--stop {
+  color: #fff;
+  border: none;
+}
+
+.recorder__button--start { background-color: #4CAF50; }
+.recorder__button--resume { background-color: #037bfc; }
+.recorder__button--pause { background-color: #ff9800; }
+.recorder__button--stop { background-color: #f44336; }
+
+.recorder__button--cancel {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #666;
+}
+
+

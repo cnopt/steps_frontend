@@ -3,115 +3,130 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Geolocation } from '@capacitor/geolocation';
 import { BaseBuilder } from 'gpx-builder';
 import mapboxgl from "mapbox-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
+import '../styles/Recorder.css';
 const { Point } = BaseBuilder.MODELS;
 
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
-// Custom user location dot style
-const userLocationDot = {
-  width: 15,
-  height: 15,
-  borderRadius: '50%',
-  backgroundColor: '#037bfc',
-  border: '2px solid #fff',
-  boxShadow: '0 0 2px rgba(0,0,0,0.25)'
-};
-
-const Recorder = () => {
+function Recorder() {
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedDate = location.state?.selectedDate;
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const watchIdRef = useRef(null);
-  const pointsRef = useRef([]);
+
+  const selectedDate = location.state?.selectedDate || new Date().toLocaleDateString();
+
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const geolocateControlRef = useRef(null);
+  const watchIdRef = useRef(null);
+  const pathCoordsRef = useRef([]);
 
-  const requestLocationPermission = async () => {
-    try {
-      const permission = await Geolocation.checkPermissions();
-      if (permission.location !== 'granted') {
-        await Geolocation.requestPermissions();
+  const PATH_SOURCE_ID = 'recordedPath';
+  const PATH_LAYER_ID = 'recordedPathLine';
+
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [initialCoords, setInitialCoords] = useState(null);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const ensurePathSourceAndLayer = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const add = () => {
+      if (!map.getSource(PATH_SOURCE_ID)) {
+        map.addSource(PATH_SOURCE_ID, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: pathCoordsRef.current },
+            properties: {}
+          }
+        });
       }
-    } catch (error) {
-      console.error('Error requesting location permission:', error);
+      if (!map.getLayer(PATH_LAYER_ID)) {
+        map.addLayer({
+          id: PATH_LAYER_ID,
+          type: 'line',
+          source: PATH_SOURCE_ID,
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: {
+            'line-color': '#2da1ff',
+            'line-width': 4,
+            'line-opacity': 0.9
+          }
+        });
+      }
+    };
+    if (map.isStyleLoaded && map.isStyleLoaded()) {
+      add();
+    } else {
+      map.once('load', add);
     }
   };
 
-  // Initialize map
-  useEffect(() => {
-    if (!mapContainer.current) return;
-
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/cnopt/cmekhylis001z01sn9v8a5axs",
-      zoom: 16,
-      antialias: true,
-      dragPan: true,
-      dragRotate: true
-    });
-
-    // Add geolocate control
-    geolocateControlRef.current = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true,
-      showUserHeading: true,
-      showAccuracyCircle: true
-    });
-
-    mapRef.current.addControl(geolocateControlRef.current);
-
-    mapRef.current.on("load", () => {
-      mapRef.current.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxZoom: 14
+  const updatePathSourceData = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const src = map.getSource(PATH_SOURCE_ID);
+    if (src && src.setData) {
+      src.setData({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: pathCoordsRef.current },
+        properties: {}
       });
-      mapRef.current.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-      
-      // Trigger geolocation immediately after map loads
-      geolocateControlRef.current.trigger();
-    });
+    }
+  };
 
-    // Listen for the geolocate events
-    geolocateControlRef.current.on('geolocate', (position) => {
-      const { latitude, longitude, altitude } = position.coords;
-      setCurrentLocation({ latitude, longitude, altitude });
-      
-      if (isRecording && !isPaused) {
-        const point = new Point(longitude, latitude, {
-          ele: altitude,
-          time: new Date()
-        });
-        pointsRef.current.push(point);
-        console.log(`Recording point: ${latitude}, ${longitude}`);
+  const pushCoordinateIfNew = (lng, lat) => {
+    const coords = pathCoordsRef.current;
+    const last = coords[coords.length - 1];
+    if (!last || last[0] !== lng || last[1] !== lat) {
+      coords.push([lng, lat]);
+    }
+  };
+
+  const startPositionWatcher = async () => {
+    if (watchIdRef.current != null) return;
+    ensurePathSourceAndLayer();
+    // Seed with current map center (which should be at/near user location)
+    if (mapRef.current) {
+      const c = mapRef.current.getCenter();
+      pushCoordinateIfNew(c.lng, c.lat);
+      updatePathSourceData();
+    }
+    watchIdRef.current = await Geolocation.watchPosition(
+      { enableHighAccuracy: true, distanceFilter: 1 },
+      (position, err) => {
+        if (err) {
+          console.error('[watchPosition] error', err);
+          return;
+        }
+        if (!position || isPaused) return;
+        const { longitude, latitude } = position.coords || {};
+        if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
+        pushCoordinateIfNew(longitude, latitude);
+        updatePathSourceData();
       }
-    });
+    );
+  };
 
-    return () => {
-      if (mapRef.current) mapRef.current.remove();
-    };
-  }, []);
-
-  // Handle location permissions and tracking
-  useEffect(() => {
-    requestLocationPermission();
-    return () => {
-      if (watchIdRef.current) {
-        Geolocation.clearWatch({ id: watchIdRef.current });
+  const stopPositionWatcher = async () => {
+    if (watchIdRef.current != null) {
+      try {
+        await Geolocation.clearWatch({ id: watchIdRef.current });
+      } catch (e) {
+        console.error('clearWatch error', e);
       }
-    };
-  }, []);
+      watchIdRef.current = null;
+    }
+  };
 
   const startRecording = () => {
     setIsRecording(true);
     setIsPaused(false);
+    pathCoordsRef.current = [];
+    startPositionWatcher();
   };
 
   const pauseRecording = () => {
@@ -125,102 +140,168 @@ const Recorder = () => {
   const stopRecording = () => {
     setIsRecording(false);
     setIsPaused(false);
-    // Here we would save the GPX file, but we'll implement that later
+    stopPositionWatcher();
+  };
+
+  const watchPosition = () => {
+    try {
+      const geolocate = geolocateControlRef.current;
+      if (geolocate && typeof geolocate.trigger === 'function') {
+        geolocate.trigger();
+      }
+    } catch (e) {
+      console.error('Failed to re-enable tracking mode:', e);
+    }
   };
 
 
+  // Ask for location permission up front (Capacitor Android)
+  useEffect(() => {
+    const ensurePermissions = async () => {
+      try {
+        const status = await Geolocation.checkPermissions();
+        if (status.location !== 'granted') {
+          const req = await Geolocation.requestPermissions();
+          if (req.location !== 'granted') {
+            return;
+          }
+        }
+        setPermissionGranted(true);
+      } catch (e) {
+        console.error('Geolocation permission error:', e);
+      }
+    };
+    ensurePermissions();
+  }, []);
+
+  // Get initial position once permission is granted
+  useEffect(() => {
+    if (!permissionGranted) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+        if (cancelled) return;
+        setInitialCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+      } catch (e) {
+        console.error('Failed to get current position:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [permissionGranted]);
+
+  // Initialize Mapbox map centered on current location and add GeolocateControl
+  useEffect(() => {
+    if (!mapContainer.current || !initialCoords) return;
+
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/standard',
+      center: [initialCoords.lng, initialCoords.lat],
+      zoom: 16,
+      attributionControl: false
+    });
+
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserHeading: true,
+      // Ensure no animated transition when the control updates the camera
+      fitBoundsOptions: { maxZoom: 16, duration: 0 }
+    });
+    geolocateControlRef.current = geolocate;
+    mapRef.current.addControl(geolocate);
+
+    // Let GeolocateControl manage camera per its active/passive states; just log updates
+    geolocate.on('geolocate', (e) => {
+      console.log('[GeolocateControl] geolocate', e.coords);
+    });
+
+    geolocate.on('trackuserlocationstart', () => {
+      console.log('[GeolocateControl] track user location started');
+    });
+
+    geolocate.on('trackuserlocationend', () => {
+      console.log('[GeolocateControl] track user location ended');
+    });
+
+    geolocate.on('error', (err) => {
+      console.error('[GeolocateControl] error', err);
+    });
+
+    // immediate location fetch to see the blue dot
+    if (mapRef.current && typeof mapRef.current.once === 'function') {
+      mapRef.current.once('load', () => geolocate.trigger());
+    } else {
+      geolocate.trigger();
+    }
+
+    return () => {
+      mapRef.current && mapRef.current.remove();
+    };
+  }, [initialCoords]);
+
+  // cleanup watcher on unmount
+  useEffect(() => {
+    return () => {
+      stopPositionWatcher();
+    };
+  }, []);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '10px', backgroundColor: '#fff' }}>
-        <h3>Record Walk for {selectedDate}</h3>
-      </div>
-      
-      <div ref={mapContainer} style={{ flex: 1 }} />
-      
-      <div style={{ 
-        padding: '20px',
-        backgroundColor: '#fff',
-        display: 'flex',
-        gap: '10px',
-        justifyContent: 'center'
-      }}>
+    <div className="recorder">
+      <div ref={mapContainer} className="recorder__map" />
+      <div className="recorder__controls">
         {!isRecording ? (
-          <button 
+          <button
             onClick={startRecording}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
+            className="recorder__button recorder__button--start"
           >
             Start Recording
           </button>
         ) : (
           <>
             {isPaused ? (
-              <button 
+              <button
                 onClick={resumeRecording}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#037bfc',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
+                className="recorder__button recorder__button--resume"
               >
                 Resume
               </button>
             ) : (
-              <button 
+              <button
                 onClick={pauseRecording}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#ff9800',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
+                className="recorder__button recorder__button--pause"
               >
                 Pause
               </button>
             )}
-            <button 
+            <button
               onClick={stopRecording}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
+              className="recorder__button recorder__button--stop"
             >
               Stop
             </button>
           </>
         )}
-        <button 
+        <button
           onClick={() => navigate(-1)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: 'transparent',
-            color: '#666',
-            border: '1px solid #666',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
+          className="recorder__button recorder__button--cancel"
         >
           Cancel
+        </button>
+
+        <button
+          onClick={watchPosition}
+          className="recorder__button recorder__button--cancel"
+        >
+          Track
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default Recorder;

@@ -102,6 +102,8 @@ const InsertWalk = () => {
         style={{
           padding: '10px 20px',
           backgroundColor: '#4CAF50',
+          fontFamily: 'sf',
+          fontSize:'1em',
           color: 'white',
           border: 'none',
           borderRadius: '5px',
@@ -117,6 +119,8 @@ const InsertWalk = () => {
         style={{
           padding: '10px 20px',
           backgroundColor: '#037bfc',
+          fontFamily: 'sf',
+          fontSize:'1em',
           color: 'white',
           border: 'none',
           borderRadius: '5px',
