@@ -11,12 +11,14 @@
     "bs": "vite build && npx cap sync"
   },
   "dependencies": {
+    "@capacitor-community/background-geolocation": "^1.2.25",
     "@capacitor/android": "^7.4.0",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/core": "^7.4.0",
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/geolocation": "^7.1.5",
     "@capacitor/ios": "^7.4.0",
+    "@capacitor/local-notifications": "^7.0.2",
     "@capacitor/motion": "^7.0.0",
     "@react-spring/web": "^9.7.5",
     "@react-three/drei": "^9.120.5",

@@ -79,8 +79,8 @@ export default function WalkView() {
         // Log the raw XML parsing result
         console.log('fast-xml-parser result:', xmlResult);
 
-        console.log(xmlResult.gpx.name);
-        console.log(xmlResult.gpx.extensions['os:distance']);
+        //console.log(xmlResult.gpx.name);
+        //console.log(xmlResult.gpx.extensions['os:distance']);
 
         
         setGpxData(gpx);

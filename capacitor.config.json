@@ -1,5 +1,8 @@
 {
   "appId": "com.example.app",
   "appName": "stepno",
-  "webDir": "dist"
+  "webDir": "dist",
+  "android": {
+    "useLegacyBridge": true
+  }
 }
