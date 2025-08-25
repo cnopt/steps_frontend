@@ -46,6 +46,7 @@ function Recorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   const pushLog = (msg) => {
     setLogs((prev) => {
@@ -110,16 +111,24 @@ function Recorder() {
     }
   };
 
-  const startPositionWatcher = async () => {
-    if (watchIdRef.current != null) return;
-    ensurePathSourceAndLayer();
-    // Seed with current map center (which should be at/near user location)
-    if (mapRef.current) {
-      const c = mapRef.current.getCenter();
-      pushCoordinateIfNew(c.lng, c.lat);
-      updatePathSourceData();
-    }
-    watchIdRef.current = await Geolocation.watchPosition(
+     const startPositionWatcher = async () => {
+     if (watchIdRef.current != null) return;
+     ensurePathSourceAndLayer();
+     
+     try {
+       // Get the actual current position to start the path
+       const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+       if (position && position.coords) {
+         const { longitude, latitude } = position.coords;
+         pushCoordinateIfNew(longitude, latitude);
+         updatePathSourceData();
+       }
+     } catch (e) {
+       console.error('Failed to get initial position for recording:', e);
+       pushLog('Warning: Could not get precise starting position');
+     }
+     
+     watchIdRef.current = await Geolocation.watchPosition(
       { enableHighAccuracy: true, distanceFilter: 1 },
       (position, err) => {
         if (err) {
@@ -302,13 +311,30 @@ function Recorder() {
     }
   };
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setIsPaused(false);
-    pathCoordsRef.current = [];
-    gpxPointsRef.current = [];
-    gpxBuilderRef.current = new BaseBuilder();
-    pushLog('Recording started');
+     const startRecording = () => {
+     setIsRecording(true);
+     setIsPaused(false);
+     
+     // Clear all coordinate references
+     pathCoordsRef.current = [];
+     gpxPointsRef.current = [];
+     latestCoordsRef.current = null;
+     gpxBuilderRef.current = new BaseBuilder();
+     
+     // Clear any existing path from the map
+     const map = mapRef.current;
+     if (map) {
+       const source = map.getSource(PATH_SOURCE_ID);
+       if (source) {
+         source.setData({
+           type: 'Feature',
+           geometry: { type: 'LineString', coordinates: [] },
+           properties: {}
+         });
+       }
+     }
+     
+     pushLog('Recording started');
     startPositionWatcher();
     // Start background watcher (Android)
     startBackgroundWatcher();
@@ -351,19 +377,36 @@ function Recorder() {
     }
   };
 
-  const stopRecording = () => {
-    setIsRecording(false);
-    setIsPaused(false);
-    stopPositionWatcher();
-    stopBackgroundWatcher();
-    if (ENABLE_CONTROL_NOTIFICATION) {
-      cancelControlNotification();
-    }
-    if (gpxIntervalRef.current) {
-      clearInterval(gpxIntervalRef.current);
-      gpxIntervalRef.current = null;
-    }
-    pushLog('Recording stopped');
+     const stopRecording = () => {
+     setIsRecording(false);
+     setIsPaused(false);
+     stopPositionWatcher();
+     stopBackgroundWatcher();
+     if (ENABLE_CONTROL_NOTIFICATION) {
+       cancelControlNotification();
+     }
+     if (gpxIntervalRef.current) {
+       clearInterval(gpxIntervalRef.current);
+       gpxIntervalRef.current = null;
+     }
+     
+     // Clear all coordinate references
+     latestCoordsRef.current = null;
+     
+     // Clear the path from the map if it exists
+     const map = mapRef.current;
+     if (map) {
+       const source = map.getSource(PATH_SOURCE_ID);
+       if (source) {
+         source.setData({
+           type: 'Feature',
+           geometry: { type: 'LineString', coordinates: [] },
+           properties: {}
+         });
+       }
+     }
+     
+     pushLog('Recording stopped');
 
     const pointsLen = gpxPointsRef.current.length;
     if (!pointsLen) {
@@ -482,11 +525,177 @@ function Recorder() {
   useEffect(() => {
     if (!mapContainer.current || !initialCoords) return;
 
+    // Handle online/offline status changes
+    const handleOnlineStatus = () => {
+      setIsOnline(true);
+      if (mapRef.current) {
+        const map = mapRef.current;
+        // Store current coordinates before style change
+        const currentCoords = pathCoordsRef.current.slice();
+        
+        map.setStyle('mapbox://styles/mapbox/standard');
+        
+        // Re-add path source and layer after style loads
+        map.once('style.load', () => {
+          // Ensure we're working with the latest coordinates
+          pathCoordsRef.current = currentCoords;
+          
+          // Force recreation of source and layer
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
+          }
+          if (map.getLayer(PATH_LAYER_ID)) {
+            map.removeLayer(PATH_LAYER_ID);
+          }
+          
+          map.addSource(PATH_SOURCE_ID, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentCoords },
+              properties: {}
+            }
+          });
+          
+          map.addLayer({
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          });
+        });
+        pushLog('Network connection restored, switching to online map');
+      }
+    };
+
+    const handleOfflineStatus = () => {
+      setIsOnline(false);
+      if (mapRef.current) {
+        const map = mapRef.current;
+        // Store current coordinates before style change
+        const currentCoords = pathCoordsRef.current.slice();
+        
+        // Create a complete offline style that includes our path
+        const offlineStyle = {
+          version: 8,
+          sources: {
+            [PATH_SOURCE_ID]: {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: currentCoords },
+                properties: {}
+              }
+            }
+          },
+          layers: [
+            {
+              id: 'background',
+              type: 'background',
+              paint: {
+                'background-color': '#ffffff'
+              }
+            },
+            {
+              id: PATH_LAYER_ID,
+              type: 'line',
+              source: PATH_SOURCE_ID,
+              layout: { 'line-cap': 'round', 'line-join': 'round' },
+              paint: {
+                'line-color': '#2da1ff',
+                'line-width': 4,
+                'line-opacity': 0.9
+              }
+            }
+          ]
+        };
+        
+        map.setStyle(offlineStyle);
+        
+        // After style loads, ensure our data is up to date
+        map.once('style.load', () => {
+          // Ensure we're working with the latest coordinates
+          pathCoordsRef.current = currentCoords;
+          
+          // Force recreation of source and layer
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
+          }
+          if (map.getLayer(PATH_LAYER_ID)) {
+            map.removeLayer(PATH_LAYER_ID);
+          }
+          
+          map.addSource(PATH_SOURCE_ID, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentCoords },
+              properties: {}
+            }
+          });
+          
+          map.addLayer({
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          });
+        });
+        pushLog('Network connection lost, switching to offline map');
+      }
+    };
+
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOfflineStatus);
+
+    // Create map with appropriate style based on connection status
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/standard',
+      style: isOnline ? 'mapbox://styles/mapbox/standard' : {
+        version: 8,
+        sources: {
+          [PATH_SOURCE_ID]: {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: pathCoordsRef.current },
+              properties: {}
+            }
+          }
+        },
+        layers: [
+          {
+            id: 'background',
+            type: 'background',
+            paint: {
+              'background-color': '#ffffff'
+            }
+          },
+          {
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          }
+        ]
+      },
       center: [initialCoords.lng, initialCoords.lat],
-      zoom: 16,
+      zoom: 14,
       attributionControl: false
     });
 
@@ -495,7 +704,7 @@ function Recorder() {
       trackUserLocation: true,
       showUserHeading: true,
       // Ensure no animated transition when the control updates the camera
-      fitBoundsOptions: { maxZoom: 16, duration: 0 }
+      fitBoundsOptions: { maxZoom: 14, duration: 0 }
     });
     geolocateControlRef.current = geolocate;
     mapRef.current.addControl(geolocate);
@@ -525,6 +734,8 @@ function Recorder() {
     }
 
     return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOfflineStatus);
       mapRef.current && mapRef.current.remove();
     };
   }, [initialCoords]);
