@@ -47,6 +47,34 @@ function Recorder() {
   const [isPaused, setIsPaused] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [currentElevation, setCurrentElevation] = useState(null);
+  const timerIntervalRef = useRef(null);
+  const lastCoordRef = useRef(null);
+  const isPausedRef = useRef(false);
+  const isRecordingRef = useRef(false);
+
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c; // Distance in km
+    return d * 0.621371; // Convert to miles
+  };
+
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const pushLog = (msg) => {
     setLogs((prev) => {
@@ -54,6 +82,14 @@ function Recorder() {
       return next.length > 200 ? next.slice(next.length - 200) : next;
     });
   };
+
+  // Keep refs in sync to avoid stale closures inside watchers
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
   const ensurePathSourceAndLayer = () => {
     const map = mapRef.current;
@@ -136,12 +172,43 @@ function Recorder() {
           pushLog(`watchPosition error: ${String(err && err.message || err)}`);
           return;
         }
-        if (!position || isPaused) return;
+        if (!position) return;
         const { longitude, latitude, altitude } = position.coords || {};
         if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
+        
+        // Always keep the path visualization up to date
         pushCoordinateIfNew(longitude, latitude);
         updatePathSourceData();
+
+        // If not recording or paused, advance the last coordinate but do not add distance
+        if (!isRecordingRef.current || isPausedRef.current) {
+          lastCoordRef.current = { lat: latitude, lng: longitude };
+          latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+          return;
+        }
+
+        // Only when actively recording (and not paused), accumulate distance
+        if (lastCoordRef.current) {
+          const newDistance = calculateDistance(
+            lastCoordRef.current.lat,
+            lastCoordRef.current.lng,
+            latitude,
+            longitude
+          );
+          // Only update if we've moved more than ~1 meter (filter GPS jitter)
+          if (newDistance > 0.001) {
+            setTotalDistance(prev => prev + newDistance);
+            lastCoordRef.current = { lat: latitude, lng: longitude };
+          }
+        } else {
+          lastCoordRef.current = { lat: latitude, lng: longitude };
+        }
+
         latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+        // Update elevation if available
+        if (typeof altitude === 'number') {
+          setCurrentElevation(Math.round(altitude));
+        }
       }
     );
   };
@@ -268,12 +335,43 @@ function Recorder() {
             }
             return;
           }
-          if (!result || isPaused) return;
+          if (!result) return;
           const { latitude, longitude, altitude } = result;
           if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
+          
+          // Always keep the path visualization up to date
           pushCoordinateIfNew(longitude, latitude);
           updatePathSourceData();
+
+          // If not recording or paused, advance the last coordinate but do not add distance
+          if (!isRecordingRef.current || isPausedRef.current) {
+            lastCoordRef.current = { lat: latitude, lng: longitude };
+            latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+            return;
+          }
+
+          // Only when actively recording (and not paused), accumulate distance
+          if (lastCoordRef.current) {
+            const newDistance = calculateDistance(
+              lastCoordRef.current.lat,
+              lastCoordRef.current.lng,
+              latitude,
+              longitude
+            );
+            // Only update if we've moved more than ~1 meter (filter GPS jitter)
+            if (newDistance > 0.001) {
+              setTotalDistance(prev => prev + newDistance);
+              lastCoordRef.current = { lat: latitude, lng: longitude };
+            }
+          } else {
+            lastCoordRef.current = { lat: latitude, lng: longitude };
+          }
+          
           latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+          // Update elevation if available
+          if (typeof altitude === 'number') {
+            setCurrentElevation(Math.round(altitude));
+          }
         }
       );
       bgWatcherIdRef.current = id;
@@ -314,6 +412,17 @@ function Recorder() {
      const startRecording = () => {
      setIsRecording(true);
      setIsPaused(false);
+     setElapsedTime(0);
+     setTotalDistance(0);
+     lastCoordRef.current = null;
+     
+     // Start the timer
+     if (timerIntervalRef.current) {
+       clearInterval(timerIntervalRef.current);
+     }
+     timerIntervalRef.current = setInterval(() => {
+       setElapsedTime(prev => prev + 1);
+     }, 1000);
      
      // Clear all coordinate references
      pathCoordsRef.current = [];
@@ -363,6 +472,11 @@ function Recorder() {
 
   const pauseRecording = () => {
     setIsPaused(true);
+    // Stop the timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
     pushLog('Recording paused');
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('paused');
@@ -371,6 +485,12 @@ function Recorder() {
 
   const resumeRecording = () => {
     setIsPaused(false);
+    // Resume the timer
+    if (!timerIntervalRef.current) {
+      timerIntervalRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
     pushLog('Recording resumed');
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('recording');
@@ -380,6 +500,13 @@ function Recorder() {
      const stopRecording = () => {
      setIsRecording(false);
      setIsPaused(false);
+     // Clear the timer
+     if (timerIntervalRef.current) {
+       clearInterval(timerIntervalRef.current);
+       timerIntervalRef.current = null;
+     }
+     setElapsedTime(0);
+     setCurrentElevation(null);
      stopPositionWatcher();
      stopBackgroundWatcher();
      if (ENABLE_CONTROL_NOTIFICATION) {
@@ -533,19 +660,19 @@ function Recorder() {
         // Store current coordinates before style change
         const currentCoords = pathCoordsRef.current.slice();
         
-        map.setStyle('mapbox://styles/mapbox/standard');
+        map.setStyle('mapbox://styles/mapbox/dark-v11');
         
         // Re-add path source and layer after style loads
         map.once('style.load', () => {
           // Ensure we're working with the latest coordinates
           pathCoordsRef.current = currentCoords;
           
-          // Force recreation of source and layer
-          if (map.getSource(PATH_SOURCE_ID)) {
-            map.removeSource(PATH_SOURCE_ID);
-          }
+          // Force recreation of layer, then source (correct order: remove layer before source)
           if (map.getLayer(PATH_LAYER_ID)) {
             map.removeLayer(PATH_LAYER_ID);
+          }
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
           }
           
           map.addSource(PATH_SOURCE_ID, {
@@ -561,13 +688,15 @@ function Recorder() {
             id: PATH_LAYER_ID,
             type: 'line',
             source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
             paint: {
               'line-color': '#2da1ff',
               'line-width': 4,
               'line-opacity': 0.9
             }
           });
+          // Ensure the latest path data is rendered
+          updatePathSourceData();
         });
         pushLog('Network connection restored, switching to online map');
       }
@@ -605,7 +734,7 @@ function Recorder() {
               id: PATH_LAYER_ID,
               type: 'line',
               source: PATH_SOURCE_ID,
-              layout: { 'line-cap': 'round', 'line-join': 'round' },
+              layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
               paint: {
                 'line-color': '#2da1ff',
                 'line-width': 4,
@@ -622,12 +751,12 @@ function Recorder() {
           // Ensure we're working with the latest coordinates
           pathCoordsRef.current = currentCoords;
           
-          // Force recreation of source and layer
-          if (map.getSource(PATH_SOURCE_ID)) {
-            map.removeSource(PATH_SOURCE_ID);
-          }
+          // Force recreation of layer, then source (correct order: remove layer before source)
           if (map.getLayer(PATH_LAYER_ID)) {
             map.removeLayer(PATH_LAYER_ID);
+          }
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
           }
           
           map.addSource(PATH_SOURCE_ID, {
@@ -643,13 +772,15 @@ function Recorder() {
             id: PATH_LAYER_ID,
             type: 'line',
             source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
             paint: {
               'line-color': '#2da1ff',
               'line-width': 4,
               'line-opacity': 0.9
             }
           });
+          // Ensure the latest path data is rendered
+          updatePathSourceData();
         });
         pushLog('Network connection lost, switching to offline map');
       }
@@ -661,7 +792,7 @@ function Recorder() {
     // Create map with appropriate style based on connection status
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: isOnline ? 'mapbox://styles/mapbox/standard' : {
+      style: isOnline ? 'mapbox://styles/mapbox/dark-v11' : {
         version: 8,
         sources: {
           [PATH_SOURCE_ID]: {
@@ -685,7 +816,7 @@ function Recorder() {
             id: PATH_LAYER_ID,
             type: 'line',
             source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
             paint: {
               'line-color': '#2da1ff',
               'line-width': 4,
@@ -695,16 +826,16 @@ function Recorder() {
         ]
       },
       center: [initialCoords.lng, initialCoords.lat],
-      zoom: 14,
+      zoom: 15,
       attributionControl: false
     });
 
     const geolocate = new mapboxgl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
+      positionOptions: { enableHighAccuracy: true, maximumAge: 0, timeout: 0  },
       trackUserLocation: true,
       showUserHeading: true,
       // Ensure no animated transition when the control updates the camera
-      fitBoundsOptions: { maxZoom: 14, duration: 0 }
+      fitBoundsOptions: { maxZoom: 15, duration: 0 }
     });
     geolocateControlRef.current = geolocate;
     mapRef.current.addControl(geolocate);
@@ -767,6 +898,10 @@ function Recorder() {
     return () => {
       stopPositionWatcher();
       stopBackgroundWatcher();
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
       if (notifListenerRef.current && typeof notifListenerRef.current.remove === 'function') {
         notifListenerRef.current.remove();
         notifListenerRef.current = null;
@@ -779,54 +914,115 @@ function Recorder() {
   return (
     <div className="recorder">
       <div ref={mapContainer} className="recorder__map" />
+      <div className='recorder__info'>
+        { /* *** FOUR BOX LAYOUT *** */ }
+        {/* <div className='row'>
+          <div className='column'>
+            <div className='infobox time'>
+              <span>Time Elapsed</span>
+              <p>{formatTime(elapsedTime)}</p>
+            </div>
+          </div>
+          <div className='column'>
+            <div className='infobox distance'>
+              <span>Distance</span>
+              <p>{totalDistance.toFixed(1)}<span className='units'>mi</span></p>
+            </div>
+          </div>
+        </div>
+        <div className='row'>
+          <div className='column'>
+            <div className='infobox elevation'>
+              <span>Elevation</span>
+              <p>{currentElevation !== null ? currentElevation : '--'}<span className='units'>m</span></p>
+            </div>
+          </div>
+          <div className='column'>
+            <div className='infobox idk'>
+              <span>Something Else</span>
+              <p>0:00</p>
+            </div>
+          </div>
+        </div> */}
+
+        { /* *** THREE BOX LAYOUT *** */ }
+        <div className='row'>
+          <div className='column'>
+            <div className='infobox time'>
+              <span>Time Elapsed</span>
+              <p>{formatTime(elapsedTime)}</p>
+            </div>
+          </div>
+        </div>
+        <div className='row'>
+          <div className='column'>
+            <div className='infobox elevation'>
+              <span>Elevation</span>
+              <p>{currentElevation !== null ? currentElevation : '--'}<span className='units'>m</span></p>
+            </div>
+          </div>
+          <div className='column'>
+            <div className='infobox distance'>
+              <span>Distance</span>
+              <p>{totalDistance.toFixed(1)}<span className='units'>mi</span></p>
+            </div>
+          </div>
+        </div> 
+      </div>
       <div className="recorder__controls">
         {!isRecording ? (
-          <button
-            onClick={startRecording}
-            className="recorder__button recorder__button--start"
-          >
-            Start Recording
-          </button>
+          <>
+            <div className='start-button-div'>
+              <button
+                onClick={startRecording}
+                className="recorder__button recorder__button--start"
+              >
+                <span> </span>
+              </button>
+              <p>Start recording</p>
+            </div>
+          </>
         ) : (
           <>
             {isPaused ? (
               <button
                 onClick={resumeRecording}
                 className="recorder__button recorder__button--resume"
-              >
-                Resume
+              ><span>󰐊</span>
               </button>
             ) : (
               <button
                 onClick={pauseRecording}
                 className="recorder__button recorder__button--pause"
-              >
-                Pause
+              ><span></span>
               </button>
             )}
             <button
               onClick={stopRecording}
               className="recorder__button recorder__button--stop"
-            >
-              Stop
+            ><span>󰓛</span>
             </button>
           </>
         )}
-        <button
-          onClick={() => navigate(-1)}
-          className="recorder__button recorder__button--cancel"
-        >
-          Cancel
-        </button>
 
-        <button
+
+        {/* <button
           onClick={watchPosition}
           className="recorder__button recorder__button--cancel"
         >
           Track
+        </button> */}
+      </div>
+
+      <div className='cancel-div'>
+        <button
+            onClick={() => navigate(-1)}
+            className="recorder__button recorder__button--cancel"
+          ><span></span>
         </button>
       </div>
-      <div style={{
+
+      {/* <div style={{
         marginTop: '10px',
         padding: '8px',
         backgroundColor: '#0f172a',
@@ -844,7 +1040,7 @@ function Recorder() {
             <div key={idx}>{line}</div>
           ))
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

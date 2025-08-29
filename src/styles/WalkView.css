@@ -33,7 +33,13 @@
     display: none !important;
 }
 .mapboxgl-control-container {
-    display: none !important;
+    /* display: none !important; */
+}
+.mapboxgl-ctrl-group {
+    background-color: #000 !important;
+}
+a.mapboxgl-ctrl-logo {
+    opacity: 0.2;
 }
 
 /* Black overlay that fades away once the map is fully ready */

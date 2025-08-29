@@ -621,21 +621,17 @@ const SettingsMenu = () => {
     
     if (confirmWipe) {
       try {
+        // Clear all data using the service
         localDataService.clearAllData();
         
-        localStorage.removeItem('unlockedBadges');
-        localStorage.removeItem('unwrappedMilestones');
-        localStorage.removeItem('viewedBadges');
-        localStorage.removeItem('weatherData');
-        localStorage.removeItem('userHeight');
-        localStorage.removeItem('userWeight');
-        localStorage.removeItem('userGender');
-        localStorage.removeItem('userEnableWeather');
-        localStorage.removeItem('appVersion');
+        // Force invalidate any cached queries
+        queryClient.clear();
         
-        //alert('All data has been wiped successfully. The page will reload.');
-        // Reload the page to refresh all components and reset state
-        window.location.reload();
+        // Show success message
+        alert('All data has been wiped successfully. The page will reload.');
+        
+        // Force a complete page reload to reset all state
+        window.location.href = window.location.href;
       } catch (error) {
         console.error('Error wiping data:', error);
         alert('There was an error wiping your data. Please try again.');

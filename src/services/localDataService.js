@@ -462,12 +462,26 @@ class LocalDataService {
 
   // Clear all data (use with caution)
   clearAllData() {
+    // Clear all known storage keys
     localStorage.removeItem(STORAGE_KEYS.STEPS_DATA);
     localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
     localStorage.removeItem(STORAGE_KEYS.APP_VERSION);
     localStorage.removeItem(STORAGE_KEYS.SYNC_TRACKING);
     
-    // Reinitialize
+    // Clear additional app-specific keys
+    localStorage.removeItem('unlockedBadges');
+    localStorage.removeItem('unwrappedMilestones');
+    localStorage.removeItem('viewedBadges');
+    localStorage.removeItem('weatherData');
+    localStorage.removeItem('userHeight');
+    localStorage.removeItem('userWeight');
+    localStorage.removeItem('userGender');
+    localStorage.removeItem('userEnableWeather');
+    
+    // Clear any other app data
+    localStorage.clear();
+    
+    // Reinitialize with fresh state
     this.initializeStorage();
     
     return {

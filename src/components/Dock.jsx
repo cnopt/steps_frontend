@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import '../styles/Dock.css'
 import { IoGrid, IoStatsChart, IoTrophy } from "react-icons/io5";
 import { BiStats, BiBadge } from "react-icons/bi";
@@ -7,11 +7,14 @@ import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
 import { PiSneakerFill } from "react-icons/pi";
 
-
-
-
-
 export default function Dock() {
+    const location = useLocation();
+    
+    // Hide dock on recorder page
+    if (location.pathname === '/recorder') {
+        return null;
+    }
+
     return (
         <div className='dock-container'>
             <Link to={`/month`} className='dock-item'>
@@ -46,4 +49,3 @@ export default function Dock() {
         </div>
     )
 }
-  
