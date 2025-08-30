@@ -469,11 +469,20 @@ function Recorder() {
             gpxBuilderRef.current = new BaseBuilder();
             // Add all completed segments
             gpxSegmentsRef.current.forEach(segment => {
-              gpxBuilderRef.current.addSegment(segment);
+              if (segment && segment.length > 0) {
+                const segmentObj = segment.map(point => {
+                  if (point instanceof Point) return point;
+                  return new Point(point.lat, point.lng, {
+                    time: point.time,
+                    ...(point.ele !== undefined ? { ele: point.ele } : {})
+                  });
+                });
+                gpxBuilderRef.current.setSegments([segmentObj]);
+              }
             });
             // Add current segment if it has points
             if (gpxPointsRef.current.length > 0) {
-              gpxBuilderRef.current.addSegment(gpxPointsRef.current);
+              gpxBuilderRef.current.setSegments([gpxPointsRef.current]);
             }
           }
         } catch (e) {
@@ -582,11 +591,22 @@ function Recorder() {
       
       // Add all segments to a fresh builder
       builder.reset();
-      gpxSegmentsRef.current.forEach(segment => {
-        if (segment.length > 0) {
-          builder.addSegment(segment);
+      const allSegments = gpxSegmentsRef.current.map(segment => {
+        if (segment && segment.length > 0) {
+          return segment.map(point => {
+            if (point instanceof Point) return point;
+            return new Point(point.lat, point.lng, {
+              time: point.time,
+              ...(point.ele !== undefined ? { ele: point.ele } : {})
+            });
+          });
         }
-      });
+        return [];
+      }).filter(segment => segment.length > 0);
+      
+      if (allSegments.length > 0) {
+        builder.setSegments(allSegments);
+      }
 
       // Get the first point's time from any segment
       let startTime = null;
