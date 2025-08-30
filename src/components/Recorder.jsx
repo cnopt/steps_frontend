@@ -34,7 +34,8 @@ function Recorder() {
 
   // GPX building
   const gpxBuilderRef = useRef(null);
-  const gpxPointsRef = useRef([]);
+  const gpxPointsRef = useRef([]); // Current segment points
+  const gpxSegmentsRef = useRef([]); // All segments
   const gpxIntervalRef = useRef(null);
 
   const PATH_SOURCE_ID = 'recordedPath';
@@ -426,7 +427,8 @@ function Recorder() {
      
      // Clear all coordinate references
      pathCoordsRef.current = [];
-     gpxPointsRef.current = [];
+     gpxPointsRef.current = []; // Current segment
+     gpxSegmentsRef.current = []; // All segments
      latestCoordsRef.current = null;
      gpxBuilderRef.current = new BaseBuilder();
      
@@ -460,11 +462,22 @@ function Recorder() {
           ...(typeof ele === 'number' ? { ele } : {})
         });
         gpxPointsRef.current.push(point);
-        // Keep builder updated (single segment)
+        // Keep builder updated with all segments plus current segment
         try {
-          gpxBuilderRef.current && gpxBuilderRef.current.setSegmentPoints(gpxPointsRef.current);
+          if (gpxBuilderRef.current) {
+            // Clear existing segments
+            gpxBuilderRef.current = new BaseBuilder();
+            // Add all completed segments
+            gpxSegmentsRef.current.forEach(segment => {
+              gpxBuilderRef.current.addSegment(segment);
+            });
+            // Add current segment if it has points
+            if (gpxPointsRef.current.length > 0) {
+              gpxBuilderRef.current.addSegment(gpxPointsRef.current);
+            }
+          }
         } catch (e) {
-          console.error('GPX builder setSegmentPoints error', e);
+          console.error('GPX builder segment update error', e);
         }
       }
     }, 1000);
@@ -477,6 +490,23 @@ function Recorder() {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
+
+    // Finalize current segment if we have points
+    if (gpxPointsRef.current.length > 0) {
+      gpxSegmentsRef.current.push([...gpxPointsRef.current]);
+      gpxPointsRef.current = []; // Clear current segment
+      // Update builder with all segments
+      try {
+        if (gpxBuilderRef.current) {
+          gpxSegmentsRef.current.forEach(segment => {
+            gpxBuilderRef.current.addSegment(segment);
+          });
+        }
+      } catch (e) {
+        console.error('GPX builder addSegment error', e);
+      }
+    }
+
     pushLog('Recording paused');
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('paused');
@@ -544,7 +574,20 @@ function Recorder() {
     // Build GPX and save
     try {
       const builder = gpxBuilderRef.current || new BaseBuilder();
-      builder.setSegmentPoints(gpxPointsRef.current);
+      
+      // If we have a current segment, add it as the final segment
+      if (gpxPointsRef.current.length > 0) {
+        gpxSegmentsRef.current.push([...gpxPointsRef.current]);
+      }
+      
+      // Add all segments to a fresh builder
+      builder.reset();
+      gpxSegmentsRef.current.forEach(segment => {
+        if (segment.length > 0) {
+          builder.addSegment(segment);
+        }
+      });
+      
       const xml = buildGPX(builder.toObject());
 
       // Prepare filename as in InsertWalk

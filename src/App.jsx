@@ -12,10 +12,12 @@ import Stats from './components/Stats';
 import SmartRouter from './components/SmartRouter';
 import { AnimatePresence } from 'framer-motion';
 import SettingsMenu from './components/SettingsMenu';
+import ThemeProvider from './components/ThemeProvider';
 import Shoes from './components/Shoes';
 import WalkView from './components/WalkView';
 import InsertWalk from './components/InsertWalk';
 import Recorder from './components/Recorder';
+import Walks from './components/Walks';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -24,7 +26,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <SmartRouter>
+        <ThemeProvider>
+          <SmartRouter>
           <AnimatePresence mode="wait">
             <Routes>
               <Route path='/' element={<DaysGrid/>}/>
@@ -38,10 +41,12 @@ function App() {
               <Route path='/walkview' element={<WalkView/>}/>
               <Route path='/insert-walk' element={<InsertWalk/>}/>
               <Route path='/recorder' element={<Recorder/>}/>
+              <Route path='/walks' element={<Walks/>}/>
             </Routes>
           </AnimatePresence>
         </SmartRouter>
         <Dock />
+        </ThemeProvider>
       </Router>
       {/* <ReactQueryDevtools/> */}
     </QueryClientProvider>

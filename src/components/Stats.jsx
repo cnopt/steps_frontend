@@ -368,7 +368,7 @@ export default function Stats() {
                         >
                             <defs>
                                 <linearGradient id="colorSteps" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
+                                    <stop offset="5%" stopColor="var(--theme-day-filled)" stopOpacity={0.3}/>
                                     <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
@@ -406,12 +406,12 @@ export default function Stats() {
                             <Area 
                                 type="natural"
                                 dataKey="steps"
-                                stroke="#4CAF50"
+                                stroke="var(--theme-day-filled)"
                                 strokeOpacity={1}
                                 fill="url(#colorSteps)"
                                 fillOpacity={1}
                                 strokeWidth={1}
-                                dot={{ fill: '#4CAF50', r: 3 }}
+                                dot={{ fill: 'var(--theme-day-filled)', r: 3 }}
                                 activeDot={{ r: 5 }}
                                 animationDuration={800}
                                 animationEasing="ease-in-out"
@@ -477,7 +477,7 @@ export default function Stats() {
                                 {pieChartData.map((entry, index) => (
                                     <Cell 
                                         key={`cell-${index}`} 
-                                        fill={'#4CAF50'}
+                                        fill={'var(--theme-day-filled)'}
                                         stroke={'#000'}
                                         fontSize={'0.8em'}
                                         fontFamily='sf'
@@ -506,7 +506,7 @@ export default function Stats() {
                         >
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3}/>
+                                    <stop offset="5%" stopColor="var(--theme-day-filled)" stopOpacity={0.3}/>
                                     <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
@@ -534,7 +534,7 @@ export default function Stats() {
                             <Area 
                                 type="natural"
                                 dataKey="total"
-                                stroke="#4CAF50"
+                                stroke="var(--theme-day-filled)"
                                 strokeOpacity={1}
                                 fill="url(#colorTotal)"
                                 fillOpacity={1}
@@ -594,7 +594,7 @@ export default function Stats() {
                             />
                             <Bar 
                                 dataKey="total" 
-                                fill="#4CAF50"
+                                fill="var(--theme-day-filled)"
                                 radius={[10, 10, 0, 0]}
                                 animationDuration={800}
                                 animationEasing="ease-in-out"
@@ -662,7 +662,7 @@ export default function Stats() {
                             <Area
                                 type="basis"
                                 dataKey="progressY"
-                                stroke="#4CAF50"
+                                stroke="var(--theme-day-filled)"
                                 strokeWidth={2}
                                 fill="url(#progressGradient)"
                                 dot={false}

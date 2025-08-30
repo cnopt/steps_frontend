@@ -53,13 +53,24 @@ const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
 
 const DaysGrid = () => {
   const navigate = useNavigate();
+  const query = useStepsData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedEmptyDay, setSelectedEmptyDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const [newlyAddedDays, setNewlyAddedDays] = useState(new Set());
-  const query = useStepsData();
   const [hourlyStepsData, setHourlyStepsData] = useState(null);
+
+  // Set today's data as selected once data is loaded
+  useEffect(() => {
+    if (query.data) {
+      const todayISO = getTodayLocalDateString();
+      const todaysData = query.data.find(day => day.formatted_date === todayISO);
+      if (todaysData) {
+        setSelectedDay(todaysData);
+      }
+    }
+  }, [query.data]);
   const { settings } = useUserSettings();
   const [showHealthImportModal, setShowHealthImportModal] = useState(false);
   const [hasCheckedForData, setHasCheckedForData] = useState(false);
@@ -134,11 +145,9 @@ const DaysGrid = () => {
   if (settings.enableWeather && currentMonthWeatherQuery.isError) return <div>Error fetching weather data.</div>;
 
 
-  const allSteps = query.data; // steps from API
-  //const allSteps = steps.dev;
-
+  const allSteps = query.data || [];
   const allTimeTotalSteps = allSteps.reduce((acc, item) => acc + item.steps, 0);
-
+  
   // Get today's step data (using local timezone)
   const todayISO = getTodayLocalDateString();
   const todaysData = allSteps.find(day => day.formatted_date === todayISO);
@@ -174,9 +183,9 @@ const DaysGrid = () => {
 
   const maxSteps = Math.max(...monthData.map((item) => item.steps));
 
-  const getGreenShade = (steps) => {
-    const intensity = Math.floor((steps / maxStepsInMonth) * 255);
-    return `rgba(0, ${intensity}, 20)`;
+  const getStepShade = (steps) => {
+    const intensity = Math.floor((steps / maxStepsInMonth) * 100);
+    return `color-mix(in srgb, var(--theme-day-filled) ${intensity}%, var(--theme-day-bg))`;
   };
 
   const daysInMonth = new Date(
@@ -222,10 +231,10 @@ const DaysGrid = () => {
   return (
     <>
       <XPBar/>
-      <Today 
+      {/* <Today 
         todaysSteps={todaysSteps}
         isLoading={query.isLoading}
-      />
+      /> */}
         <div className="day-grid-area">
           <div className="day-grid-date-selector">
             <button className="prev" onClick={() => navigateMonth(-1)}>←</button>
@@ -259,8 +268,8 @@ const DaysGrid = () => {
                     ).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                   : null;
 
-                let backgroundColor = '#040405';
-                let color = '#444';
+                let backgroundColor = 'var(--theme-day-bg)';
+                let color = 'var(--theme-day-empty)';
 
                 // Check if this is today's date (using local timezone)
                 const isToday = dayDate && isTodayLocal(dayDate);
@@ -271,16 +280,16 @@ const DaysGrid = () => {
                     if (milestone.rarity === 'rare') {
                       color = 'blueviolet';
                     } else {
-                      color = getGreenShade(dayData.steps);
+                      color = getStepShade(dayData.steps);
                     }
                   } else {
-                    color = getGreenShade(dayData.steps);
+                    color = getStepShade(dayData.steps);
                   }
                 }
 
                 // Override color for today's date only if no steps data
                 if (isToday && !dayData) {
-                  color = '#fff';
+                  color = 'var(--theme-day-highlight)';
                   //color = '#ff7608';
                 }
 
@@ -303,11 +312,8 @@ const DaysGrid = () => {
                     key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${index}`}
                     onClick={handleDayClick}
                     style={{
-                      backgroundColor,
-                      color,
                       position: 'relative',
-                      cursor: (day > 0 && day <= daysInMonth) ? 'pointer' : 'default',
-                      opacity: (day <= 0 || day > daysInMonth) ? 0.2 : 1
+                      cursor: (day > 0 && day <= daysInMonth) ? 'pointer' : 'default'
                     }}
                   >
                     {dayData && (
@@ -347,8 +353,8 @@ const DaysGrid = () => {
                           ))}
                       </>
                     )}
-                    {/* circle for selected day */}
-                    {selectedDay && dayDate === selectedDay.formatted_date && (
+                    {/* circle for today */}
+                    {isToday && (
                       <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -369,10 +375,11 @@ const DaysGrid = () => {
                         }}
                       ></motion.div>
                     )}
-                    {/* ■ for days with data, pop in if newly added */}
+                    {/* Square block for days with data, circle for empty days */}
                     {dayData ? (
-                      <motion.span
-                        key={`${dayDate}-filled`}
+                      <motion.div
+                        className="day-block"
+                        key={`${dayDate}-block`}
                         initial={isNewlyAdded ? { opacity: 0, y: 10 } : false}
                         animate={isNewlyAdded ? { 
                           opacity: 1,
@@ -391,12 +398,23 @@ const DaysGrid = () => {
                             });
                           }
                         }}
-                        style={{ display: 'inline-block' }}
-                      >
-                        ■
-                      </motion.span>
+                        style={{
+                          backgroundColor: color,
+                          opacity: (day <= 0 || day > daysInMonth) ? 0.2 : 1,
+                          outline: selectedDay && dayDate === selectedDay.formatted_date ? '2px solid rgba(255,255,255,0.85)' : 'none',
+                          outlineOffset: selectedDay && dayDate === selectedDay.formatted_date ? '2px' : '0'
+                        }}
+                      />
                     ) : (
-                      '·'
+                      <div 
+                        className="day-empty"
+                        style={{
+                          opacity: (day <= 0 || day > daysInMonth) ? 0.2 : 1,
+                          backgroundColor: isToday ? 'var(--theme-day-highlight)' : 'var(--theme-day-empty)',
+                          outline: selectedDay && dayDate === selectedDay.formatted_date ? '2px solid rgba(255,255,255,0.85)' : 'none',
+                          outlineOffset: selectedDay && dayDate === selectedDay.formatted_date ? '2px' : '0'
+                        }}
+                      />
                     )}
                   </div>
                 );
@@ -501,18 +519,8 @@ const DaysGrid = () => {
                         View Walk
                       </button>
                     )}
-                    <button
+                    <button className='add-walk-btn'
                       onClick={() => navigate('/insert-walk', { state: { selectedDate: selectedDay.formatted_date } })}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#037bfc',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        fontSize: '0.9em',
-                        fontFamily: 'sf'
-                      }}
                     >
                       Add Walk
                     </button>
@@ -544,7 +552,7 @@ const DaysGrid = () => {
         </div>
 
         {/* Steps Input Modal */}
-        <StepsInputModal
+        {/* <StepsInputModal
           isOpen={!!selectedEmptyDay}
           selectedDate={selectedEmptyDay}
           onSuccess={(response) => {
@@ -566,7 +574,7 @@ const DaysGrid = () => {
           onClose={() => {
             setSelectedEmptyDay(null);
           }}
-        />
+        /> */}
 
         {/* Health Data Import Modal */}
         <HealthDataImportModal

@@ -11,7 +11,8 @@ export const useUserSettings = () => {
       height: profile.height || 170,
       weight: profile.weight || 70,
       gender: profile.gender || 'M',
-      enableWeather: profile.enableWeather || false
+      enableWeather: profile.enableWeather || false,
+      theme: profile.theme || 'default'
     };
   };
 
@@ -24,7 +25,8 @@ export const useUserSettings = () => {
         height: profile.height || 170,
         weight: profile.weight || 70,
         gender: profile.gender || 'M',
-        enableWeather: profile.enableWeather || false
+        enableWeather: profile.enableWeather || false,
+        theme: profile.theme || 'default'
       });
     };
 

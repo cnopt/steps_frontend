@@ -108,7 +108,8 @@ export default function WalkView() {
       
       mapRef.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/cnopt/cmekhylis001z01sn9v8a5axs",
+        // style: "mapbox://styles/cnopt/cmekhylis001z01sn9v8a5axs",
+        style: "mapbox://styles/mapbox/dark-v11",
         center: bounds.getCenter().toArray(),
         // pitch: -90,
         // bearing: -90,

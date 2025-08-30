@@ -9,7 +9,7 @@
     align-items: center;
     padding-top: 0.5rem; 
     padding-bottom: 0.75rem;
-    background: rgba(0, 0, 0, 0.8);
+    background: color-mix(in srgb, var(--theme-bg) 80%, transparent);
     backdrop-filter: blur(10px);
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
@@ -22,7 +22,7 @@
     justify-content: space-between;
     align-items: center;
     height: 2.5rem;
-    color: #aeaeae;
+    color: var(--theme-text-secondary);
     text-decoration: none;
     transition: all 0.3s ease;
     font-family: 'sf-semi';

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import '../styles/Dock.css'
 import { IoGrid, IoStatsChart, IoTrophy } from "react-icons/io5";
-import { BiStats, BiBadge } from "react-icons/bi";
+import { BiStats, BiBadge, BiWalk } from "react-icons/bi";
 import { TiSpanner } from "react-icons/ti";
 import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
@@ -26,9 +26,14 @@ export default function Dock() {
                 <BiStats />
                 <p>Stats</p>
             </Link>
+
+            <Link to={`/walks`} className='dock-item'>
+                <BiWalk style={{fontSize:'1.65em'}} />
+                <p>Walk</p>
+            </Link>
             
             <Link to={`/leaderboard`} className='dock-item'>
-                <IoTrophy />
+                <IoTrophy style={{fontSize:'1.3em'}}/>
                 <p>Leaderboard</p>
             </Link>
             

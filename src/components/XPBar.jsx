@@ -78,7 +78,7 @@ export default function XPBar() {
             {isExpanded && <div className="overlay" />}
             <div ref={detailsRef}>
                 <div 
-                    className={`level-progress-container ${settings.gender === 'F' ? 'female' : ''}`}
+                    className="level-progress-container"
                     onClick={() => setIsExpanded(!isExpanded)}
                     style={isExpanded ? {borderBottomLeftRadius: '0', borderBottomRightRadius: '0'} : {borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px'}}
                 >
@@ -153,7 +153,7 @@ export default function XPBar() {
 
                 
 
-                <div className={`level-details ${isExpanded ? 'expanded' : ''} ${settings.gender === 'F' ? 'female' : ''}`}>
+                <div className={`level-details ${isExpanded ? 'expanded' : ''}`}>
                     <div className="details-content">
                         {/* <p>󰇆</p> */}
                         <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>

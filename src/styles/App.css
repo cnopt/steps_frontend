@@ -1,8 +1,76 @@
+/* Theme color sets */
+:root[data-theme="default"] {
+    --theme-bg: #040405;
+    --theme-bg-btn: #0d0d0d;
+    --theme-text: #f0f6fc;
+    --theme-text-secondary: #8f8f8f;
+    --theme-day-bg: #040405;
+    --theme-day-empty: #444;
+    --theme-day-filled: #00ff14;
+    --theme-day-highlight: #fff;
+    --theme-xp-bg: #0a1626;
+    --theme-xp-bar: #112540;
+    --theme-xp-text: #4493f8;
+}
+
+:root[data-theme="ocean"] {
+    --theme-bg: #0a192f;
+    --theme-bg-btn: #0d203b;
+    --theme-text: #ccd6f6;
+    --theme-text-secondary: #8892b0;
+    --theme-day-bg: #0a192f;
+    --theme-day-empty: #233554;
+    --theme-day-filled: #64ffda;
+    --theme-day-highlight: #ffd700;
+    --theme-xp-bg: #2c1810;
+    --theme-xp-bar: #8b4513;
+    --theme-xp-text: #ffa500;
+}
+
+:root[data-theme="sunset"] {
+    --theme-bg: #2d1b2d;
+    --theme-bg-btn: #3a243a;
+    --theme-text: #e6b3b3;
+    --theme-text-secondary: #b07979;
+    --theme-day-bg: #2d1b2d;
+    --theme-day-empty: #4a2f4a;
+    --theme-day-filled: #ff6b6b;
+    --theme-day-highlight: #ffd700;
+    --theme-xp-bg: #401125;
+    --theme-xp-bar: #661a3a;
+    --theme-xp-text: #ff6b6b;
+}
+
+:root[data-theme="light"] {
+    --theme-bg: #ffffff;
+    --theme-bg-btn: #f5f5f5;
+    --theme-text: #2c3e50;
+    --theme-text-secondary: #7f8c8d;
+    --theme-day-bg: #ffffff;
+    --theme-day-empty: #ecf0f1;
+    --theme-day-filled: #27ae60;
+    --theme-day-highlight: #f1c40f;
+    --theme-xp-bg: #e8f5e9;
+    --theme-xp-bar: #c8e6c9;
+    --theme-xp-text: #2ecc71;
+}
+
+/* Default theme as fallback */
+:root {
+    --theme-bg: #040405;
+    --theme-text: #f0f6fc;
+    --theme-text-secondary: #8f8f8f;
+    --theme-day-bg: #040405;
+    --theme-day-empty: #444;
+    --theme-day-filled: #00ff14;
+    --theme-day-highlight: #fff;
+}
+
 body {
     margin: 0;
-    width:100%;
+    width: 100%;
     margin: auto;
-    background-color: #040405;
-    color: #f0f6fc;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
     -webkit-tap-highlight-color: transparent;
 }

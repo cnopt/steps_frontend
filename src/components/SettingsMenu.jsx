@@ -17,6 +17,8 @@ import { getTodayLocalDateString } from '../helpers/dateUtils';
 
 const SettingsMenu = () => {
   const { settings, updateSettings } = useUserSettings();
+
+
   const { data: stepsData, syncStatus } = useStepsData();
   const [isIncreasing, setIsIncreasing] = useState(true);
   const queryClient = useQueryClient();
@@ -796,8 +798,7 @@ const SettingsMenu = () => {
                 className="weight-button increase"
                 onClick={() => adjustWeight(1)}
               >
-                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1090_24)"><path d="M31.35 41.55H31.15L31.71 37.36C33.24 35.04 34.85 31.78 34.85 28.94C34.85 24.37 32.56 21.01 28.94 19.94C28.1488 20.2739 27.2988 20.4459 26.44 20.4459C25.5812 20.4459 24.7312 20.2739 23.94 19.94C20.29 21 18 24.37 18 28.94C18 31.94 19.77 35.33 21.35 37.66L21.88 41.55H21.68C21.2945 41.55 20.9247 41.7024 20.6511 41.9741C20.3776 42.2457 20.2226 42.6145 20.22 43V43.44C20.22 44.25 20.87 44.66 21.68 44.66H24.6C25.4 44.66 25.82 44.01 25.82 43.2V37.2C25.82 37.0117 25.8948 36.8311 26.028 36.698C26.1611 36.5648 26.3417 36.49 26.53 36.49C26.7183 36.49 26.8989 36.5648 26.93 36.698C26.96 36.8311 26.98 36.96 26.98 37.2V43.28C27.2653 43.625 27.4309 44.003 27.43 44.46C27.4245 44.8636 27.2818 45.2424 27.042 45.54C26.8023 45.8376 26.4854 46.02 26.14 46.02H24.6C24.3135 46.02 24.0504 45.8823 23.8597 45.6651C23.6691 45.448 23.5639 45.1689 23.5639 44.88C23.5639 44.5911 23.6691 44.312 23.8597 44.0949C24.0504 43.8777 24.3135 43.7374 24.6 43.7374H25.25V25.185C25.25 23.185 25.09 22.185 24.64 21.645C24.0635 21.8056 23.4684 21.8897 22.87 21.895C22.2716 21.889 21.6766 21.805 21.1 21.645C20.5235 21.4844 19.9284 21.3003 19.33 21.01C18.7535 20.8494 18.1584 20.5653 17.56 20.1C16.9835 19.9394 16.3884 19.6553 15.79 19.185C15.2135 19.0244 14.6184 18.7403 14.02 18.27C13.4435 18.1094 12.8484 17.8253 12.25 17.355C11.6735 17.1944 11.0784 16.9103 10.48 16.44C9.9035 16.2794 9.3084 15.9953 8.71 15.525C8.1335 15.3644 7.5384 15.0803 6.94 14.61C6.3635 14.4494 5.7684 14.1653 5.17 13.695C4.5935 13.5344 3.9984 13.2503 3.4 12.78C2.8235 12.6194 2.2284 12.3353 1.63 11.865C1.0535 11.7044 0.4584 11.4203 0 10.95C0.4584 10.7894 0.9168 10.5053 1.49 10.345C2.0665 10.1844 2.6616 9.9003 3.25 9.43C3.8265 9.2694 4.4216 8.9853 5.01 8.515C5.5865 8.3544 6.1816 8.0703 6.77 7.6C7.3465 7.4394 7.9416 7.1553 8.53 6.685C9.1065 6.5244 9.7016 6.2403 10.29 5.77C10.8665 5.6094 11.4616 5.3253 12.05 4.855C12.6265 4.6944 13.2216 4.4103 13.81 3.94C14.3865 3.7794 14.9816 3.4953 15.57 3.025C16.1465 2.8644 16.7416 2.5803 17.33 2.11C17.9065 1.9494 18.5016 1.6653 19.09 1.195C19.6665 1.0344 20.2616 0.7503 20.85 0.28C21.4265 0.1194 22.0216 0.0353 22.61 0Z" fill="currentColor"></path></g><defs><clipPath id="clip0_1090_24"><rect width="16.85" height="36.68" fill="white" transform="translate(18 8)"></rect></clipPath></defs></svg>
-              </button>
+                <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1090_24)"><path d="M31.35 41.55H31.15L31.71 37.36C33.24 35.04 34.85 31.78 34.85 28.94C34.85 24.37 32.56 21.01 28.94 19.94C28.1488 20.2739 27.2988 20.4459 26.44 20.4459C25.5812 20.4459 24.7312 20.2739 23.94 19.94C20.29 21 18 24.37 18 28.94C18 31.94 19.77 35.33 21.35 37.66L21.88 41.55H21.68C21.2945 41.55 20.9247 41.7024 20.6511 41.9741C20.3776 42.2457 20.2226 42.6145 20.22 43V43.44C20.22 44.25 20.87 44.66 21.68 44.66H24.6C25.4 44.66 25.82 44.01 25.82 43.2V37.2C25.82 37.0117 25.8948 36.8311 26.028 36.698C26.1611 36.5648 26.3417 36.49 26.53 36.49C26.7183 36.49 26.8989 36.5648 27.032 36.698C27.1652 36.8311 27.24 37.0117 27.24 37.2V43.28C27.2653 43.6532 27.4309 44.003 27.7037 44.259C27.9764 44.5151 28.3359 44.6583 28.71 44.66H31.35C32.16 44.66 32.82 44.25 32.82 43.44V43C32.8147 42.6136 32.6576 42.2448 32.3824 41.9735C32.1073 41.7021 31.7364 41.55 31.35 41.55ZM32.3 13.87C32.3 12.709 31.9557 11.5741 31.3107 10.6088C30.6657 9.64349 29.749 8.89112 28.6764 8.44683C27.6037 8.00254 26.4235 7.8863 25.2848 8.11279C24.1462 8.33929 23.1002 8.89835 22.2793 9.71929C21.4583 10.5402 20.8993 11.5862 20.6728 12.7248C20.4463 13.8635 20.5625 15.0438 21.0068 16.1164C21.4511 17.189 22.2035 18.1057 23.1688 18.7507C24.1341 19.3957 25.269 19.74 26.43 19.74C27.9868 19.74 29.4799 19.1216 30.5807 18.0207C31.6816 16.9199 32.3 15.4268 32.3 13.87Z" fill="currentColor"></path></g><defs><clipPath id="clip0_1090_24"><rect width="16.85" height="36.68" fill="white" transform="translate(18 8)"></rect></clipPath></defs></svg>              </button>
             </div>
           </div>
 
@@ -816,6 +817,59 @@ const SettingsMenu = () => {
               <span className="toggle-label">
                 {settings.enableWeather ? 'Weather data is enabled' : 'Weather data is disabled'}
               </span>
+            </div>
+          </div>
+
+          <div className="theme-settings">
+            <h2>Theme</h2>
+            <div className="theme-selector">
+              <button
+                className={`theme-button ${settings.theme === 'default' ? 'active' : ''}`}
+                onClick={() => updateSettings({ theme: 'default' })}
+              >
+                <div className="theme-preview default">
+                  <div className="theme-color bg"></div>
+                  <div className="theme-color text"></div>
+                  <div className="theme-color filled"></div>
+                </div>
+                <span>Default</span>
+              </button>
+              
+              <button
+                className={`theme-button ${settings.theme === 'ocean' ? 'active' : ''}`}
+                onClick={() => updateSettings({ theme: 'ocean' })}
+              >
+                <div className="theme-preview ocean">
+                  <div className="theme-color bg"></div>
+                  <div className="theme-color text"></div>
+                  <div className="theme-color filled"></div>
+                </div>
+                <span>Ocean</span>
+              </button>
+
+              <button
+                className={`theme-button ${settings.theme === 'sunset' ? 'active' : ''}`}
+                onClick={() => updateSettings({ theme: 'sunset' })}
+              >
+                <div className="theme-preview sunset">
+                  <div className="theme-color bg"></div>
+                  <div className="theme-color text"></div>
+                  <div className="theme-color filled"></div>
+                </div>
+                <span>Sunset</span>
+              </button>
+
+              <button
+                className={`theme-button ${settings.theme === 'light' ? 'active' : ''}`}
+                onClick={() => updateSettings({ theme: 'light' })}
+              >
+                <div className="theme-preview light">
+                  <div className="theme-color bg"></div>
+                  <div className="theme-color text"></div>
+                  <div className="theme-color filled"></div>
+                </div>
+                <span>Light</span>
+              </button>
             </div>
           </div>
 

@@ -141,8 +141,8 @@
   display: none;
 }
 .recorder__button--start { 
-  background-color: #1a2900;
-  color: #a8fc01;
+  background-color: #a8fc01;
+  color: #1a2900;
   width: 15rem;
 }
 

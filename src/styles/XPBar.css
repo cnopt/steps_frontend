@@ -1,7 +1,8 @@
 .level-progress-container {
-    width: 100%;
+    width: 96%;
+    margin: auto;
     position: relative;
-    background-color: #0a1626;
+    background-color: var(--theme-xp-bg);
     border-radius: 8px;
     height: 40px;
     overflow: hidden;
@@ -10,21 +11,11 @@
     margin-top: 1.25rem;
 }
 
-/* Female color scheme */
-.level-progress-container.female {
-    background-color: #260a1a;
-}
-
 .level-progress-bar {
     position: absolute;
     height: 100%;
-    background-color: #112540;
+    background-color: var(--theme-xp-bar);
     transition: width 0.3s ease;
-}
-
-/* Female color scheme */
-.level-progress-container.female .level-progress-bar {
-    background-color: #401125;
 }
 
 .level-progress-content {
@@ -38,54 +29,34 @@
 
 .current-level {
     padding-left: 1rem;
-    color: #4493f8;
+    color: var(--theme-xp-text);
     font-family: sf-mono;
 }
 .next-level {
-    color: #4493f8;
+    color: var(--theme-xp-text);
     font-family: sf-mono;
     padding-right: 1rem;
-}
-
-/* Female color scheme */
-.level-progress-container.female .current-level,
-.level-progress-container.female .next-level {
-    color: #f844a4;
 }
 
 .total-steps {
     font-family: sf;
     text-align: center;
-    color: #4493f8;
+    color: var(--theme-xp-text);
     font-size: 1.1em;
-}
-
-/* Female color scheme */
-.level-progress-container.female .total-steps {
-    color: #f844a4;
 }
 
 .level-details {
     height: 0;
     overflow: hidden;
     transition: height 0.2s ease-out;
-    background-color: #0a1626;
+    background-color: var(--theme-xp-bg);
     border-radius: 0 0 8px 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Female color scheme */
-.level-details.female {
-    background-color: #260a1a;
-}
-
 .details-content p {
-    color: #385d8f;
-}
-
-/* Female color scheme */
-.level-details.female .details-content p {
-    color: #8f385d;
+    color: var(--theme-xp-text);
+    opacity: 0.7;
 }
 
 .current-level span {
