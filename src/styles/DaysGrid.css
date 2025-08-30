@@ -25,6 +25,7 @@
     gap: 20px;
     font-family: sf;
     margin-top: 0.75rem;
+    overflow-x: hidden;
 }
 body::-webkit-scrollbar {
     width: 4px;

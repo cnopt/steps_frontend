@@ -56,10 +56,12 @@ const DaysGrid = () => {
   const query = useStepsData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
+  const [previousSelectedDay, setPreviousSelectedDay] = useState(null);
   const [selectedEmptyDay, setSelectedEmptyDay] = useState(null);
   const [unlockedBadges] = useLocalStorage('unlockedBadges', []);
   const [newlyAddedDays, setNewlyAddedDays] = useState(new Set());
   const [hourlyStepsData, setHourlyStepsData] = useState(null);
+  const [slideDirection, setSlideDirection] = useState(0); // -1 for right to left, 1 for left to right, 0 for up
 
   // Set today's data as selected once data is loaded
   useEffect(() => {
@@ -295,13 +297,30 @@ const DaysGrid = () => {
 
                 const handleDayClick = () => {
                   if (daysWithData[day]) {
-                    // Day has data - show day details
+                    // Compare dates to determine slide direction
+                    if (selectedDay) {
+                      const currentSelectedDate = new Date(selectedDay.formatted_date);
+                      const newSelectedDate = new Date(daysWithData[day].formatted_date);
+                      
+                      if (newSelectedDate < currentSelectedDate) {
+                        setSlideDirection(1); // slide from left
+                      } else if (newSelectedDate > currentSelectedDate) {
+                        setSlideDirection(-1); // slide from right
+                      } else {
+                        setSlideDirection(0); // same date, slide up
+                      }
+                    } else {
+                      setSlideDirection(0); // initial selection, slide up
+                    }
+                    
+                    setPreviousSelectedDay(selectedDay);
                     setSelectedDay(daysWithData[day]);
                     setSelectedEmptyDay(null);
                   } else if (day > 0 && day <= daysInMonth) {
                     // Day has no data and is a valid day - show input
                     setSelectedEmptyDay(dayDate);
                     setSelectedDay(null);
+                    setSlideDirection(0);
                   }
                 };
 
@@ -425,10 +444,25 @@ const DaysGrid = () => {
             <motion.div 
               className="day-details"
               key={selectedDay ? selectedDay.formatted_date : selectedEmptyDay ? selectedEmptyDay : 'empty'}
-              initial={{ opacity: 0, y: 5, x: 0 }}
-              animate={{ opacity: 1, y: 0, x: 0 }}
-              exit={{ opacity: 0, y: 0 }}
-              transition={{ duration: 0.1 }}
+              initial={{ 
+                opacity: 0, 
+                x: slideDirection === 0 ? 0 : (slideDirection === 1 ? -20 : 20),
+                y: slideDirection === 0 ? 5 : 0 
+              }}
+              animate={{ 
+                opacity: 1, 
+                x: 0,
+                y: 0 
+              }}
+              exit={{ 
+                opacity: 0,
+                x: slideDirection === 0 ? 0 : (slideDirection === 1 ? 20 : -20),
+                y: slideDirection === 0 ? -5 : 0
+              }}
+              transition={{ 
+                duration: 0.2,
+                ease: "easeOut"
+              }}
             >
               {selectedDay ? (
                 <>

@@ -148,7 +148,7 @@ class LocalDataService {
   }
 
   // Add a walk to a specific date
-  addWalkToDate(date, walkFileName) {
+  addWalkToDate(date, walkFileName, walkName) {
     try {
       const currentData = this.getAllStepsData();
       const dayEntry = currentData.find(entry => entry.formatted_date === date);
@@ -162,8 +162,9 @@ class LocalDataService {
         dayEntry.walks = [];
       }
 
-      // Add the walk file reference
+      // Add the walk file reference with name
       dayEntry.walks.push({
+        name: walkName,
         filename: walkFileName,
         added_at: new Date().toISOString()
       });

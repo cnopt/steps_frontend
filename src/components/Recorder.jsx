@@ -587,15 +587,59 @@ function Recorder() {
           builder.addSegment(segment);
         }
       });
+
+      // Get the first point's time from any segment
+      let startTime = null;
+      for (const segment of gpxSegmentsRef.current) {
+        if (segment.length > 0 && segment[0].time) {
+          startTime = new Date(segment[0].time);
+          break;
+        }
+      }
+
+      if (!startTime) {
+        throw new Error('No valid start time found in track points');
+      }
+
+      // Determine day of week
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = daysOfWeek[startTime.getDay()];
+
+      // Determine time of day
+      const hour = startTime.getHours();
+      let timeOfDay;
+      if (hour < 12) {
+        timeOfDay = 'Morning';
+      } else if (hour < 17) {
+        timeOfDay = 'Afternoon';
+      } else if (hour < 20) {
+        timeOfDay = 'Evening';
+      } else {
+        timeOfDay = 'Night';
+      }
+
+      // Create the walk name
+      const walkName = `${dayName} ${timeOfDay} Walk`;
+
+      // Set the name in the builder
+      builder.setName(walkName);
       
       const xml = buildGPX(builder.toObject());
 
-      // Prepare filename as in InsertWalk
+      // Use the same time classification for filename (without spaces)
+      const timeClassification = timeOfDay.replace(' ', '') + 'Walk';
+      
+      // Get the actual start time in HH-mm format
+      const startHour = startTime.getHours().toString().padStart(2, '0');
+      const startMinute = startTime.getMinutes().toString().padStart(2, '0');
+      const actualTime = `${startHour}-${startMinute}`;
+
+      // Generate filename using date, time classification, and actual time
       const date = new Date(selectedDate);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
-      const fileName = `${day}-${month}-${year}-w1.gpx`;
+      const fileName = `${day}-${month}-${year}-${timeClassification}-${actualTime}.gpx`;
 
       // Ensure walks directory
       Filesystem.mkdir({ path: 'walks', directory: Directory.Documents, recursive: true })
@@ -611,14 +655,14 @@ function Recorder() {
             pushLog(`GPX saved to walks/${fileName}`);
 
             try {
-              const result = await localDataService.addWalkToDate(selectedDate, fileName);
-              if (result && result.success) {
-                pushLog('Steps data updated with new walk file');
-                // Optional: navigate back after short delay
-                setTimeout(() => navigate(-1), 1500);
-              } else {
-                throw new Error('Failed to update steps data');
-              }
+                const result = await localDataService.addWalkToDate(selectedDate, fileName, walkName);
+                if (result && result.success) {
+                  pushLog('Steps data updated with new walk file');
+                  // Optional: navigate back after short delay
+                  setTimeout(() => navigate(-1), 1500);
+                } else {
+                  throw new Error('Failed to update steps data');
+                }
             } catch (e) {
               console.error('Error updating steps data:', e);
               pushLog('Error updating steps data. Please ensure steps exist for this date.');

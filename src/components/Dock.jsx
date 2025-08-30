@@ -6,6 +6,7 @@ import { TiSpanner } from "react-icons/ti";
 import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
 import { PiSneakerFill } from "react-icons/pi";
+import { RiWalkLine } from "react-icons/ri";
 
 export default function Dock() {
     const location = useLocation();
@@ -28,7 +29,7 @@ export default function Dock() {
             </Link>
 
             <Link to={`/walks`} className='dock-item'>
-                <BiWalk style={{fontSize:'1.65em'}} />
+                <RiWalkLine style={{fontSize:'1.65em'}} />
                 <p>Walk</p>
             </Link>
             
