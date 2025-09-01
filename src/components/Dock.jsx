@@ -12,7 +12,7 @@ export default function Dock() {
     const location = useLocation();
     
     // Hide dock on recorder page
-    if (location.pathname === '/recorder') {
+    if (location.pathname === '/recorder' || location.pathname === '/walkview') {
         return null;
     }
 

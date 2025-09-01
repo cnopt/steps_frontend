@@ -4,32 +4,61 @@ import GPXParser from "gpxparser";
 import { XMLParser } from "fast-xml-parser";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../styles/WalkView.css';
 import XPBar from './XPBar';
 import LoadingSpinner from './LoadingSpinner';
 
+const MAP_STYLES = [
+  { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
+  { id: 'satellite-streets-v12', name: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  { id: 'dark-v11', name: 'Dark', url: 'mapbox://styles/mapbox/dark-v11' },
+  { id: 'light-v11', name: 'Light', url: 'mapbox://styles/mapbox/light-v11' },
+];
+
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
 // Arrow configuration options
-const ARROW_CONFIG = {
-  spacing: 50, // Show an arrow every X pixels along the path
-  size: 1, // Size multiplier for the arrows
-  color: "#fff", // Arrow color matching the path
-  opacity: 0.7, // Arrow opacity
-};
+  const ARROW_CONFIG = {
+    spacing: 30, // Show an arrow every X pixels along the path
+    size: 1.1, // Size multiplier for the arrows
+    color: "#fff", // Arrow color matching the path
+    opacity: 0.7, // Arrow opacity
+  };
+
+  // debug flag to control data point grouping
+  const blockTimeByMinute = false;
+
+  const easeToDuration = 50
+  const easeToCurve = 1.12
 
 export default function WalkView() {
   const location = useLocation();
   const navigate = useNavigate();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
+  const positionMarkerRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [gpxData, setGpxData] = useState(null);
   const [hasFadedIn, setHasFadedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(true);
+  const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[0]);
+  const [showStyleOptions, setShowStyleOptions] = useState(false);
   const fadeTimeoutRef = useRef(null);
+
+  const handleStyleChange = (style) => {
+    setCurrentStyle(style);
+    if (mapRef.current) {
+      // Remove existing marker before style change
+      if (positionMarkerRef.current) {
+        positionMarkerRef.current.remove();
+        positionMarkerRef.current = null;
+      }
+      mapRef.current.setStyle(style.url);
+    }
+  };
   
   // First useEffect to load and parse GPX data
   useEffect(() => {
@@ -108,11 +137,8 @@ export default function WalkView() {
       
       mapRef.current = new mapboxgl.Map({
         container: mapContainer.current,
-        // style: "mapbox://styles/cnopt/cmekhylis001z01sn9v8a5axs",
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: currentStyle.url,
         center: bounds.getCenter().toArray(),
-        // pitch: -90,
-        // bearing: -90,
         zoom: 14,
         antialias: true,
         dragPan: true,
@@ -164,48 +190,48 @@ export default function WalkView() {
             type: "Feature",
             geometry: {
               type: "LineString",
-              coordinates: smoothPoints,
+              coordinates: points,
             },
           },
         });
         
         // Glow effect: add blurred, wider lines underneath the main line
-        mapRef.current.addLayer({
-          id: "gpxRouteGlowOuter",
-          type: "line",
-          source: "gpxRoute",
-          paint: {
-            "line-color": "#037bfc",
-            "line-width": 40,
-            "line-opacity": 0.35,
-            "line-blur": 28
-          }
-        });
+        // mapRef.current.addLayer({
+        //   id: "gpxRouteGlowOuter",
+        //   type: "line",
+        //   source: "gpxRoute",
+        //   paint: {
+        //     "line-color": "#037bfc",
+        //     "line-width": 40,
+        //     "line-opacity": 0.35,
+        //     "line-blur": 28
+        //   }
+        // });
 
-        mapRef.current.addLayer({
-          id: "gpxRouteGlowInner",
-          type: "line",
-          source: "gpxRoute",
-          paint: {
-            "line-color": "#2da1ff",
-            "line-width": 22,
-            "line-opacity": 0.6,
-            "line-blur": 12
-          }
-        });
+        // mapRef.current.addLayer({
+        //   id: "gpxRouteGlowInner",
+        //   type: "line",
+        //   source: "gpxRoute",
+        //   paint: {
+        //     "line-color": "#2da1ff",
+        //     "line-width": 22,
+        //     "line-opacity": 0.6,
+        //     "line-blur": 12
+        //   }
+        // });
 
         // Intense core glow to enhance prominence
-        mapRef.current.addLayer({
-          id: "gpxRouteCoreGlow",
-          type: "line",
-          source: "gpxRoute",
-          paint: {
-            "line-color": "#ffffff",
-            "line-width": 8,
-            "line-opacity": 0.45,
-            "line-blur": 4
-          }
-        });
+        // mapRef.current.addLayer({
+        //   id: "gpxRouteCoreGlow",
+        //   type: "line",
+        //   source: "gpxRoute",
+        //   paint: {
+        //     "line-color": "#ffffff",
+        //     "line-width": 8,
+        //     "line-opacity": 0.45,
+        //     "line-blur": 4
+        //   }
+        // });
 
         // Main route line on top of the glows
         mapRef.current.addLayer({
@@ -213,9 +239,9 @@ export default function WalkView() {
           type: "line",
           source: "gpxRoute",
           paint: {
-            "line-color": "#fff",
-            "line-width": 1.5,
-            "line-opacity": 0.3
+            "line-color": "#2da1ff",
+            "line-width": 2,
+            "line-opacity": 1
           }
         });
 
@@ -241,7 +267,30 @@ export default function WalkView() {
           }
         });
         
+        // Initialize position marker
+        console.log('Initializing marker with points:', points);
+        const markerElement = document.createElement('div');
+        markerElement.className = 'position-marker';
+        
+        // Ensure we have valid coordinates
+        if (points.length > 0) {
+          console.log('Creating marker at coordinates:', points[0]);
+          positionMarkerRef.current = new mapboxgl.Marker({
+            element: markerElement,
+          })
+            .setLngLat(points[0])
+            .addTo(mapRef.current);
+          
+          console.log('Marker created:', positionMarkerRef.current);
+        } else {
+          console.error('No points available for marker initialization');
+        }
+
         mapRef.current.fitBounds(bounds, { padding: 50 });
+        // Ensure the camera centers on the position marker initially with a smooth ease
+        // if (points.length > 0) {
+        //   mapRef.current.easeTo({ center: points[0], duration: easeToDuration, curve: easeToCurve});
+        // }
         //mapRef.current.easeTo({ pitch: 20, duration: 0 });
         setMapReady(true);
 
@@ -276,6 +325,9 @@ export default function WalkView() {
     return () => {
       if (fadeTimeoutRef.current) {
         clearTimeout(fadeTimeoutRef.current);
+      }
+      if (positionMarkerRef.current) {
+        positionMarkerRef.current.remove();
       }
       mapRef.current && mapRef.current.remove();
     };
@@ -316,6 +368,15 @@ export default function WalkView() {
     );
   }
   
+  const formatElevation = (value) => {
+    return `${value.toFixed(0)}m`;
+  };
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <>
       <div ref={mapContainer} className="map-container">
@@ -325,7 +386,225 @@ export default function WalkView() {
           </div>
         )}
         <div className={`map-fade-overlay ${hasFadedIn ? 'is-hidden' : ''}`} />
+        
+        <div className="map-style-control">
+          <button 
+            className="map-style-toggle"
+            onClick={() => setShowStyleOptions(!showStyleOptions)}
+          >
+            󰌨
+          </button>
+          
+          {showStyleOptions && (
+            <div className="map-style-options">
+              {MAP_STYLES.map(style => (
+                <button
+                  key={style.id}
+                  className={`map-style-button ${style.id === currentStyle.id ? 'active' : ''}`}
+                  onClick={() => {
+                    handleStyleChange(style);
+                    setShowStyleOptions(false);
+                  }}
+                >
+                  {style.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      
+      {gpxData && (
+        <div className="elevation-chart">
+          {/* <p className="chart-title">Elevation Profile</p> */}
+          <ResponsiveContainer width="100%" height="55%">
+            <AreaChart
+              onMouseMove={(e) => {
+                console.log('AreaChart mouse move:', e);
+                if (e && e.activePayload && e.activePayload[0]) {
+                  const payload = e.activePayload[0].payload;
+                  const hoveredTime = payload.time;
+                  const pointIndex = payload.pointIndex;
+                  
+                  console.log('Chart hover event:', {
+                    hoveredTime: new Date(hoveredTime).toISOString(),
+                    pointIndex,
+                    payload
+                  });
+                  
+                  // Use the stored index to get the exact corresponding point
+                  const point = gpxData.tracks[0].points[pointIndex];
+                  
+                  if (point && positionMarkerRef.current) {
+                    const coords = [point.lon, point.lat];
+                    console.log('Moving marker to coordinates:', coords, 'from point:', point);
+                    positionMarkerRef.current.setLngLat(coords);
+                    // Keep the camera centered on the marker while scrubbing
+                    if (mapRef.current) {
+                      mapRef.current.easeTo({ center: coords, duration: easeToDuration, curve: easeToCurve});
+                    }
+                  } else {
+                    console.warn('Failed to update marker position:', {
+                      hasPoint: !!point,
+                      hasMarker: !!positionMarkerRef.current,
+                      pointIndex,
+                      totalPoints: gpxData.tracks[0].points.length
+                    });
+                  }
+                }
+              }}
+              data={(() => {
+                if (blockTimeByMinute) {
+                  // Group points by minute and take one point per minute
+                  const pointsByMinute = {};
+                  gpxData.tracks[0].points.forEach((point, index) => {
+                    const timestamp = new Date(point.time);
+                    // Format the date to YYYY-MM-DDTHH:mm
+                    const minuteKey = timestamp.toISOString().slice(0, 16);
+                    
+                    // Only store the first point we encounter for each minute
+                    if (!pointsByMinute[minuteKey]) {
+                      pointsByMinute[minuteKey] = {
+                        time: timestamp.getTime(),
+                        elevation: point.ele || 0,
+                        pointIndex: index // Store the original index
+                      };
+                    }
+                  });
+
+                  // Convert the object back to an array and sort by time
+                  return Object.values(pointsByMinute).sort((a, b) => a.time - b.time);
+                } else {
+                  // Use all data points with their original indices
+                  return gpxData.tracks[0].points.map((point, index) => ({
+                    time: new Date(point.time).getTime(),
+                    elevation: point.ele || 0,
+                    pointIndex: index
+                  }));
+                }
+              })()}
+              margin={{
+                top: 5,
+                right: 30,
+                left: -10,
+                bottom: 0,
+              }}
+            >
+              <defs>
+                <linearGradient id="colorElevation" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--theme-day-filled)" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#222"
+                vertical={false}
+              />
+              <XAxis 
+                dataKey="time" 
+                stroke="#666"
+                tick={{ fill: '#666' }}
+                fontFamily='sf'
+                fontSize={'0.8em'}
+                tickFormatter={formatTime}
+                // ticks={(() => {
+                //   const data = gpxData.tracks[0].points;
+                //   return [
+                //     new Date(data[0].time).getTime(),
+                //     new Date(data[data.length - 1].time).getTime()
+                //   ];
+                // })()}
+                // show first time and last time value for the ticks
+                ticks={[gpxData.tracks[0].points[0].time, gpxData.tracks[0].points[2*Math.round(gpxData.tracks[0].points.length/2)/2].time ,gpxData.tracks[0].points[gpxData.tracks[0].points.length -1].time]}
+              />
+              <YAxis 
+                stroke="#666"
+                tick={{ fill: '#666' }}
+                fontFamily='sf'
+                fontSize={'0.8em'}
+                tickFormatter={formatElevation}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: '#1a1a1a',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  fontFamily:'sf',
+                  display:'inline-block',
+                  whiteSpace:'nowrap'
+                }}
+                formatter={(value, name) => {
+                  if (name === 'elevation') {
+                    return [`${value.toFixed(0)}m`];
+                  }
+                  return [formatTime(value), 'Time'];
+                }}
+                labelFormatter={(value) => formatTime(value)}
+              />
+              <Area 
+                type="natural"
+                dataKey="elevation"
+                stroke="var(--theme-day-filled)"
+                strokeOpacity={1}
+                fill="url(#colorElevation)"
+                fillOpacity={1}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+                animationDuration={800}
+                animationEasing="ease-in-out"
+                isAnimationActive={false}
+                onMouseMove={(data) => {
+                  console.log('Area onMouseMove triggered');
+                  if (data.activePayload && data.activePayload[0]) {
+                    const payload = data.activePayload[0].payload;
+                    const hoveredTime = payload.time;
+                    const pointIndex = payload.pointIndex;
+                    
+                    console.log('Chart hover event:', {
+                      hoveredTime: new Date(hoveredTime).toISOString(),
+                      pointIndex,
+                      payload
+                    });
+                    
+                    // Use the stored index to get the exact corresponding point
+                    const point = gpxData.tracks[0].points[pointIndex];
+                    
+                    if (point && positionMarkerRef.current) {
+                      const coords = [point.lon, point.lat];
+                      console.log('Moving marker to coordinates:', coords, 'from point:', point);
+                      positionMarkerRef.current.setLngLat(coords);
+                      // Keep the camera centered on the marker while scrubbing
+                      if (mapRef.current) {
+                        mapRef.current.easeTo({ center: coords, duration: easeToDuration, curve: easeToCurve});
+                      }
+                    } else {
+                      console.warn('Failed to update marker position:', {
+                        hasPoint: !!point,
+                        hasMarker: !!positionMarkerRef.current,
+                        pointIndex,
+                        totalPoints: gpxData.tracks[0].points.length
+                      });
+                    }
+                  }
+                }}
+                onMouseLeave={() => {
+                  // Optionally hide or reset the marker when not hovering
+                  if (positionMarkerRef.current && gpxData) {
+                    const firstPoint = gpxData.tracks[0].points[0];
+                    positionMarkerRef.current.setLngLat([firstPoint.lon, firstPoint.lat]);
+                    if (mapRef.current) {
+                      mapRef.current.easeTo({ center: [firstPoint.lon, firstPoint.lat], duration: easeToDuration, curve: easeToCurve});
+                    }
+                  }
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </>
   );
 }

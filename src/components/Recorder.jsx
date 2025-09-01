@@ -4,11 +4,11 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import localDataService from '../services/localDataService';
-import { BaseBuilder, buildGPX } from 'gpx-builder';
+import { create } from 'xmlbuilder2';
 import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/Recorder.css';
-const { Point } = BaseBuilder.MODELS;
+ 
 
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
@@ -33,7 +33,6 @@ function Recorder() {
   const ENABLE_CONTROL_NOTIFICATION = false;
 
   // GPX building
-  const gpxBuilderRef = useRef(null);
   const gpxPointsRef = useRef([]); // Current segment points
   const gpxSegmentsRef = useRef([]); // All segments
   const gpxIntervalRef = useRef(null);
@@ -55,6 +54,9 @@ function Recorder() {
   const lastCoordRef = useRef(null);
   const isPausedRef = useRef(false);
   const isRecordingRef = useRef(false);
+  const recordingStartTimeRef = useRef(null);
+  const totalPausedTimeRef = useRef(0);
+  const lastPauseTimeRef = useRef(null);
 
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -417,12 +419,19 @@ function Recorder() {
      setTotalDistance(0);
      lastCoordRef.current = null;
      
-     // Start the timer
+     // Initialize recording time tracking
+     recordingStartTimeRef.current = Date.now();
+     totalPausedTimeRef.current = 0;
+     lastPauseTimeRef.current = null;
+     
+     // Start the display update timer (only updates display while active)
      if (timerIntervalRef.current) {
        clearInterval(timerIntervalRef.current);
      }
      timerIntervalRef.current = setInterval(() => {
-       setElapsedTime(prev => prev + 1);
+       const now = Date.now();
+       const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
+       setElapsedTime(elapsed);
      }, 1000);
      
      // Clear all coordinate references
@@ -430,7 +439,6 @@ function Recorder() {
      gpxPointsRef.current = []; // Current segment
      gpxSegmentsRef.current = []; // All segments
      latestCoordsRef.current = null;
-     gpxBuilderRef.current = new BaseBuilder();
      
      // Clear any existing path from the map
      const map = mapRef.current;
@@ -457,10 +465,12 @@ function Recorder() {
     gpxIntervalRef.current = setInterval(() => {
       if (latestCoordsRef.current) {
         const { lat, lng, ele } = latestCoordsRef.current;
-        const point = new Point(lat, lng, {
-          time: new Date(),
-          ...(typeof ele === 'number' ? { ele } : {})
-        });
+        const point = {
+          lat,
+          lon: lng,
+          ...(typeof ele === 'number' ? { ele } : {}),
+          time: new Date().toISOString()
+        };
         gpxPointsRef.current.push(point);
         // Defer GPX assembly to stop; only collect points during recording
       }
@@ -469,10 +479,19 @@ function Recorder() {
 
   const pauseRecording = () => {
     setIsPaused(true);
-    // Stop the timer
+    // Record pause time
+    lastPauseTimeRef.current = Date.now();
+    
+    // Stop the display update timer
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
+    }
+
+    // Stop per-second GPX point capture while paused
+    if (gpxIntervalRef.current) {
+      clearInterval(gpxIntervalRef.current);
+      gpxIntervalRef.current = null;
     }
 
     // Finalize current segment if we have points
@@ -489,10 +508,18 @@ function Recorder() {
 
   const resumeRecording = () => {
     setIsPaused(false);
-    // Resume the timer
+    // Calculate and accumulate paused time
+    if (lastPauseTimeRef.current) {
+      totalPausedTimeRef.current += (Date.now() - lastPauseTimeRef.current);
+      lastPauseTimeRef.current = null;
+    }
+    
+    // Resume the display update timer
     if (!timerIntervalRef.current) {
       timerIntervalRef.current = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
+        const now = Date.now();
+        const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
+        setElapsedTime(elapsed);
       }, 1000);
     }
 
@@ -501,10 +528,12 @@ function Recorder() {
     gpxIntervalRef.current = setInterval(() => {
       if (latestCoordsRef.current) {
         const { lat, lng, ele } = latestCoordsRef.current;
-        const point = new Point(lat, lng, {
-          time: new Date(),
-          ...(typeof ele === 'number' ? { ele } : {})
-        });
+        const point = {
+          lat,
+          lon: lng,
+          ...(typeof ele === 'number' ? { ele } : {}),
+          time: new Date().toISOString()
+        };
         gpxPointsRef.current.push(point);
       }
     }, 1000);
@@ -518,11 +547,14 @@ function Recorder() {
      const stopRecording = () => {
      setIsRecording(false);
      setIsPaused(false);
-     // Clear the timer
+     // Clear all timers and time tracking
      if (timerIntervalRef.current) {
        clearInterval(timerIntervalRef.current);
        timerIntervalRef.current = null;
      }
+     recordingStartTimeRef.current = null;
+     totalPausedTimeRef.current = 0;
+     lastPauseTimeRef.current = null;
      setElapsedTime(0);
      setCurrentElevation(null);
      stopPositionWatcher();
@@ -566,16 +598,6 @@ function Recorder() {
 
           // Build GPX and save
     try {
-      // Prepare segments as Point[]
-      const preparedSegments = gpxSegmentsRef.current
-        .filter(segment => Array.isArray(segment) && segment.length > 0)
-        .map(segment => segment.map(p => (
-          p instanceof Point ? p : new Point(p.lat, p.lng, {
-            time: p.time,
-            ...(p.ele !== undefined ? { ele: p.ele } : {})
-          })
-        )));
-
       // Get the first point's time from any segment
       let startTime = null;
       for (const segment of gpxSegmentsRef.current) {
@@ -585,7 +607,7 @@ function Recorder() {
         }
       }
 
-      if (!startTime) {
+      if (!startTime || isNaN(startTime.getTime())) {
         throw new Error('No valid start time found in track points');
       }
 
@@ -609,24 +631,34 @@ function Recorder() {
       // Create the walk name
       const walkName = `${dayName} ${timeOfDay} Walk`;
       
-      // Create GPX data using the builder
-      const gpxData = new BaseBuilder();
-      
-      // Add each segment's points to the GPX data
-      for (const segment of preparedSegments) {
-        const points = segment.map(p => 
-          new Point(p.lat, p.lon, {
-            ele: typeof p.ele === 'number' ? p.ele : undefined,
-            time: p.time
-          })
-        );
-        gpxData.setSegmentPoints(points);
-      }
-      
-      const gpxObject = gpxData.toObject();
+      // Build GPX XML using xmlbuilder2
+      const doc = create({ version: '1.0', encoding: 'UTF-8' })
+        .ele('gpx', {
+          creator: 'Stepno',
+          version: '1.1',
+          xmlns: 'http://www.topografix.com/GPX/1/1',
+          'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+          'xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 https://www.topografix.com/GPX/1/1/gpx.xsd'
+        });
 
-      console.log('gpxObject for build: ', JSON.stringify(gpxObject));
-      const xml = buildGPX(gpxObject);
+      const trk = doc.ele('trk');
+      const segments = gpxSegmentsRef.current.filter(segment => Array.isArray(segment) && segment.length > 0);
+      for (const segment of segments) {
+        const trkseg = trk.ele('trkseg');
+        for (const p of segment) {
+          const lat = typeof p.lat === 'number' ? p.lat : parseFloat(p.lat);
+          const lon = typeof p.lon === 'number' ? p.lon : parseFloat(p.lon);
+          const trkpt = trkseg.ele('trkpt', { lat: String(lat), lon: String(lon) });
+          const ele = typeof p.ele === 'number' ? p.ele : 0;
+          trkpt.ele('ele').txt(String(ele)).up();
+          const timeStr = p.time instanceof Date ? p.time.toISOString() : String(p.time);
+          trkpt.ele('time').txt(timeStr).up();
+          trkpt.up();
+        }
+        trkseg.up();
+      }
+
+      const xml = doc.end({ prettyPrint: true });
 
       // Use the same time classification for filename (without spaces)
       const timeClassification = timeOfDay.replace(' ', '') + 'Walk';

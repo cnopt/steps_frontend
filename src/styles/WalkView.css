@@ -1,6 +1,6 @@
 .map-container {
     width: 100%;
-    height: 60vh;
+    height: 50vh;
     position: relative;
 }
 
@@ -31,6 +31,9 @@
 }
 .mapboxgl-ctrl-attrib-inner {
     display: none !important;
+}
+.mapboxgl-ctrl-attrib {
+    display: none;
 }
 .mapboxgl-control-container {
     /* display: none !important; */
@@ -66,4 +69,101 @@ a.mapboxgl-ctrl-logo {
     justify-content: center;
     z-index: 3;
     pointer-events: none;
+}
+
+.elevation-chart {
+    background-color: var(--theme-day-bg);
+    border-radius: 8px;
+    height: 250px;
+    margin-top: 0.5rem;
+    padding-bottom: 1rem;
+    touch-action: none; /* Prevents page scrolling while interacting with the chart */
+    -webkit-user-select: none; /* Prevents text selection during touch */
+    user-select: none;
+}
+
+.elevation-chart .chart-title {
+    margin: 0;
+    font-family: 'sf-med';
+    color: var(--theme-text-secondary);
+    font-size: 1.2em;
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+    margin-bottom: 1rem;
+    width: 80%;
+}
+
+.position-marker {
+    width: 12px;
+    height: 12px;
+    background-color: #037bfc;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    /* Ensure the marker is above other map elements */
+    z-index: 1000;
+}
+
+.map-style-control {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    padding: 5px;
+    height: 1rem;
+    padding-left: 0.15rem;
+    padding-right: 0.3rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.4rem;
+}
+.map-style-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-family: 'sf';
+    font-size: 1em;
+    transition: all 0.2s ease;
+    border-radius: 3px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    height: 2.25rem;
+}
+
+
+.map-style-button.active {
+    background: #037bfc;
+}
+
+.map-style-toggle {
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    font-family: 'sf-mono';
+    font-size: 1.6em;
+    height: 1rem;
+}
+
+
+.map-style-options {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    overflow: hidden;
+    width: 5rem;
+}
+
+
+.recharts-tooltip-wrapper{
+    display: none !important;
+    visibility: visible !important;
 }

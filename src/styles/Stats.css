@@ -4,6 +4,9 @@
     background-color: var(--theme-day-bg);
     border-radius: 8px;
     padding-bottom:2.5rem;
+    touch-action: none; /* Prevents page scrolling while interacting with the chart */
+    -webkit-user-select: none; /* Prevents text selection during touch */
+    user-select: none;
 }
 
 .chart-title {
@@ -25,6 +28,9 @@
     padding-bottom: 2rem;
     height: 220px;
     pointer-events: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .chart-monthly-distribution {
@@ -40,6 +46,9 @@
     height: 330px;
     margin-top: 1.5rem;
     padding-bottom: 1rem;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .chart-cumulative-steps .chart-title {
@@ -52,6 +61,9 @@
     height: 330px;
     margin-top: 1.5rem;
     padding-bottom: 1rem;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .chart-yearly-steps .chart-title {
