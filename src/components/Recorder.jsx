@@ -455,39 +455,14 @@ function Recorder() {
     // Start per-second GPX point capture
     if (gpxIntervalRef.current) clearInterval(gpxIntervalRef.current);
     gpxIntervalRef.current = setInterval(() => {
-      if (!isPaused && latestCoordsRef.current) {
+      if (latestCoordsRef.current) {
         const { lat, lng, ele } = latestCoordsRef.current;
         const point = new Point(lat, lng, {
           time: new Date(),
           ...(typeof ele === 'number' ? { ele } : {})
         });
         gpxPointsRef.current.push(point);
-        // Keep builder updated with all segments plus current segment
-        try {
-          if (gpxBuilderRef.current) {
-            // Clear existing segments
-            gpxBuilderRef.current = new BaseBuilder();
-            // Add all completed segments
-            gpxSegmentsRef.current.forEach(segment => {
-              if (segment && segment.length > 0) {
-                const segmentObj = segment.map(point => {
-                  if (point instanceof Point) return point;
-                  return new Point(point.lat, point.lng, {
-                    time: point.time,
-                    ...(point.ele !== undefined ? { ele: point.ele } : {})
-                  });
-                });
-                gpxBuilderRef.current.setSegments([segmentObj]);
-              }
-            });
-            // Add current segment if it has points
-            if (gpxPointsRef.current.length > 0) {
-              gpxBuilderRef.current.setSegments([gpxPointsRef.current]);
-            }
-          }
-        } catch (e) {
-          console.error('GPX builder segment update error', e);
-        }
+        // Defer GPX assembly to stop; only collect points during recording
       }
     }, 1000);
   };
@@ -503,17 +478,7 @@ function Recorder() {
     // Finalize current segment if we have points
     if (gpxPointsRef.current.length > 0) {
       gpxSegmentsRef.current.push([...gpxPointsRef.current]);
-      gpxPointsRef.current = []; // Clear current segment
-      // Update builder with all segments
-      try {
-        if (gpxBuilderRef.current) {
-          gpxSegmentsRef.current.forEach(segment => {
-            gpxBuilderRef.current.addSegment(segment);
-          });
-        }
-      } catch (e) {
-        console.error('GPX builder addSegment error', e);
-      }
+      gpxPointsRef.current = [];
     }
 
     pushLog('Recording paused');
@@ -530,6 +495,20 @@ function Recorder() {
         setElapsedTime(prev => prev + 1);
       }, 1000);
     }
+
+    // Start a new GPX point collection for the new segment
+    if (gpxIntervalRef.current) clearInterval(gpxIntervalRef.current);
+    gpxIntervalRef.current = setInterval(() => {
+      if (latestCoordsRef.current) {
+        const { lat, lng, ele } = latestCoordsRef.current;
+        const point = new Point(lat, lng, {
+          time: new Date(),
+          ...(typeof ele === 'number' ? { ele } : {})
+        });
+        gpxPointsRef.current.push(point);
+      }
+    }, 1000);
+
     pushLog('Recording resumed');
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('recording');
@@ -574,39 +553,28 @@ function Recorder() {
      
      pushLog('Recording stopped');
 
-    const pointsLen = gpxPointsRef.current.length;
-    if (!pointsLen) {
+    // Include the last segment and validate total points across all segments
+    if (gpxPointsRef.current.length > 0) {
+      gpxSegmentsRef.current.push([...gpxPointsRef.current]);
+      gpxPointsRef.current = [];
+    }
+    const totalPoints = gpxSegmentsRef.current.reduce((sum, seg) => sum + (Array.isArray(seg) ? seg.length : 0), 0);
+    if (!totalPoints) {
       pushLog('No points captured. Skipping GPX save.');
       return;
     }
 
-    // Build GPX and save
+          // Build GPX and save
     try {
-      const builder = gpxBuilderRef.current || new BaseBuilder();
-      
-      // If we have a current segment, add it as the final segment
-      if (gpxPointsRef.current.length > 0) {
-        gpxSegmentsRef.current.push([...gpxPointsRef.current]);
-      }
-      
-      // Add all segments to a fresh builder
-      builder.reset();
-      const allSegments = gpxSegmentsRef.current.map(segment => {
-        if (segment && segment.length > 0) {
-          return segment.map(point => {
-            if (point instanceof Point) return point;
-            return new Point(point.lat, point.lng, {
-              time: point.time,
-              ...(point.ele !== undefined ? { ele: point.ele } : {})
-            });
-          });
-        }
-        return [];
-      }).filter(segment => segment.length > 0);
-      
-      if (allSegments.length > 0) {
-        builder.setSegments(allSegments);
-      }
+      // Prepare segments as Point[]
+      const preparedSegments = gpxSegmentsRef.current
+        .filter(segment => Array.isArray(segment) && segment.length > 0)
+        .map(segment => segment.map(p => (
+          p instanceof Point ? p : new Point(p.lat, p.lng, {
+            time: p.time,
+            ...(p.ele !== undefined ? { ele: p.ele } : {})
+          })
+        )));
 
       // Get the first point's time from any segment
       let startTime = null;
@@ -640,11 +608,25 @@ function Recorder() {
 
       // Create the walk name
       const walkName = `${dayName} ${timeOfDay} Walk`;
-
-      // Set the name in the builder
-      builder.setName(walkName);
       
-      const xml = buildGPX(builder.toObject());
+      // Create GPX data using the builder
+      const gpxData = new BaseBuilder();
+      
+      // Add each segment's points to the GPX data
+      for (const segment of preparedSegments) {
+        const points = segment.map(p => 
+          new Point(p.lat, p.lon, {
+            ele: typeof p.ele === 'number' ? p.ele : undefined,
+            time: p.time
+          })
+        );
+        gpxData.setSegmentPoints(points);
+      }
+      
+      const gpxObject = gpxData.toObject();
+
+      console.log('gpxObject for build: ', JSON.stringify(gpxObject));
+      const xml = buildGPX(gpxObject);
 
       // Use the same time classification for filename (without spaces)
       const timeClassification = timeOfDay.replace(' ', '') + 'Walk';
