@@ -8,6 +8,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import '../styles/WalkView.css';
 import XPBar from './XPBar';
 import LoadingSpinner from './LoadingSpinner';
+import exifr from 'exifr';
 
 const MAP_STYLES = [
   { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
@@ -26,11 +27,12 @@ mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVke
     opacity: 0.7, // Arrow opacity
   };
 
-  // debug flag to control data point grouping
+  // Debug configuration flags
   const blockTimeByMinute = false;
+  const DEBUG_BBOX_PADDING_PERCENT = 20; // Increase bounding box size by this percentage
 
-  const easeToDuration = 50
-  const easeToCurve = 1.12
+  const easeToDuration = 50;
+  const easeToCurve = 1.12;
 
 export default function WalkView() {
   const location = useLocation();
@@ -38,6 +40,7 @@ export default function WalkView() {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const positionMarkerRef = useRef(null);
+  const photoMarkerRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,6 +50,8 @@ export default function WalkView() {
   const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[0]);
   const [showStyleOptions, setShowStyleOptions] = useState(false);
   const fadeTimeoutRef = useRef(null);
+  const [imageMetadata, setImageMetadata] = useState(null);
+  const [imageError, setImageError] = useState(null);
 
   const handleStyleChange = (style) => {
     setCurrentStyle(style);
@@ -84,18 +89,18 @@ export default function WalkView() {
           throw new Error("No tracks found in GPX file");
         }
 
-        // log GPX data structure from GPXParser
-        console.log('GPXParser result:', {
-          metadata: gpx.metadata,
-          tracks: gpx.tracks.map(track => ({
-            name: track.name,
-            distance: track.distance.total,
-            elevation: track.elevation,
-            slopes: track.slopes,
-            points: track.points,
-            points_length: track.points.length
-          }))
-        });
+        // // log GPX data structure from GPXParser
+        // console.log('GPXParser result:', {
+        //   metadata: gpx.metadata,
+        //   tracks: gpx.tracks.map(track => ({
+        //     name: track.name,
+        //     distance: track.distance.total,
+        //     elevation: track.elevation,
+        //     slopes: track.slopes,
+        //     points: track.points,
+        //     points_length: track.points.length
+        //   }))
+        // });
 
         // Parse with fast-xml-parser
         const xmlParser = new XMLParser({
@@ -106,7 +111,7 @@ export default function WalkView() {
         const xmlResult = xmlParser.parse(gpxText);
         
         // Log the raw XML parsing result
-        console.log('fast-xml-parser result:', xmlResult);
+        // console.log('fast-xml-parser result:', xmlResult);
 
         //console.log(xmlResult.gpx.name);
         //console.log(xmlResult.gpx.extensions['os:distance']);
@@ -184,6 +189,7 @@ export default function WalkView() {
 
         // We no longer need per-point arrows; we'll draw arrows along the line geometry
         
+        // Add the main route source
         mapRef.current.addSource("gpxRoute", {
           type: "geojson",
           data: {
@@ -193,6 +199,39 @@ export default function WalkView() {
               coordinates: points,
             },
           },
+        });
+
+        // Add bounding box source with padding
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        
+        // Calculate the size of the current bounding box
+        const lngDiff = ne.lng - sw.lng;
+        const latDiff = ne.lat - sw.lat;
+        
+        // Calculate padding based on percentage
+        const lngPadding = (lngDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+        const latPadding = (latDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+        
+        // Create padded coordinates
+        const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
+        const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
+        
+        mapRef.current.addSource("boundingBox", {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [[
+                [paddedSW.lng, paddedSW.lat],
+                [paddedNE.lng, paddedSW.lat],
+                [paddedNE.lng, paddedNE.lat],
+                [paddedSW.lng, paddedNE.lat],
+                [paddedSW.lng, paddedSW.lat]
+              ]]
+            }
+          }
         });
         
         // Glow effect: add blurred, wider lines underneath the main line
@@ -234,6 +273,31 @@ export default function WalkView() {
         // });
 
         // Main route line on top of the glows
+        // Add bounding box layer
+        mapRef.current.addLayer({
+          id: "boundingBox",
+          type: "fill",
+          source: "boundingBox",
+          paint: {
+            "fill-color": "#f5dd42",
+            "fill-opacity": 0.3,
+          }
+        });
+
+        // Add bounding box outline
+        mapRef.current.addLayer({
+          id: "boundingBoxOutline",
+          type: "line",
+          source: "boundingBox",
+          paint: {
+            "line-color": "#fcb72b",
+            "line-width": 2,
+            "line-opacity": 0.3,
+            "line-dasharray": [2, 2]
+          }
+        });
+
+        // Add main route line
         mapRef.current.addLayer({
           id: "gpxRouteLine",
           type: "line",
@@ -268,20 +332,20 @@ export default function WalkView() {
         });
         
         // Initialize position marker
-        console.log('Initializing marker with points:', points);
+        //console.log('Initializing marker with points:', points);
         const markerElement = document.createElement('div');
         markerElement.className = 'position-marker';
         
         // Ensure we have valid coordinates
         if (points.length > 0) {
-          console.log('Creating marker at coordinates:', points[0]);
+          //console.log('Creating marker at coordinates:', points[0]);
           positionMarkerRef.current = new mapboxgl.Marker({
             element: markerElement,
           })
             .setLngLat(points[0])
             .addTo(mapRef.current);
           
-          console.log('Marker created:', positionMarkerRef.current);
+          //console.log('Marker created:', positionMarkerRef.current);
         } else {
           console.error('No points available for marker initialization');
         }
@@ -329,7 +393,16 @@ export default function WalkView() {
       if (positionMarkerRef.current) {
         positionMarkerRef.current.remove();
       }
-      mapRef.current && mapRef.current.remove();
+      if (photoMarkerRef.current) {
+        photoMarkerRef.current.remove();
+      }
+      if (mapRef.current) {
+        // Remove bounding box layers and source before removing the map
+        if (mapRef.current.getLayer('boundingBox')) mapRef.current.removeLayer('boundingBox');
+        if (mapRef.current.getLayer('boundingBoxOutline')) mapRef.current.removeLayer('boundingBoxOutline');
+        if (mapRef.current.getSource('boundingBox')) mapRef.current.removeSource('boundingBox');
+        mapRef.current.remove();
+      }
     };
   }, [gpxData, loading, error]);
   
@@ -377,6 +450,90 @@ export default function WalkView() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const isLocationWithinBounds = (lat, lon) => {
+    if (!mapRef.current) return false;
+    
+    // Get the bounding box source
+    const boundingBoxSource = mapRef.current.getSource('boundingBox');
+    if (!boundingBoxSource) return false;
+    
+    // Get the coordinates from the bounding box source
+    const coordinates = boundingBoxSource._data.geometry.coordinates[0];
+    
+    // Extract min/max coordinates from bounding box
+    const lngs = coordinates.map(coord => coord[0]);
+    const lats = coordinates.map(coord => coord[1]);
+    
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    
+    // Check if the point is within the bounds
+    return lon >= minLng && lon <= maxLng && lat >= minLat && lat <= maxLat;
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('Please select an image file (jpg/png)');
+      return;
+    }
+
+    try {
+      setImageError(null);
+      setImageMetadata(null);
+      
+      // Clean up existing photo marker if any
+      if (photoMarkerRef.current) {
+        photoMarkerRef.current.remove();
+        photoMarkerRef.current = null;
+      }
+      
+      // Read the image metadata
+      const metadata = await exifr.gps(file);
+      
+      if (metadata && metadata.latitude && metadata.longitude) {
+        const isWithinBounds = isLocationWithinBounds(metadata.latitude, metadata.longitude);
+        setImageMetadata({
+          latitude: metadata.latitude,
+          longitude: metadata.longitude,
+          isWithinBounds
+        });
+
+        if (isWithinBounds && mapRef.current) {
+          // Create camera icon element
+          const markerElement = document.createElement('div');
+          markerElement.className = 'photo-marker';
+          markerElement.innerHTML = '';
+          markerElement.style.cursor = 'pointer';
+          
+          // Create and add the marker
+          photoMarkerRef.current = new mapboxgl.Marker({
+            element: markerElement,
+          })
+            .setLngLat([metadata.longitude, metadata.latitude])
+            .addTo(mapRef.current);
+          
+          // Zoom and center on the photo location
+          mapRef.current.easeTo({
+            center: [metadata.longitude, metadata.latitude],
+            zoom: mapRef.current.getZoom() + 2, // Zoom in slightly
+            duration: 1500,
+            curve: 1.12
+          });
+        }
+      } else {
+        setImageError('No location data found in image');
+      }
+    } catch (err) {
+      console.error('Error reading image metadata:', err);
+      setImageError('Error reading image metadata');
+    }
+  };
+
   return (
     <>
       <div ref={mapContainer} className="map-container">
@@ -417,27 +574,27 @@ export default function WalkView() {
       {gpxData && (
         <div className="elevation-chart">
           {/* <p className="chart-title">Elevation Profile</p> */}
-          <ResponsiveContainer width="100%" height="55%">
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               onMouseMove={(e) => {
-                console.log('AreaChart mouse move:', e);
+                //console.log('AreaChart mouse move:', e);
                 if (e && e.activePayload && e.activePayload[0]) {
                   const payload = e.activePayload[0].payload;
                   const hoveredTime = payload.time;
                   const pointIndex = payload.pointIndex;
                   
-                  console.log('Chart hover event:', {
-                    hoveredTime: new Date(hoveredTime).toISOString(),
-                    pointIndex,
-                    payload
-                  });
+                  // console.log('Chart hover event:', {
+                  //   hoveredTime: new Date(hoveredTime).toISOString(),
+                  //   pointIndex,
+                  //   payload
+                  // });
                   
                   // Use the stored index to get the exact corresponding point
                   const point = gpxData.tracks[0].points[pointIndex];
                   
                   if (point && positionMarkerRef.current) {
                     const coords = [point.lon, point.lat];
-                    console.log('Moving marker to coordinates:', coords, 'from point:', point);
+                    //console.log('Moving marker to coordinates:', coords, 'from point:', point);
                     positionMarkerRef.current.setLngLat(coords);
                     // Keep the camera centered on the marker while scrubbing
                     if (mapRef.current) {
@@ -552,29 +709,29 @@ export default function WalkView() {
                 fillOpacity={1}
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 4 }}
+                activeDot={{ r: 4 , fill:'#037bfc' ,stroke:'white'}}
                 animationDuration={800}
                 animationEasing="ease-in-out"
                 isAnimationActive={false}
                 onMouseMove={(data) => {
-                  console.log('Area onMouseMove triggered');
+                  //console.log('Area onMouseMove triggered');
                   if (data.activePayload && data.activePayload[0]) {
                     const payload = data.activePayload[0].payload;
                     const hoveredTime = payload.time;
                     const pointIndex = payload.pointIndex;
                     
-                    console.log('Chart hover event:', {
-                      hoveredTime: new Date(hoveredTime).toISOString(),
-                      pointIndex,
-                      payload
-                    });
+                    // console.log('Chart hover event:', {
+                    //   hoveredTime: new Date(hoveredTime).toISOString(),
+                    //   pointIndex,
+                    //   payload
+                    // });
                     
                     // Use the stored index to get the exact corresponding point
                     const point = gpxData.tracks[0].points[pointIndex];
                     
                     if (point && positionMarkerRef.current) {
                       const coords = [point.lon, point.lat];
-                      console.log('Moving marker to coordinates:', coords, 'from point:', point);
+                      //console.log('Moving marker to coordinates:', coords, 'from point:', point);
                       positionMarkerRef.current.setLngLat(coords);
                       // Keep the camera centered on the marker while scrubbing
                       if (mapRef.current) {
@@ -605,6 +762,25 @@ export default function WalkView() {
           </ResponsiveContainer>
         </div>
       )}
+
+      <div style={{ padding: '20px' }}>
+        <input
+          type="file"
+          accept="image/jpeg,image/png"
+          onChange={handleImageUpload}
+        />
+        {imageError && (
+          <p style={{ color: 'red' }}>{imageError}</p>
+        )}
+        {imageMetadata && (
+          <div>
+            <p>Image Location:</p>
+            <p>Latitude: {imageMetadata.latitude}</p>
+            <p>Longitude: {imageMetadata.longitude}</p>
+            <p>Within Walk Area: {imageMetadata.isWithinBounds ? 'Yes' : 'No'}</p>
+          </div>
+        )}
+      </div>
     </>
   );
 }

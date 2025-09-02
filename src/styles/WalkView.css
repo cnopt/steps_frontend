@@ -74,9 +74,8 @@ a.mapboxgl-ctrl-logo {
 .elevation-chart {
     background-color: var(--theme-day-bg);
     border-radius: 8px;
-    height: 250px;
     margin-top: 0.5rem;
-    padding-bottom: 1rem;
+    height: 6rem;
     touch-action: none; /* Prevents page scrolling while interacting with the chart */
     -webkit-user-select: none; /* Prevents text selection during touch */
     user-select: none;
@@ -166,4 +165,23 @@ a.mapboxgl-ctrl-logo {
 .recharts-tooltip-wrapper{
     display: none !important;
     visibility: visible !important;
+}
+
+.photo-marker {
+    width: 19px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    /* Ensure the marker is above other map elements */
+    z-index: 1000;
+    /* Center the marker on the point */
+    transform: translate(-50%, -50%);
+    font-size: 1em;
+    font-family: sf-mono;
+    color:#000;
+    padding-right: 0.3rem;
 }
