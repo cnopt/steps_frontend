@@ -4,6 +4,7 @@ import GPXParser from "gpxparser";
 import { XMLParser } from "fast-xml-parser";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Camera, CameraResultType } from '@capacitor/camera';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../styles/WalkView.css';
 import XPBar from './XPBar';
@@ -62,6 +63,74 @@ export default function WalkView() {
         positionMarkerRef.current = null;
       }
       mapRef.current.setStyle(style.url);
+    }
+  };
+
+  const handleImageCapture = async () => {
+    try {
+      setImageError(null);
+      setImageMetadata(null);
+      
+      // Clean up existing photo marker if any
+      if (photoMarkerRef.current) {
+        photoMarkerRef.current.remove();
+        photoMarkerRef.current = null;
+      }
+  
+      // Get photo from gallery
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false, // Set to false to preserve EXIF data
+        resultType: CameraResultType.Uri,
+        source: 'PHOTOS',
+        saveToGallery: false,
+        correctOrientation: true
+      });
+  
+      // Convert the image URI to a blob to read EXIF data
+      const response = await fetch(image.webPath);
+      const blob = await response.blob();
+      
+      // Read the image metadata using exifr
+      const metadata = await exifr.gps(blob);
+      
+      if (metadata && metadata.latitude && metadata.longitude) {
+        const isWithinBounds = isLocationWithinBounds(metadata.latitude, metadata.longitude);
+        setImageMetadata({
+          latitude: metadata.latitude,
+          longitude: metadata.longitude,
+          isWithinBounds,
+          imagePath: image.webPath // Store the image path for display
+        });
+  
+        if (isWithinBounds && mapRef.current) {
+          // Create camera icon element
+          const markerElement = document.createElement('div');
+          markerElement.className = 'photo-marker';
+          markerElement.innerHTML = '';
+          markerElement.style.cursor = 'pointer';
+          
+          // Create and add the marker
+          photoMarkerRef.current = new mapboxgl.Marker({
+            element: markerElement,
+          })
+            .setLngLat([metadata.longitude, metadata.latitude])
+            .addTo(mapRef.current);
+          
+          // Zoom and center on the photo location
+          mapRef.current.easeTo({
+            center: [metadata.longitude, metadata.latitude],
+            zoom: mapRef.current.getZoom() + 2, // Zoom in slightly
+            duration: 1500,
+            curve: 1.12
+          });
+        }
+      } else {
+        setImageError('No location data found in image');
+      }
+    } catch (err) {
+      console.error('Error handling image:', err);
+      setImageError(err.message || 'Error processing image');
     }
   };
   
@@ -764,20 +833,43 @@ export default function WalkView() {
       )}
 
       <div style={{ padding: '20px' }}>
-        <input
-          type="file"
-          accept="image/jpeg,image/png"
-          onChange={handleImageUpload}
-        />
+        <button
+          onClick={handleImageCapture}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '0.9em',
+            fontFamily: 'sf',
+            marginBottom: '20px'
+          }}
+        >
+          Select Photo from Gallery
+        </button>
         {imageError && (
-          <p style={{ color: 'red' }}>{imageError}</p>
+          <p style={{ color: 'red', marginBottom: '10px' }}>{imageError}</p>
         )}
         {imageMetadata && (
           <div>
-            <p>Image Location:</p>
-            <p>Latitude: {imageMetadata.latitude}</p>
-            <p>Longitude: {imageMetadata.longitude}</p>
-            <p>Within Walk Area: {imageMetadata.isWithinBounds ? 'Yes' : 'No'}</p>
+            <p style={{ marginBottom: '5px' }}>Image Location:</p>
+            <p style={{ marginBottom: '5px' }}>Latitude: {imageMetadata.latitude}</p>
+            <p style={{ marginBottom: '5px' }}>Longitude: {imageMetadata.longitude}</p>
+            <p style={{ marginBottom: '5px' }}>Within Walk Area: {imageMetadata.isWithinBounds ? 'Yes' : 'No'}</p>
+            {imageMetadata.imagePath && (
+              <img 
+                src={imageMetadata.imagePath} 
+                alt="Captured location" 
+                style={{ 
+                  maxWidth: '100%', 
+                  height: 'auto', 
+                  marginTop: '10px',
+                  borderRadius: '5px'
+                }} 
+              />
+            )}
           </div>
         )}
       </div>
