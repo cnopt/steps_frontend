@@ -77,6 +77,8 @@ export default function WalkView() {
         photoMarkerRef.current = null;
       }
   
+      console.log('📱 Starting photo selection from gallery...');
+      
       // Get photo from gallery
       const image = await Camera.getPhoto({
         quality: 90,
@@ -86,21 +88,129 @@ export default function WalkView() {
         saveToGallery: false,
         correctOrientation: true
       });
+      
+      console.log('📸 Photo selected! Full image object:', image);
+      console.log('📸 Image properties:', {
+        path: image.path,
+        webPath: image.webPath,
+        dataUrl: image.dataUrl,
+        base64String: image.base64String,
+        format: image.format,
+        exif: image.exif
+      });
   
-      // Convert the image URI to a blob to read EXIF data
+      // First, try to use the built-in EXIF data from Camera API
+      if (image.exif) {
+        console.log('🔍 Built-in EXIF data found:', image.exif);
+        
+        // Check if GPS data is in the built-in EXIF
+        let gpsData = null;
+        
+        // Try different possible GPS data structures
+        if (image.exif.GPS) {
+          console.log('🌍 GPS data in image.exif.GPS:', image.exif.GPS);
+          gpsData = image.exif.GPS;
+        } else if (image.exif.gps) {
+          console.log('🌍 GPS data in image.exif.gps:', image.exif.gps);
+          gpsData = image.exif.gps;
+        } else if (image.exif.GPSLatitude && image.exif.GPSLongitude) {
+          console.log('🌍 GPS data in root EXIF:', {
+            lat: image.exif.GPSLatitude,
+            lng: image.exif.GPSLongitude
+          });
+          gpsData = {
+            GPSLatitude: image.exif.GPSLatitude,
+            GPSLongitude: image.exif.GPSLongitude
+          };
+        }
+        
+        if (gpsData) {
+          console.log('✅ GPS data extracted from built-in EXIF:', gpsData);
+          
+          // Try to extract lat/lng from GPS data
+          let latitude, longitude;
+          
+          if (gpsData.latitude && gpsData.longitude) {
+            latitude = gpsData.latitude;
+            longitude = gpsData.longitude;
+          } else if (gpsData.GPSLatitude && gpsData.GPSLongitude) {
+            latitude = gpsData.GPSLatitude;
+            longitude = gpsData.GPSLongitude;
+          }
+          
+          if (latitude && longitude) {
+            console.log('🎯 Location extracted from built-in EXIF:', { latitude, longitude });
+            
+            const isWithinBounds = isLocationWithinBounds(latitude, longitude);
+            setImageMetadata({
+              latitude,
+              longitude,
+              isWithinBounds,
+              imagePath: image.webPath
+            });
+            
+            if (isWithinBounds && mapRef.current) {
+              // Create camera icon element
+              const markerElement = document.createElement('div');
+              markerElement.className = 'photo-marker';
+              markerElement.innerHTML = '';
+              markerElement.style.cursor = 'pointer';
+              
+              // Create and add the marker
+              photoMarkerRef.current = new mapboxgl.Marker({
+                element: markerElement,
+              })
+                .setLngLat([longitude, latitude])
+                .addTo(mapRef.current);
+              
+              // Zoom and center on the photo location
+              mapRef.current.easeTo({
+                center: [longitude, latitude],
+                zoom: mapRef.current.getZoom() + 2,
+                duration: 1500,
+                curve: 1.12
+              });
+            }
+            return; // Successfully processed built-in EXIF data
+          }
+        }
+      } else {
+        console.log('❌ No built-in EXIF data found in Camera API response');
+      }
+      
+      console.log('🔄 Falling back to manual EXIF reading with exifr...');
+      
+      // Fallback: Convert the image URI to a blob to read EXIF data manually
       const response = await fetch(image.webPath);
+      console.log('📥 Fetch response:', {
+        ok: response.ok,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       const blob = await response.blob();
+      console.log('📦 Blob created:', {
+        size: blob.size,
+        type: blob.type
+      });
       
       // Read the image metadata using exifr
       const metadata = await exifr.gps(blob);
+      console.log('🔍 exifr GPS result:', metadata);
+      
+      // Also try to get all EXIF data for debugging
+      const allExif = await exifr.parse(blob);
+      console.log('🔍 exifr all EXIF data:', allExif);
       
       if (metadata && metadata.latitude && metadata.longitude) {
+        console.log('✅ Location found with exifr:', metadata);
+        
         const isWithinBounds = isLocationWithinBounds(metadata.latitude, metadata.longitude);
         setImageMetadata({
           latitude: metadata.latitude,
           longitude: metadata.longitude,
           isWithinBounds,
-          imagePath: image.webPath // Store the image path for display
+          imagePath: image.webPath
         });
   
         if (isWithinBounds && mapRef.current) {
@@ -126,10 +236,12 @@ export default function WalkView() {
           });
         }
       } else {
+        console.log('❌ No location data found in image EXIF');
         setImageError('No location data found in image');
       }
     } catch (err) {
-      console.error('Error handling image:', err);
+      console.error('💥 Error handling image:', err);
+      console.error('💥 Error stack:', err.stack);
       setImageError(err.message || 'Error processing image');
     }
   };
