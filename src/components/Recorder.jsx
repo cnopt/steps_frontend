@@ -6,11 +6,8 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import localDataService from '../services/localDataService';
 import { create } from 'xmlbuilder2';
 import mapboxgl from "mapbox-gl";
-import 'mapbox-gl/dist/mapbox-gl.css';
+import MapComponent from './MapComponent';
 import '../styles/Recorder.css';
- 
-
-mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
 function Recorder() {
   const location = useLocation();
@@ -24,6 +21,7 @@ function Recorder() {
   const watchIdRef = useRef(null);
   const pathCoordsRef = useRef([]);
   const latestCoordsRef = useRef(null);
+  const lastUpdateTimeRef = useRef(null);
   const bgWatcherIdRef = useRef(null);
   const bgPluginRef = useRef(null);
   const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
@@ -208,6 +206,12 @@ function Recorder() {
         }
 
         latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+        const now = performance.now();
+        const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
+        if (timeSinceLastUpdate && timeSinceLastUpdate > 2000) {
+          pushLog(`Position watcher gap: ${Math.floor(timeSinceLastUpdate/1000)}s`);
+        }
+        lastUpdateTimeRef.current = now;
         // Update elevation if available
         if (typeof altitude === 'number') {
           setCurrentElevation(Math.round(altitude));
@@ -371,6 +375,12 @@ function Recorder() {
           }
           
           latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+          const now = performance.now();
+          const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
+          if (timeSinceLastUpdate && timeSinceLastUpdate > 2000) {
+            pushLog(`Background watcher gap: ${Math.floor(timeSinceLastUpdate/1000)}s`);
+          }
+          lastUpdateTimeRef.current = now;
           // Update elevation if available
           if (typeof altitude === 'number') {
             setCurrentElevation(Math.round(altitude));
@@ -420,25 +430,64 @@ function Recorder() {
      lastCoordRef.current = null;
      
      // Initialize recording time tracking
-     recordingStartTimeRef.current = Date.now();
-     totalPausedTimeRef.current = 0;
-     lastPauseTimeRef.current = null;
-     
-     // Start the display update timer (only updates display while active)
-     if (timerIntervalRef.current) {
-       clearInterval(timerIntervalRef.current);
-     }
-     timerIntervalRef.current = setInterval(() => {
-       const now = Date.now();
-       const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
-       setElapsedTime(elapsed);
-     }, 1000);
-     
-     // Clear all coordinate references
-     pathCoordsRef.current = [];
-     gpxPointsRef.current = []; // Current segment
-     gpxSegmentsRef.current = []; // All segments
-     latestCoordsRef.current = null;
+       recordingStartTimeRef.current = performance.now();
+  totalPausedTimeRef.current = 0;
+  lastPauseTimeRef.current = null;
+  
+  // Clear all coordinate references
+  pathCoordsRef.current = [];
+  gpxPointsRef.current = []; // Current segment
+  gpxSegmentsRef.current = []; // All segments
+  latestCoordsRef.current = null;
+  
+  // Start a combined timer for both elapsed time display and GPX point collection
+  if (timerIntervalRef.current) {
+    clearInterval(timerIntervalRef.current);
+  }
+  timerIntervalRef.current = setInterval(() => {
+    const now = performance.now();
+    const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
+    setElapsedTime(elapsed);
+    
+    // Collect GPX point if we have coordinates
+    if (latestCoordsRef.current) {
+      const { lat, lng, ele } = latestCoordsRef.current;
+      const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
+      
+      // Only add point if we've received a position update in the last 3 seconds
+      if (!timeSinceLastUpdate || timeSinceLastUpdate < 3000) {
+        const point = {
+          lat,
+          lon: lng,
+          ...(typeof ele === 'number' ? { ele } : {}),
+          time: new Date().toISOString()
+        };
+        gpxPointsRef.current.push(point);
+      } else {
+        // Log when we detect position updates have stopped
+        pushLog(`Warning: No position updates for ${Math.floor(timeSinceLastUpdate/1000)}s`);
+        
+        // Try to get a fresh position
+        Geolocation.getCurrentPosition({ enableHighAccuracy: true })
+          .then(position => {
+            if (position && position.coords) {
+              const { latitude, longitude, altitude } = position.coords;
+              latestCoordsRef.current = { 
+                lat: latitude, 
+                lng: longitude, 
+                ele: typeof altitude === 'number' ? altitude : undefined 
+              };
+              lastUpdateTimeRef.current = performance.now();
+              pushLog('Retrieved fresh position');
+            }
+          })
+          .catch(e => {
+            console.error('Failed to get fresh position:', e);
+            pushLog('Failed to get fresh position');
+          });
+      }
+    }
+  }, 1000);
      
      // Clear any existing path from the map
      const map = mapRef.current;
@@ -460,27 +509,13 @@ function Recorder() {
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('recording');
     }
-    // Start per-second GPX point capture
-    if (gpxIntervalRef.current) clearInterval(gpxIntervalRef.current);
-    gpxIntervalRef.current = setInterval(() => {
-      if (latestCoordsRef.current) {
-        const { lat, lng, ele } = latestCoordsRef.current;
-        const point = {
-          lat,
-          lon: lng,
-          ...(typeof ele === 'number' ? { ele } : {}),
-          time: new Date().toISOString()
-        };
-        gpxPointsRef.current.push(point);
-        // Defer GPX assembly to stop; only collect points during recording
-      }
-    }, 1000);
+    // GPX point capture is now handled in the combined timer
   };
 
   const pauseRecording = () => {
     setIsPaused(true);
     // Record pause time
-    lastPauseTimeRef.current = Date.now();
+    lastPauseTimeRef.current = performance.now();
     
     // Stop the display update timer
     if (timerIntervalRef.current) {
@@ -510,7 +545,7 @@ function Recorder() {
     setIsPaused(false);
     // Calculate and accumulate paused time
     if (lastPauseTimeRef.current) {
-      totalPausedTimeRef.current += (Date.now() - lastPauseTimeRef.current);
+      totalPausedTimeRef.current += (performance.now() - lastPauseTimeRef.current);
       lastPauseTimeRef.current = null;
     }
     
@@ -769,227 +804,10 @@ function Recorder() {
     };
   }, [permissionGranted]);
 
-  // Initialize Mapbox map centered on current location and add GeolocateControl
+  // Initialize map when initialCoords are available
   useEffect(() => {
-    if (!mapContainer.current || !initialCoords) return;
-
-    // Handle online/offline status changes
-    const handleOnlineStatus = () => {
-      setIsOnline(true);
-      if (mapRef.current) {
-        const map = mapRef.current;
-        // Store current coordinates before style change
-        const currentCoords = pathCoordsRef.current.slice();
-        
-        map.setStyle('mapbox://styles/mapbox/dark-v11');
-        
-        // Re-add path source and layer after style loads
-        map.once('style.load', () => {
-          // Ensure we're working with the latest coordinates
-          pathCoordsRef.current = currentCoords;
-          
-          // Force recreation of layer, then source (correct order: remove layer before source)
-          if (map.getLayer(PATH_LAYER_ID)) {
-            map.removeLayer(PATH_LAYER_ID);
-          }
-          if (map.getSource(PATH_SOURCE_ID)) {
-            map.removeSource(PATH_SOURCE_ID);
-          }
-          
-          map.addSource(PATH_SOURCE_ID, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: currentCoords },
-              properties: {}
-            }
-          });
-          
-          map.addLayer({
-            id: PATH_LAYER_ID,
-            type: 'line',
-            source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
-            paint: {
-              'line-color': '#2da1ff',
-              'line-width': 4,
-              'line-opacity': 0.9
-            }
-          });
-          // Ensure the latest path data is rendered
-          updatePathSourceData();
-        });
-        pushLog('Network connection restored, switching to online map');
-      }
-    };
-
-    const handleOfflineStatus = () => {
-      setIsOnline(false);
-      if (mapRef.current) {
-        const map = mapRef.current;
-        // Store current coordinates before style change
-        const currentCoords = pathCoordsRef.current.slice();
-        
-        // Create a complete offline style that includes our path
-        const offlineStyle = {
-          version: 8,
-          sources: {
-            [PATH_SOURCE_ID]: {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: currentCoords },
-                properties: {}
-              }
-            }
-          },
-          layers: [
-            {
-              id: 'background',
-              type: 'background',
-              paint: {
-                'background-color': '#ffffff'
-              }
-            },
-            {
-              id: PATH_LAYER_ID,
-              type: 'line',
-              source: PATH_SOURCE_ID,
-              layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
-              paint: {
-                'line-color': '#2da1ff',
-                'line-width': 4,
-                'line-opacity': 0.9
-              }
-            }
-          ]
-        };
-        
-        map.setStyle(offlineStyle);
-        
-        // After style loads, ensure our data is up to date
-        map.once('style.load', () => {
-          // Ensure we're working with the latest coordinates
-          pathCoordsRef.current = currentCoords;
-          
-          // Force recreation of layer, then source (correct order: remove layer before source)
-          if (map.getLayer(PATH_LAYER_ID)) {
-            map.removeLayer(PATH_LAYER_ID);
-          }
-          if (map.getSource(PATH_SOURCE_ID)) {
-            map.removeSource(PATH_SOURCE_ID);
-          }
-          
-          map.addSource(PATH_SOURCE_ID, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: currentCoords },
-              properties: {}
-            }
-          });
-          
-          map.addLayer({
-            id: PATH_LAYER_ID,
-            type: 'line',
-            source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
-            paint: {
-              'line-color': '#2da1ff',
-              'line-width': 4,
-              'line-opacity': 0.9
-            }
-          });
-          // Ensure the latest path data is rendered
-          updatePathSourceData();
-        });
-        pushLog('Network connection lost, switching to offline map');
-      }
-    };
-
-    window.addEventListener('online', handleOnlineStatus);
-    window.addEventListener('offline', handleOfflineStatus);
-
-    // Create map with appropriate style based on connection status
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: isOnline ? 'mapbox://styles/mapbox/dark-v11' : {
-        version: 8,
-        sources: {
-          [PATH_SOURCE_ID]: {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: pathCoordsRef.current },
-              properties: {}
-            }
-          }
-        },
-        layers: [
-          {
-            id: 'background',
-            type: 'background',
-            paint: {
-              'background-color': '#ffffff'
-            }
-          },
-          {
-            id: PATH_LAYER_ID,
-            type: 'line',
-            source: PATH_SOURCE_ID,
-            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
-            paint: {
-              'line-color': '#2da1ff',
-              'line-width': 4,
-              'line-opacity': 0.9
-            }
-          }
-        ]
-      },
-      center: [initialCoords.lng, initialCoords.lat],
-      zoom: 15,
-      attributionControl: false
-    });
-
-    const geolocate = new mapboxgl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true, maximumAge: 0, timeout: 0  },
-      trackUserLocation: true,
-      showUserHeading: true,
-      // Ensure no animated transition when the control updates the camera
-      fitBoundsOptions: { maxZoom: 15, duration: 0 }
-    });
-    geolocateControlRef.current = geolocate;
-    mapRef.current.addControl(geolocate);
-
-    // Let GeolocateControl manage camera per its active/passive states; just log updates
-    geolocate.on('geolocate', (e) => {
-      console.log('[GeolocateControl] geolocate', e.coords);
-    });
-
-    geolocate.on('trackuserlocationstart', () => {
-      console.log('[GeolocateControl] track user location started');
-    });
-
-    geolocate.on('trackuserlocationend', () => {
-      console.log('[GeolocateControl] track user location ended');
-    });
-
-    geolocate.on('error', (err) => {
-      console.error('[GeolocateControl] error', err);
-    });
-
-    // immediate location fetch to see the blue dot
-    if (mapRef.current && typeof mapRef.current.once === 'function') {
-      mapRef.current.once('load', () => geolocate.trigger());
-    } else {
-      geolocate.trigger();
-    }
-
-    return () => {
-      window.removeEventListener('online', handleOnlineStatus);
-      window.removeEventListener('offline', handleOfflineStatus);
-      mapRef.current && mapRef.current.remove();
-    };
+    if (!mapRef.current || !initialCoords) return;
+    ensurePathSourceAndLayer();
   }, [initialCoords]);
 
   // cleanup watcher on unmount
@@ -1034,7 +852,40 @@ function Recorder() {
 
   return (
     <div className="recorder">
-      <div ref={mapContainer} className="recorder__map" />
+      <MapComponent
+        initialCoords={initialCoords}
+        onMapReady={(map) => {
+          mapRef.current = map;
+          const geolocate = new mapboxgl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true, maximumAge: 0, timeout: 0 },
+            trackUserLocation: true,
+            showUserHeading: true,
+            fitBoundsOptions: { maxZoom: 15, duration: 0 }
+          });
+          geolocateControlRef.current = geolocate;
+          map.addControl(geolocate);
+
+          geolocate.on('geolocate', (e) => {
+            console.log('[GeolocateControl] geolocate', e.coords);
+          });
+
+          geolocate.on('trackuserlocationstart', () => {
+            console.log('[GeolocateControl] track user location started');
+          });
+
+          geolocate.on('trackuserlocationend', () => {
+            console.log('[GeolocateControl] track user location ended');
+          });
+
+          geolocate.on('error', (err) => {
+            console.error('[GeolocateControl] error', err);
+          });
+
+          // immediate location fetch to see the blue dot
+          geolocate.trigger();
+        }}
+        className="recorder__map"
+      />
       <div className='recorder__info'>
         { /* *** FOUR BOX LAYOUT *** */ }
         {/* <div className='row'>

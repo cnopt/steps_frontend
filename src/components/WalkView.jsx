@@ -8,17 +8,9 @@ import { Camera, CameraResultType } from '@capacitor/camera';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../styles/WalkView.css';
 import XPBar from './XPBar';
-import LoadingSpinner from './LoadingSpinner';
+import MapComponent from './MapComponent';
+import WalkViewDetails from './WalkViewDetails';
 import exifr from 'exifr';
-
-const MAP_STYLES = [
-  { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
-  { id: 'satellite-streets-v12', name: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
-  { id: 'dark-v11', name: 'Dark', url: 'mapbox://styles/mapbox/dark-v11' },
-  { id: 'light-v11', name: 'Light', url: 'mapbox://styles/mapbox/light-v11' },
-];
-
-mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
 // Arrow configuration options
   const ARROW_CONFIG = {
@@ -48,23 +40,11 @@ export default function WalkView() {
   const [gpxData, setGpxData] = useState(null);
   const [hasFadedIn, setHasFadedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(true);
-  const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[0]);
-  const [showStyleOptions, setShowStyleOptions] = useState(false);
   const fadeTimeoutRef = useRef(null);
   const [imageMetadata, setImageMetadata] = useState(null);
   const [imageError, setImageError] = useState(null);
 
-  const handleStyleChange = (style) => {
-    setCurrentStyle(style);
-    if (mapRef.current) {
-      // Remove existing marker before style change
-      if (positionMarkerRef.current) {
-        positionMarkerRef.current.remove();
-        positionMarkerRef.current = null;
-      }
-      mapRef.current.setStyle(style.url);
-    }
-  };
+
 
   const handleImageCapture = async () => {
     try {
@@ -717,40 +697,252 @@ export default function WalkView() {
 
   return (
     <>
-      <div ref={mapContainer} className="map-container">
-        {showSpinner && (
-          <div className="map-loading-spinner">
-            <LoadingSpinner />
-          </div>
-        )}
-        <div className={`map-fade-overlay ${hasFadedIn ? 'is-hidden' : ''}`} />
-        
-        <div className="map-style-control">
-          <button 
-            className="map-style-toggle"
-            onClick={() => setShowStyleOptions(!showStyleOptions)}
-          >
-            󰌨
-          </button>
+      
+      <MapComponent
+        initialCoords={gpxData ? {
+          lng: gpxData.tracks[0].points[0].lon,
+          lat: gpxData.tracks[0].points[0].lat
+        } : null}
+        onMapReady={(map) => {
+          mapRef.current = map;
           
-          {showStyleOptions && (
-            <div className="map-style-options">
-              {MAP_STYLES.map(style => (
-                <button
-                  key={style.id}
-                  className={`map-style-button ${style.id === currentStyle.id ? 'active' : ''}`}
-                  onClick={() => {
-                    handleStyleChange(style);
-                    setShowStyleOptions(false);
-                  }}
-                >
-                  {style.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+          // Add terrain and path layers
+          map.addSource('mapbox-dem', {
+            type: 'raster-dem',
+            url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            tileSize: 512,
+            maxZoom: 14
+          });
+          map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+          const points = gpxData.tracks[0].points.map((pt) => [pt.lon, pt.lat]);
+          const bounds = new mapboxgl.LngLatBounds();
+          points.forEach((p) => bounds.extend(p));
+
+          // Add the main route source
+          map.addSource("gpxRoute", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: points,
+              },
+            },
+          });
+
+          // Add bounding box source with padding
+          const sw = bounds.getSouthWest();
+          const ne = bounds.getNorthEast();
+          const lngDiff = ne.lng - sw.lng;
+          const latDiff = ne.lat - sw.lat;
+          const lngPadding = (lngDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+          const latPadding = (latDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+          const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
+          const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
+
+          map.addSource("boundingBox", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [[
+                  [paddedSW.lng, paddedSW.lat],
+                  [paddedNE.lng, paddedSW.lat],
+                  [paddedNE.lng, paddedNE.lat],
+                  [paddedSW.lng, paddedNE.lat],
+                  [paddedSW.lng, paddedSW.lat]
+                ]]
+              }
+            }
+          });
+
+          // Add layers
+          map.addLayer({
+            id: "boundingBox",
+            type: "fill",
+            source: "boundingBox",
+            paint: {
+              "fill-color": "#f5dd42",
+              "fill-opacity": 0.3,
+            }
+          });
+
+          map.addLayer({
+            id: "boundingBoxOutline",
+            type: "line",
+            source: "boundingBox",
+            paint: {
+              "line-color": "#fcb72b",
+              "line-width": 2,
+              "line-opacity": 0.3,
+              "line-dasharray": [2, 2]
+            }
+          });
+
+          map.addLayer({
+            id: "gpxRouteLine",
+            type: "line",
+            source: "gpxRoute",
+            paint: {
+              "line-color": "#2da1ff",
+              "line-width": 2,
+              "line-opacity": 1
+            }
+          });
+
+          map.addLayer({
+            id: "gpxRouteArrows",
+            type: "symbol",
+            source: "gpxRoute",
+            layout: {
+              "symbol-placement": "line",
+              "symbol-spacing": ARROW_CONFIG.spacing,
+              "text-field": "➤",
+              "text-size": 12 * ARROW_CONFIG.size,
+              "text-rotation-alignment": "map",
+              "text-keep-upright": false,
+              "text-allow-overlap": true
+            },
+            paint: {
+              "text-color": ARROW_CONFIG.color,
+              "text-opacity": ARROW_CONFIG.opacity,
+              "text-halo-color": "rgba(0,0,0,0.25)",
+              "text-halo-width": 1
+            }
+          });
+
+          // Initialize position marker
+          const markerElement = document.createElement('div');
+          markerElement.className = 'position-marker';
+          
+          if (points.length > 0) {
+            positionMarkerRef.current = new mapboxgl.Marker({
+              element: markerElement,
+            })
+              .setLngLat(points[0])
+              .addTo(map);
+          }
+
+          map.fitBounds(bounds, { padding: 50 });
+          setMapReady(true);
+        }}
+        onStyleChange={(style, map) => {
+          // Re-add terrain and layers after style change
+          map.once('style.load', () => {
+            map.addSource('mapbox-dem', {
+              type: 'raster-dem',
+              url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+              tileSize: 512,
+              maxZoom: 14
+            });
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+            const points = gpxData.tracks[0].points.map((pt) => [pt.lon, pt.lat]);
+            
+            // Re-add sources and layers
+            map.addSource("gpxRoute", {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: {
+                  type: "LineString",
+                  coordinates: points,
+                },
+              },
+            });
+
+            const bounds = new mapboxgl.LngLatBounds();
+            points.forEach((p) => bounds.extend(p));
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            const lngDiff = ne.lng - sw.lng;
+            const latDiff = ne.lat - sw.lat;
+            const lngPadding = (lngDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+            const latPadding = (latDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
+            const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
+            const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
+
+            map.addSource("boundingBox", {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: {
+                  type: "Polygon",
+                  coordinates: [[
+                    [paddedSW.lng, paddedSW.lat],
+                    [paddedNE.lng, paddedSW.lat],
+                    [paddedNE.lng, paddedNE.lat],
+                    [paddedSW.lng, paddedNE.lat],
+                    [paddedSW.lng, paddedSW.lat]
+                  ]]
+                }
+              }
+            });
+
+            // Re-add all layers
+            map.addLayer({
+              id: "boundingBox",
+              type: "fill",
+              source: "boundingBox",
+              paint: {
+                "fill-color": "#f5dd42",
+                "fill-opacity": 0.3,
+              }
+            });
+
+            map.addLayer({
+              id: "boundingBoxOutline",
+              type: "line",
+              source: "boundingBox",
+              paint: {
+                "line-color": "#fcb72b",
+                "line-width": 2,
+                "line-opacity": 0.3,
+                "line-dasharray": [2, 2]
+              }
+            });
+
+            map.addLayer({
+              id: "gpxRouteLine",
+              type: "line",
+              source: "gpxRoute",
+              paint: {
+                "line-color": "#2da1ff",
+                "line-width": 2,
+                "line-opacity": 1
+              }
+            });
+
+            map.addLayer({
+              id: "gpxRouteArrows",
+              type: "symbol",
+              source: "gpxRoute",
+              layout: {
+                "symbol-placement": "line",
+                "symbol-spacing": ARROW_CONFIG.spacing,
+                "text-field": "➤",
+                "text-size": 12 * ARROW_CONFIG.size,
+                "text-rotation-alignment": "map",
+                "text-keep-upright": false,
+                "text-allow-overlap": true
+              },
+              paint: {
+                "text-color": ARROW_CONFIG.color,
+                "text-opacity": ARROW_CONFIG.opacity,
+                "text-halo-color": "rgba(0,0,0,0.25)",
+                "text-halo-width": 1
+              }
+            });
+
+            // Re-add position marker
+            if (positionMarkerRef.current) {
+              positionMarkerRef.current.addTo(map);
+            }
+          });
+        }}
+      />
       
       {gpxData && (
         <div className="elevation-chart">
@@ -944,7 +1136,7 @@ export default function WalkView() {
         </div>
       )}
 
-      <div style={{ padding: '20px' }}>
+      {/* <div style={{ padding: '20px' }}>
         <button
           onClick={handleImageCapture}
           style={{
@@ -984,7 +1176,9 @@ export default function WalkView() {
             )}
           </div>
         )}
-      </div>
+      </div> */}
+
+      <WalkViewDetails gpxData={gpxData} />
     </>
   );
 }

@@ -26,3 +26,4 @@ src/BrokenGPXFile-1.gpx
 src/ExampleGPXFile-1-Segment.gpx
 .gitignore
 src/ExampleGPXFile-2-Segments.gpx
+src/BrokenGPXFile-2.gpx
