@@ -148,7 +148,7 @@ class LocalDataService {
   }
 
   // Add a walk to a specific date
-  addWalkToDate(date, walkFileName, walkName) {
+  addWalkToDate(date, walkFileName, walkName, walkMetadata = {}) {
     try {
       const currentData = this.getAllStepsData();
       const dayEntry = currentData.find(entry => entry.formatted_date === date);
@@ -162,12 +162,21 @@ class LocalDataService {
         dayEntry.walks = [];
       }
 
-      // Add the walk file reference with name
-      dayEntry.walks.push({
+      // Create the walk entry with metadata
+      const walkEntry = {
         name: walkName,
         filename: walkFileName,
-        added_at: new Date().toISOString()
-      });
+        added_at: new Date().toISOString(),
+        // Add optional metadata fields
+        ...(walkMetadata.startTime && { start_time: walkMetadata.startTime }),
+        ...(walkMetadata.endTime && { end_time: walkMetadata.endTime }),
+        ...(walkMetadata.totalDistance !== undefined && { total_distance: walkMetadata.totalDistance }),
+        ...(walkMetadata.minElevation !== undefined && { min_elevation: walkMetadata.minElevation }),
+        ...(walkMetadata.maxElevation !== undefined && { max_elevation: walkMetadata.maxElevation })
+      };
+
+      // Add the walk file reference with metadata
+      dayEntry.walks.push(walkEntry);
 
       // Update the entry
       const updatedData = currentData.map(entry => 

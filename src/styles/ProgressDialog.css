@@ -1,0 +1,220 @@
+.progress-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.progress-dialog {
+  background: var(--theme-card-bg);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--theme-border);
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: progressDialogSlideIn 0.3s ease-out;
+}
+
+@keyframes progressDialogSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.progress-dialog-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.progress-dialog-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  font-family: 'sf-semi', system-ui, -apple-system, sans-serif;
+}
+
+.progress-dialog-content {
+  padding: 1rem 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.progress-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  transition: all 0.3s ease;
+}
+
+.progress-stage:not(:last-child) {
+  border-bottom: 1px solid var(--theme-border-light, var(--theme-border));
+}
+
+.progress-stage-icon {
+  font-size: 1.25rem;
+  min-width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.125rem;
+}
+
+.progress-stage-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-stage-title {
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  font-family: 'sf-medium', system-ui, -apple-system, sans-serif;
+  margin-bottom: 0.25rem;
+}
+
+.progress-stage-description {
+  font-size: 0.875rem;
+  color: var(--theme-text-secondary);
+  font-family: 'sf-regular', system-ui, -apple-system, sans-serif;
+  line-height: 1.4;
+}
+
+.progress-stage-error {
+  font-size: 0.8rem;
+  color: #f44336;
+  font-family: 'sf-regular', system-ui, -apple-system, sans-serif;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+/* Stage status styles */
+.progress-stage--pending {
+  opacity: 0.6;
+}
+
+.progress-stage--loading {
+  opacity: 1;
+}
+
+.progress-stage--loading .progress-stage-icon {
+  animation: progressPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+.progress-stage--completed {
+  opacity: 1;
+}
+
+.progress-stage--completed .progress-stage-icon {
+  animation: progressCheckmark 0.5s ease-out;
+}
+
+@keyframes progressCheckmark {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.progress-stage--error {
+  opacity: 1;
+}
+
+.progress-stage--error .progress-stage-title {
+  color: #f44336;
+}
+
+.progress-dialog-footer {
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--theme-border);
+  display: flex;
+  justify-content: center;
+}
+
+.progress-dialog-close-btn {
+  background: var(--theme-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: 'sf-medium', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.progress-dialog-close-btn:hover {
+  background: var(--theme-accent-hover, var(--theme-accent));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(3, 123, 252, 0.3);
+}
+
+.progress-dialog-close-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(3, 123, 252, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .progress-dialog-overlay {
+    padding: 0.5rem;
+  }
+  
+  .progress-dialog {
+    max-width: none;
+    width: 100%;
+  }
+  
+  .progress-dialog-header,
+  .progress-dialog-content,
+  .progress-dialog-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .progress-stage {
+    gap: 0.75rem;
+  }
+  
+  .progress-stage-icon {
+    font-size: 1.1rem;
+    min-width: 1.25rem;
+  }
+}

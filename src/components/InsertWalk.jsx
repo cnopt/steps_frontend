@@ -50,7 +50,9 @@ const InsertWalk = () => {
 
           // Update local storage with the walk reference
           try {
-            const result = await localDataService.addWalkToDate(selectedDate, newFileName);
+            // Create a default walk name for uploaded files
+            const walkName = `Uploaded Walk`;
+            const result = await localDataService.addWalkToDate(selectedDate, newFileName, walkName);
             if (result.success) {
               setStatus('Upload successful! File saved as ' + newFileName);
               // Wait a bit before navigating back

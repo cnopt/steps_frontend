@@ -6,8 +6,12 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import localDataService from '../services/localDataService';
 import { create } from 'xmlbuilder2';
 import mapboxgl from "mapbox-gl";
-import MapComponent from './MapComponent';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/Recorder.css';
+import ProgressDialog from './ProgressDialog';
+ 
+
+mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
 function Recorder() {
   const location = useLocation();
@@ -21,7 +25,6 @@ function Recorder() {
   const watchIdRef = useRef(null);
   const pathCoordsRef = useRef([]);
   const latestCoordsRef = useRef(null);
-  const lastUpdateTimeRef = useRef(null);
   const bgWatcherIdRef = useRef(null);
   const bgPluginRef = useRef(null);
   const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
@@ -55,6 +58,60 @@ function Recorder() {
   const recordingStartTimeRef = useRef(null);
   const totalPausedTimeRef = useRef(0);
   const lastPauseTimeRef = useRef(null);
+
+  // Progress dialog state
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [progressStages, setProgressStages] = useState([]);
+
+  // Progress dialog helper functions
+  const initializeProgressStages = () => {
+    const stages = [
+      {
+        id: 'gpx-generation',
+        title: 'Generating GPX File',
+        description: 'Creating your walk data file...',
+        status: 'pending'
+      },
+      {
+        id: 'thumbnail-generation',
+        title: 'Creating Thumbnail',
+        description: 'Generating map preview of your walk...',
+        status: 'pending'
+      },
+      {
+        id: 'metadata-processing',
+        title: 'Processing Walk Data',
+        description: 'Calculating distance, elevation, and time data...',
+        status: 'pending'
+      },
+      {
+        id: 'saving-data',
+        title: 'Saving Walk',
+        description: 'Adding walk to your collection...',
+        status: 'pending'
+      }
+    ];
+    setProgressStages(stages);
+    setShowProgressDialog(true);
+  };
+
+  const updateProgressStage = async (stageId, status, error = null) => {
+    setProgressStages(prev => prev.map(stage => 
+      stage.id === stageId 
+        ? { ...stage, status, error }
+        : stage
+    ));
+    
+    // Add a small delay to make progress visible
+    if (status === 'loading') {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  };
+
+  const handleProgressDialogClose = () => {
+    setShowProgressDialog(false);
+    navigate(-1);
+  };
 
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -148,77 +205,84 @@ function Recorder() {
     }
   };
 
-     const startPositionWatcher = async () => {
-     if (watchIdRef.current != null) return;
-     ensurePathSourceAndLayer();
-     
-     try {
-       // Get the actual current position to start the path
-       const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-       if (position && position.coords) {
-         const { longitude, latitude } = position.coords;
-         pushCoordinateIfNew(longitude, latitude);
-         updatePathSourceData();
-       }
-     } catch (e) {
-       console.error('Failed to get initial position for recording:', e);
-       pushLog('Warning: Could not get precise starting position');
-     }
-     
-     watchIdRef.current = await Geolocation.watchPosition(
-      { enableHighAccuracy: true, distanceFilter: 1 },
-      (position, err) => {
-        if (err) {
-          console.error('[watchPosition] error', err);
-          pushLog(`watchPosition error: ${String(err && err.message || err)}`);
-          return;
-        }
-        if (!position) return;
-        const { longitude, latitude, altitude } = position.coords || {};
-        if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
-        
-        // Always keep the path visualization up to date
+       const startPositionWatcher = async () => {
+    if (watchIdRef.current != null) return;
+    ensurePathSourceAndLayer();
+    
+    try {
+      // Get the actual current position to start the path
+      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+      if (position && position.coords) {
+        const { longitude, latitude } = position.coords;
         pushCoordinateIfNew(longitude, latitude);
         updatePathSourceData();
-
-        // If not recording or paused, advance the last coordinate but do not add distance
-        if (!isRecordingRef.current || isPausedRef.current) {
-          lastCoordRef.current = { lat: latitude, lng: longitude };
-          latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
-          return;
-        }
-
-        // Only when actively recording (and not paused), accumulate distance
-        if (lastCoordRef.current) {
-          const newDistance = calculateDistance(
-            lastCoordRef.current.lat,
-            lastCoordRef.current.lng,
-            latitude,
-            longitude
-          );
-          // Only update if we've moved more than ~1 meter (filter GPS jitter)
-          if (newDistance > 0.001) {
-            setTotalDistance(prev => prev + newDistance);
-            lastCoordRef.current = { lat: latitude, lng: longitude };
-          }
-        } else {
-          lastCoordRef.current = { lat: latitude, lng: longitude };
-        }
-
-        latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
-        const now = performance.now();
-        const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
-        if (timeSinceLastUpdate && timeSinceLastUpdate > 2000) {
-          pushLog(`Position watcher gap: ${Math.floor(timeSinceLastUpdate/1000)}s`);
-        }
-        lastUpdateTimeRef.current = now;
-        // Update elevation if available
-        if (typeof altitude === 'number') {
-          setCurrentElevation(Math.round(altitude));
-        }
       }
-    );
-  };
+    } catch (e) {
+      console.error('Failed to get initial position for recording:', e);
+      pushLog('Warning: Could not get precise starting position');
+    }
+    
+    watchIdRef.current = await Geolocation.watchPosition(
+     { enableHighAccuracy: true, distanceFilter: 1 },
+     (position, err) => {
+       if (err) {
+         console.error('[watchPosition] error', err);
+         pushLog(`watchPosition error: ${String(err && err.message || err)}`);
+         return;
+       }
+       if (!position) return;
+       const { longitude, latitude, altitude } = position.coords || {};
+       if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
+       
+       // Always keep the path visualization up to date
+       pushCoordinateIfNew(longitude, latitude);
+       updatePathSourceData();
+
+       // Update latest coordinates for all purposes
+       latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+
+       // Add GPX point directly when GPS data arrives (event-driven)
+       // Only add to GPX when actively recording (not paused)
+       if (isRecordingRef.current && !isPausedRef.current) {
+         const point = {
+           lat: latitude,
+           lon: longitude,
+           ...(typeof altitude === 'number' ? { ele: altitude } : {}),
+           time: new Date().toISOString()
+         };
+         gpxPointsRef.current.push(point);
+       }
+
+       // If not recording or paused, advance the last coordinate but do not add distance
+       if (!isRecordingRef.current || isPausedRef.current) {
+         lastCoordRef.current = { lat: latitude, lng: longitude };
+         return;
+       }
+
+       // Only when actively recording (and not paused), accumulate distance
+       if (lastCoordRef.current) {
+         const newDistance = calculateDistance(
+           lastCoordRef.current.lat,
+           lastCoordRef.current.lng,
+           latitude,
+           longitude
+         );
+         // Only update if we've moved more than ~1 meter (filter GPS jitter)
+         if (newDistance > 0.001) {
+           setTotalDistance(prev => prev + newDistance);
+           lastCoordRef.current = { lat: latitude, lng: longitude };
+         }
+       } else {
+         lastCoordRef.current = { lat: latitude, lng: longitude };
+       }
+
+       // Update elevation if available
+       if (typeof altitude === 'number') {
+         setCurrentElevation(Math.round(altitude));
+       }
+     }
+   );
+ };
 
   // Resolve plugin instance only if available on native side (sync)
   const getBackgroundGeolocation = () => {
@@ -350,10 +414,24 @@ function Recorder() {
           pushCoordinateIfNew(longitude, latitude);
           updatePathSourceData();
 
+          // Update latest coordinates
+          latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
+
+          // Add GPX point directly when background GPS data arrives (event-driven)
+          // Only add to GPX when actively recording (not paused)
+          if (isRecordingRef.current && !isPausedRef.current) {
+            const point = {
+              lat: latitude,
+              lon: longitude,
+              ...(typeof altitude === 'number' ? { ele: altitude } : {}),
+              time: new Date().toISOString()
+            };
+            gpxPointsRef.current.push(point);
+          }
+
           // If not recording or paused, advance the last coordinate but do not add distance
           if (!isRecordingRef.current || isPausedRef.current) {
             lastCoordRef.current = { lat: latitude, lng: longitude };
-            latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
             return;
           }
 
@@ -374,13 +452,6 @@ function Recorder() {
             lastCoordRef.current = { lat: latitude, lng: longitude };
           }
           
-          latestCoordsRef.current = { lat: latitude, lng: longitude, ele: typeof altitude === 'number' ? altitude : undefined };
-          const now = performance.now();
-          const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
-          if (timeSinceLastUpdate && timeSinceLastUpdate > 2000) {
-            pushLog(`Background watcher gap: ${Math.floor(timeSinceLastUpdate/1000)}s`);
-          }
-          lastUpdateTimeRef.current = now;
           // Update elevation if available
           if (typeof altitude === 'number') {
             setCurrentElevation(Math.round(altitude));
@@ -430,64 +501,25 @@ function Recorder() {
      lastCoordRef.current = null;
      
      // Initialize recording time tracking
-       recordingStartTimeRef.current = performance.now();
-  totalPausedTimeRef.current = 0;
-  lastPauseTimeRef.current = null;
-  
-  // Clear all coordinate references
-  pathCoordsRef.current = [];
-  gpxPointsRef.current = []; // Current segment
-  gpxSegmentsRef.current = []; // All segments
-  latestCoordsRef.current = null;
-  
-  // Start a combined timer for both elapsed time display and GPX point collection
-  if (timerIntervalRef.current) {
-    clearInterval(timerIntervalRef.current);
-  }
-  timerIntervalRef.current = setInterval(() => {
-    const now = performance.now();
-    const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
-    setElapsedTime(elapsed);
-    
-    // Collect GPX point if we have coordinates
-    if (latestCoordsRef.current) {
-      const { lat, lng, ele } = latestCoordsRef.current;
-      const timeSinceLastUpdate = lastUpdateTimeRef.current ? now - lastUpdateTimeRef.current : null;
-      
-      // Only add point if we've received a position update in the last 3 seconds
-      if (!timeSinceLastUpdate || timeSinceLastUpdate < 3000) {
-        const point = {
-          lat,
-          lon: lng,
-          ...(typeof ele === 'number' ? { ele } : {}),
-          time: new Date().toISOString()
-        };
-        gpxPointsRef.current.push(point);
-      } else {
-        // Log when we detect position updates have stopped
-        pushLog(`Warning: No position updates for ${Math.floor(timeSinceLastUpdate/1000)}s`);
-        
-        // Try to get a fresh position
-        Geolocation.getCurrentPosition({ enableHighAccuracy: true })
-          .then(position => {
-            if (position && position.coords) {
-              const { latitude, longitude, altitude } = position.coords;
-              latestCoordsRef.current = { 
-                lat: latitude, 
-                lng: longitude, 
-                ele: typeof altitude === 'number' ? altitude : undefined 
-              };
-              lastUpdateTimeRef.current = performance.now();
-              pushLog('Retrieved fresh position');
-            }
-          })
-          .catch(e => {
-            console.error('Failed to get fresh position:', e);
-            pushLog('Failed to get fresh position');
-          });
-      }
-    }
-  }, 1000);
+     recordingStartTimeRef.current = Date.now();
+     totalPausedTimeRef.current = 0;
+     lastPauseTimeRef.current = null;
+     
+     // Start the display update timer (only updates display while active)
+     if (timerIntervalRef.current) {
+       clearInterval(timerIntervalRef.current);
+     }
+     timerIntervalRef.current = setInterval(() => {
+       const now = Date.now();
+       const elapsed = Math.floor((now - recordingStartTimeRef.current - totalPausedTimeRef.current) / 1000);
+       setElapsedTime(elapsed);
+     }, 1000);
+     
+     // Clear all coordinate references
+     pathCoordsRef.current = [];
+     gpxPointsRef.current = []; // Current segment
+     gpxSegmentsRef.current = []; // All segments
+     latestCoordsRef.current = null;
      
      // Clear any existing path from the map
      const map = mapRef.current;
@@ -502,20 +534,20 @@ function Recorder() {
        }
      }
      
-     pushLog('Recording started');
-    startPositionWatcher();
-    // Start background watcher (Android)
-    startBackgroundWatcher();
-    if (ENABLE_CONTROL_NOTIFICATION) {
-      scheduleControlNotification('recording');
-    }
-    // GPX point capture is now handled in the combined timer
+         pushLog('Recording started');
+   startPositionWatcher();
+   // Start background watcher (Android)
+   startBackgroundWatcher();
+   if (ENABLE_CONTROL_NOTIFICATION) {
+     scheduleControlNotification('recording');
+   }
+   // GPX points are now captured directly when GPS data arrives (event-driven)
   };
 
   const pauseRecording = () => {
     setIsPaused(true);
     // Record pause time
-    lastPauseTimeRef.current = performance.now();
+    lastPauseTimeRef.current = Date.now();
     
     // Stop the display update timer
     if (timerIntervalRef.current) {
@@ -523,12 +555,8 @@ function Recorder() {
       timerIntervalRef.current = null;
     }
 
-    // Stop per-second GPX point capture while paused
-    if (gpxIntervalRef.current) {
-      clearInterval(gpxIntervalRef.current);
-      gpxIntervalRef.current = null;
-    }
-
+    // GPX points are now event-driven, no interval to clear
+    
     // Finalize current segment if we have points
     if (gpxPointsRef.current.length > 0) {
       gpxSegmentsRef.current.push([...gpxPointsRef.current]);
@@ -545,7 +573,7 @@ function Recorder() {
     setIsPaused(false);
     // Calculate and accumulate paused time
     if (lastPauseTimeRef.current) {
-      totalPausedTimeRef.current += (performance.now() - lastPauseTimeRef.current);
+      totalPausedTimeRef.current += (Date.now() - lastPauseTimeRef.current);
       lastPauseTimeRef.current = null;
     }
     
@@ -558,20 +586,7 @@ function Recorder() {
       }, 1000);
     }
 
-    // Start a new GPX point collection for the new segment
-    if (gpxIntervalRef.current) clearInterval(gpxIntervalRef.current);
-    gpxIntervalRef.current = setInterval(() => {
-      if (latestCoordsRef.current) {
-        const { lat, lng, ele } = latestCoordsRef.current;
-        const point = {
-          lat,
-          lon: lng,
-          ...(typeof ele === 'number' ? { ele } : {}),
-          time: new Date().toISOString()
-        };
-        gpxPointsRef.current.push(point);
-      }
-    }, 1000);
+    // GPX points will automatically be captured when GPS data arrives (event-driven)
 
     pushLog('Recording resumed');
     if (ENABLE_CONTROL_NOTIFICATION) {
@@ -579,7 +594,7 @@ function Recorder() {
     }
   };
 
-     const stopRecording = () => {
+     const stopRecording = async () => {
      setIsRecording(false);
      setIsPaused(false);
      // Clear all timers and time tracking
@@ -594,13 +609,10 @@ function Recorder() {
      setCurrentElevation(null);
      stopPositionWatcher();
      stopBackgroundWatcher();
-     if (ENABLE_CONTROL_NOTIFICATION) {
-       cancelControlNotification();
-     }
-     if (gpxIntervalRef.current) {
-       clearInterval(gpxIntervalRef.current);
-       gpxIntervalRef.current = null;
-     }
+         if (ENABLE_CONTROL_NOTIFICATION) {
+      cancelControlNotification();
+    }
+    // GPX points are now event-driven, no interval to clear
      
      // Clear all coordinate references
      latestCoordsRef.current = null;
@@ -631,8 +643,13 @@ function Recorder() {
       return;
     }
 
-          // Build GPX and save
+    // Initialize progress dialog
+    initializeProgressStages();
+
+    // Build GPX and save
     try {
+      // Start GPX generation stage
+      await updateProgressStage('gpx-generation', 'loading');
       // Get the first point's time from any segment
       let startTime = null;
       for (const segment of gpxSegmentsRef.current) {
@@ -710,48 +727,166 @@ function Recorder() {
       const year = date.getFullYear();
       const fileName = `${day}-${month}-${year}-${timeClassification}-${actualTime}.gpx`;
 
-      // Ensure walks directory
-      Filesystem.mkdir({ path: 'walks', directory: Directory.Documents, recursive: true })
-        .catch(() => {})
-        .finally(async () => {
-          try {
-            await Filesystem.writeFile({
-              path: `walks/${fileName}`,
-              data: xml,
-              directory: Directory.Documents,
-              encoding: Encoding.UTF8
-            });
-            pushLog(`GPX saved to walks/${fileName}`);
+             // Ensure walks directory exists
+       try {
+         try {
+           await Filesystem.readdir({
+             path: 'walks',
+             directory: Directory.Documents
+           });
+           pushLog('Walks directory verified');
+         } catch {
+           // Directory doesn't exist, create it
+           await Filesystem.mkdir({ 
+             path: 'walks', 
+             directory: Directory.Documents, 
+             recursive: true 
+           });
+           pushLog('Walks directory created');
+         }
+       } catch (dirError) {
+         console.error('Directory check/create failed:', dirError);
+         throw new Error('Could not access or create walks directory: ' + dirError.message);
+       }
 
-            try {
-                const result = await localDataService.addWalkToDate(selectedDate, fileName, walkName);
-                if (result && result.success) {
-                  pushLog('Steps data updated with new walk file');
-                  // Optional: navigate back after short delay
-                  setTimeout(() => navigate(-1), 1500);
-                } else {
-                  throw new Error('Failed to update steps data');
-                }
-            } catch (e) {
-              console.error('Error updating steps data:', e);
-              pushLog('Error updating steps data. Please ensure steps exist for this date.');
-              // Attempt cleanup
-              try {
-                await Filesystem.deleteFile({ path: `walks/${fileName}`, directory: Directory.Documents });
-                pushLog('Saved file removed due to metadata update failure');
-              } catch (cleanupError) {
-                console.error('Cleanup error:', cleanupError);
-                pushLog('Failed to remove saved file after metadata error');
-              }
-            }
-          } catch (writeErr) {
-            console.error('File write error:', writeErr);
-            pushLog('Error saving GPX file.');
-          }
+      try {
+        await Filesystem.writeFile({
+          path: `walks/${fileName}`,
+          data: xml,
+          directory: Directory.Documents,
+          encoding: Encoding.UTF8
         });
+        pushLog(`GPX saved to walks/${fileName}`);
+        await updateProgressStage('gpx-generation', 'completed');
+
+        // Generate thumbnail
+        await updateProgressStage('thumbnail-generation', 'loading');
+        try {
+          pushLog('Generating walk thumbnail...');
+          const { generateWalkThumbnail } = await import('../helpers/thumbnailGenerator');
+          const thumbnail = await generateWalkThumbnail(gpxSegmentsRef.current, fileName);
+          
+          // Ensure thumbnails directory exists before saving
+          try {
+            // Check if directory exists first
+            try {
+              await Filesystem.readdir({
+                path: 'walks/thumbnails',
+                directory: Directory.Documents
+              });
+              pushLog('Thumbnail directory verified');
+            } catch {
+              // Directory doesn't exist, create it
+              await Filesystem.mkdir({ 
+                path: 'walks/thumbnails', 
+                directory: Directory.Documents, 
+                recursive: true 
+              });
+              pushLog('Thumbnail directory created');
+            }
+          } catch (dirError) {
+            console.error('Directory check/create failed:', dirError);
+            throw new Error('Could not access or create thumbnail directory: ' + dirError.message);
+          }
+          
+          // Save thumbnail to filesystem
+          await Filesystem.writeFile({
+            path: `walks/thumbnails/${thumbnail.fileName}`,
+            data: thumbnail.imageData.split(',')[1], // Remove data:image/png;base64, prefix
+            directory: Directory.Documents,
+            encoding: Encoding.Base64
+          });
+          
+          pushLog(`Thumbnail saved to walks/thumbnails/${thumbnail.fileName}`);
+          await updateProgressStage('thumbnail-generation', 'completed');
+        } catch (thumbnailError) {
+          console.error('Thumbnail generation failed:', thumbnailError);
+          console.error('Thumbnail error details:', {
+            message: thumbnailError.message,
+            code: thumbnailError.code,
+            stack: thumbnailError.stack
+          });
+          pushLog(`Thumbnail generation failed: ${thumbnailError.message}`);
+          await updateProgressStage('thumbnail-generation', 'error', `Could not generate thumbnail: ${thumbnailError.message}`);
+          // Don't fail the entire save process if thumbnail fails
+        }
+
+        // Process metadata
+        await updateProgressStage('metadata-processing', 'loading');
+        try {
+          // Calculate walk metadata from GPX data
+          const walkMetadata = {};
+          
+          // Get all points from all segments for metadata calculation
+          const allPoints = gpxSegmentsRef.current.flat();
+          
+          if (allPoints.length > 0) {
+            // Start and end times
+            const firstPoint = allPoints[0];
+            const lastPoint = allPoints[allPoints.length - 1];
+            
+            if (firstPoint.time) {
+              walkMetadata.startTime = firstPoint.time instanceof Date ? firstPoint.time.toISOString() : String(firstPoint.time);
+            }
+            if (lastPoint.time) {
+              walkMetadata.endTime = lastPoint.time instanceof Date ? lastPoint.time.toISOString() : String(lastPoint.time);
+            }
+            
+            // Elevation range (only if elevation data exists)
+            const elevations = allPoints
+              .map(p => typeof p.ele === 'number' ? p.ele : null)
+              .filter(ele => ele !== null);
+            
+            if (elevations.length > 0) {
+              walkMetadata.minElevation = Math.min(...elevations);
+              walkMetadata.maxElevation = Math.max(...elevations);
+            }
+          }
+          
+          // Total distance (from state)
+          walkMetadata.totalDistance = totalDistance;
+          
+          await updateProgressStage('metadata-processing', 'completed');
+          
+          // Save to data service
+          await updateProgressStage('saving-data', 'loading');
+          const result = await localDataService.addWalkToDate(selectedDate, fileName, walkName, walkMetadata);
+          if (result && result.success) {
+            pushLog('Steps data updated with new walk file and metadata');
+            await updateProgressStage('saving-data', 'completed');
+            // Don't navigate immediately - let user see completion
+          } else {
+            throw new Error('Failed to update steps data');
+          }
+        } catch (e) {
+          console.error('Error updating steps data:', e);
+          pushLog('Error updating steps data. Please ensure steps exist for this date.');
+          
+          // Update progress stage with error
+          if (progressStages.find(s => s.id === 'metadata-processing' && s.status === 'loading')) {
+            await updateProgressStage('metadata-processing', 'error', 'Failed to process walk data');
+          } else {
+            await updateProgressStage('saving-data', 'error', 'Failed to save walk to collection');
+          }
+          
+          // Attempt cleanup
+          try {
+            await Filesystem.deleteFile({ path: `walks/${fileName}`, directory: Directory.Documents });
+            pushLog('Saved file removed due to metadata update failure');
+          } catch (cleanupError) {
+            console.error('Cleanup error:', cleanupError);
+            pushLog('Failed to remove saved file after metadata error');
+          }
+        }
+      } catch (writeErr) {
+        console.error('File write error:', writeErr);
+        pushLog('Error saving GPX file.');
+        await updateProgressStage('gpx-generation', 'error', 'Failed to save GPX file');
+      }
     } catch (e) {
       console.error('GPX build error:', e);
       pushLog('Failed to build GPX data');
+      await updateProgressStage('gpx-generation', 'error', 'Failed to generate GPX data');
     }
   };
 
@@ -804,10 +939,227 @@ function Recorder() {
     };
   }, [permissionGranted]);
 
-  // Initialize map when initialCoords are available
+  // Initialize Mapbox map centered on current location and add GeolocateControl
   useEffect(() => {
-    if (!mapRef.current || !initialCoords) return;
-    ensurePathSourceAndLayer();
+    if (!mapContainer.current || !initialCoords) return;
+
+    // Handle online/offline status changes
+    const handleOnlineStatus = () => {
+      setIsOnline(true);
+      if (mapRef.current) {
+        const map = mapRef.current;
+        // Store current coordinates before style change
+        const currentCoords = pathCoordsRef.current.slice();
+        
+        map.setStyle('mapbox://styles/mapbox/dark-v11');
+        
+        // Re-add path source and layer after style loads
+        map.once('style.load', () => {
+          // Ensure we're working with the latest coordinates
+          pathCoordsRef.current = currentCoords;
+          
+          // Force recreation of layer, then source (correct order: remove layer before source)
+          if (map.getLayer(PATH_LAYER_ID)) {
+            map.removeLayer(PATH_LAYER_ID);
+          }
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
+          }
+          
+          map.addSource(PATH_SOURCE_ID, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentCoords },
+              properties: {}
+            }
+          });
+          
+          map.addLayer({
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          });
+          // Ensure the latest path data is rendered
+          updatePathSourceData();
+        });
+        pushLog('Network connection restored, switching to online map');
+      }
+    };
+
+    const handleOfflineStatus = () => {
+      setIsOnline(false);
+      if (mapRef.current) {
+        const map = mapRef.current;
+        // Store current coordinates before style change
+        const currentCoords = pathCoordsRef.current.slice();
+        
+        // Create a complete offline style that includes our path
+        const offlineStyle = {
+          version: 8,
+          sources: {
+            [PATH_SOURCE_ID]: {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                geometry: { type: 'LineString', coordinates: currentCoords },
+                properties: {}
+              }
+            }
+          },
+          layers: [
+            {
+              id: 'background',
+              type: 'background',
+              paint: {
+                'background-color': '#ffffff'
+              }
+            },
+            {
+              id: PATH_LAYER_ID,
+              type: 'line',
+              source: PATH_SOURCE_ID,
+              layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
+              paint: {
+                'line-color': '#2da1ff',
+                'line-width': 4,
+                'line-opacity': 0.9
+              }
+            }
+          ]
+        };
+        
+        map.setStyle(offlineStyle);
+        
+        // After style loads, ensure our data is up to date
+        map.once('style.load', () => {
+          // Ensure we're working with the latest coordinates
+          pathCoordsRef.current = currentCoords;
+          
+          // Force recreation of layer, then source (correct order: remove layer before source)
+          if (map.getLayer(PATH_LAYER_ID)) {
+            map.removeLayer(PATH_LAYER_ID);
+          }
+          if (map.getSource(PATH_SOURCE_ID)) {
+            map.removeSource(PATH_SOURCE_ID);
+          }
+          
+          map.addSource(PATH_SOURCE_ID, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: currentCoords },
+              properties: {}
+            }
+          });
+          
+          map.addLayer({
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          });
+          // Ensure the latest path data is rendered
+          updatePathSourceData();
+        });
+        pushLog('Network connection lost, switching to offline map');
+      }
+    };
+
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOfflineStatus);
+
+    // Create map with appropriate style based on connection status
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: isOnline ? 'mapbox://styles/mapbox/dark-v11' : {
+        version: 8,
+        sources: {
+          [PATH_SOURCE_ID]: {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: pathCoordsRef.current },
+              properties: {}
+            }
+          }
+        },
+        layers: [
+          {
+            id: 'background',
+            type: 'background',
+            paint: {
+              'background-color': '#ffffff'
+            }
+          },
+          {
+            id: PATH_LAYER_ID,
+            type: 'line',
+            source: PATH_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
+            paint: {
+              'line-color': '#2da1ff',
+              'line-width': 4,
+              'line-opacity': 0.9
+            }
+          }
+        ]
+      },
+      center: [initialCoords.lng, initialCoords.lat],
+      zoom: 15,
+      attributionControl: false
+    });
+
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true, maximumAge: 0, timeout: 0  },
+      trackUserLocation: true,
+      showUserHeading: true,
+      // Ensure no animated transition when the control updates the camera
+      fitBoundsOptions: { maxZoom: 15, duration: 0 }
+    });
+    geolocateControlRef.current = geolocate;
+    mapRef.current.addControl(geolocate);
+
+    // Let GeolocateControl manage camera per its active/passive states; just log updates
+    geolocate.on('geolocate', (e) => {
+      console.log('[GeolocateControl] geolocate', e.coords);
+    });
+
+    geolocate.on('trackuserlocationstart', () => {
+      console.log('[GeolocateControl] track user location started');
+    });
+
+    geolocate.on('trackuserlocationend', () => {
+      console.log('[GeolocateControl] track user location ended');
+    });
+
+    geolocate.on('error', (err) => {
+      console.error('[GeolocateControl] error', err);
+    });
+
+    // immediate location fetch to see the blue dot
+    if (mapRef.current && typeof mapRef.current.once === 'function') {
+      mapRef.current.once('load', () => geolocate.trigger());
+    } else {
+      geolocate.trigger();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOfflineStatus);
+      mapRef.current && mapRef.current.remove();
+    };
   }, [initialCoords]);
 
   // cleanup watcher on unmount
@@ -852,40 +1204,7 @@ function Recorder() {
 
   return (
     <div className="recorder">
-      <MapComponent
-        initialCoords={initialCoords}
-        onMapReady={(map) => {
-          mapRef.current = map;
-          const geolocate = new mapboxgl.GeolocateControl({
-            positionOptions: { enableHighAccuracy: true, maximumAge: 0, timeout: 0 },
-            trackUserLocation: true,
-            showUserHeading: true,
-            fitBoundsOptions: { maxZoom: 15, duration: 0 }
-          });
-          geolocateControlRef.current = geolocate;
-          map.addControl(geolocate);
-
-          geolocate.on('geolocate', (e) => {
-            console.log('[GeolocateControl] geolocate', e.coords);
-          });
-
-          geolocate.on('trackuserlocationstart', () => {
-            console.log('[GeolocateControl] track user location started');
-          });
-
-          geolocate.on('trackuserlocationend', () => {
-            console.log('[GeolocateControl] track user location ended');
-          });
-
-          geolocate.on('error', (err) => {
-            console.error('[GeolocateControl] error', err);
-          });
-
-          // immediate location fetch to see the blue dot
-          geolocate.trigger();
-        }}
-        className="recorder__map"
-      />
+      <div ref={mapContainer} className="recorder__map" />
       <div className='recorder__info'>
         { /* *** FOUR BOX LAYOUT *** */ }
         {/* <div className='row'>
@@ -1013,6 +1332,12 @@ function Recorder() {
           ))
         )}
       </div> */}
+
+      <ProgressDialog
+        isOpen={showProgressDialog}
+        stages={progressStages}
+        onClose={handleProgressDialogClose}
+      />
     </div>
   );
 }
