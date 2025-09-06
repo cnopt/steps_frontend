@@ -69,25 +69,25 @@ function Recorder() {
       {
         id: 'gpx-generation',
         title: 'Generating GPX File',
-        description: 'Creating your walk data file...',
+        description: 'Generating walk file',
         status: 'pending'
       },
       {
         id: 'thumbnail-generation',
         title: 'Creating Thumbnail',
-        description: 'Generating map preview of your walk...',
+        description: 'Generating map preview',
         status: 'pending'
       },
       {
         id: 'metadata-processing',
         title: 'Processing Walk Data',
-        description: 'Calculating distance, elevation, and time data...',
+        description: 'Processing walk metadata',
         status: 'pending'
       },
       {
         id: 'saving-data',
         title: 'Saving Walk',
-        description: 'Adding walk to your collection...',
+        description: 'Saving walk',
         status: 'pending'
       }
     ];
@@ -104,7 +104,7 @@ function Recorder() {
     
     // Add a small delay to make progress visible
     if (status === 'loading') {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
   };
 

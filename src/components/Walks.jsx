@@ -41,9 +41,9 @@ export default function Walks() {
         }
     });
 
-    // Sort walks by newest to oldest (using added_at timestamp)
+    // Sort walks by newest to oldest (using walk date)
     const sortedWalks = allWalks.sort((a, b) => {
-        return new Date(b.added_at) - new Date(a.added_at);
+        return new Date(b.date) - new Date(a.date);
     });
 
     return (
@@ -58,7 +58,7 @@ export default function Walks() {
                 <div className="walks-list">
                     {sortedWalks.length === 0 ? (
                         <div className="no-walks">
-                            <p>No walks recorded yet!</p>
+                            <p>No walks recorded yet</p>
                             <p>Start recording your walks to see them here.</p>
                         </div>
                     ) : (
@@ -73,8 +73,8 @@ export default function Walks() {
                                         walkFileName={walk.filename}
                                         className="walk-thumbnail"
                                         style={{ 
-                                            width: '80px', 
-                                            height: '80px', 
+                                            width: '140px', 
+                                            height: '105px', 
                                             borderRadius: '8px',
                                             flexShrink: 0
                                         }}
@@ -98,7 +98,7 @@ export default function Walks() {
                                             )}
                                             {walk.min_elevation !== undefined && walk.max_elevation !== undefined && (
                                                 <span className="walk-elevation">
-                                                    {Math.round(walk.min_elevation)}m - {Math.round(walk.max_elevation)}m
+                                                    󰾧 {Math.round(walk.min_elevation)}m - {Math.round(walk.max_elevation)}m
                                                 </span>
                                             )}
                                         </div>

@@ -35,14 +35,12 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
       <div 
         className={`walk-thumbnail-placeholder ${className}`}
         style={{ 
-          backgroundColor: '#f0f0f0', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
           ...style 
         }}
       >
-        <span style={{ color: '#999', fontSize: '12px' }}>Loading...</span>
       </div>
     );
   }
@@ -52,14 +50,12 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
       <div 
         className={`walk-thumbnail-placeholder ${className}`}
         style={{ 
-          backgroundColor: '#e0e0e0', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
           ...style 
         }}
       >
-        <span style={{ color: '#999', fontSize: '24px' }}>🚶</span>
       </div>
     );
   }
