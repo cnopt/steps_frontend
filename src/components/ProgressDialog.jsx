@@ -4,7 +4,7 @@ import '../styles/ProgressDialog.css';
 const ProgressDialog = ({ isOpen, stages, onClose }) => {
   if (!isOpen) return null;
 
-  const getStageIcon = (stage, status) => {
+  const getStageIcon = (status) => {
     if (status === 'loading') return '⏳';
     if (status === 'completed') return '✅';
     if (status === 'error') return '❌';
@@ -15,6 +15,13 @@ const ProgressDialog = ({ isOpen, stages, onClose }) => {
     return `progress-stage progress-stage--${status}`;
   };
 
+  // Find the current active stage
+  const currentStage = stages.find(stage => stage.status === 'loading') || 
+                      stages.find(stage => stage.status === 'error') ||
+                      stages[stages.length - 1];
+
+  const isComplete = stages.every(stage => stage.status === 'completed' || stage.status === 'error');
+
   return (
     <div className="progress-dialog-overlay">
       <div className="progress-dialog">
@@ -23,24 +30,24 @@ const ProgressDialog = ({ isOpen, stages, onClose }) => {
         </div>
         
         <div className="progress-dialog-content">
-          {stages.map((stage, index) => (
-            <div key={stage.id} className={getStageClass(stage.status)}>
+          {currentStage && (
+            <div className={getStageClass(currentStage.status)}>
               <div className="progress-stage-icon">
-                {getStageIcon(stage, stage.status)}
+                {getStageIcon(currentStage.status)}
               </div>
               <div className="progress-stage-content">
-                <div className="progress-stage-title">{stage.title}</div>
-                <div className="progress-stage-description">{stage.description}</div>
-                {stage.status === 'error' && stage.error && (
-                  <div className="progress-stage-error">{stage.error}</div>
+                <div className="progress-stage-title">{currentStage.title}</div>
+                <div className="progress-stage-description">{currentStage.description}</div>
+                {currentStage.status === 'error' && currentStage.error && (
+                  <div className="progress-stage-error">{currentStage.error}</div>
                 )}
               </div>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="progress-dialog-footer">
-          {stages.every(stage => stage.status === 'completed' || stage.status === 'error') && (
+          {isComplete && (
             <button 
               className="progress-dialog-close-btn"
               onClick={onClose}

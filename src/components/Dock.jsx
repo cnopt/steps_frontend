@@ -7,9 +7,11 @@ import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
 import { PiSneakerFill } from "react-icons/pi";
 import { RiWalkLine } from "react-icons/ri";
+import { useAchievementContext } from '../contexts/AchievementContext';
 
 export default function Dock() {
     const location = useLocation();
+    const { hasPendingAchievements } = useAchievementContext();
     
     // Hide dock on recorder page
     if (location.pathname === '/recorder' || location.pathname === '/walkview') {
@@ -38,8 +40,13 @@ export default function Dock() {
                 <p>Leaderboard</p>
             </Link>
             
-            <Link to={`/achievements`} className='dock-item'>
-                <HiIdentification />
+            <Link to={`/achievements`} className='dock-item dock-item-achievements'>
+                <div className="dock-icon-container">
+                    <HiIdentification />
+                    {hasPendingAchievements && (
+                        <div className="achievement-indicator" />
+                    )}
+                </div>
                 <p>Badges</p>
             </Link>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useStepsData } from '../hooks/useStepsData';
 import { milestones } from '../helpers/milestones'
+import { useAchievementContext } from '../contexts/AchievementContext';
 
 import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +23,7 @@ const Achievements = () => {
   const [scrollY, setScrollY] = useState(0);
   const query = useStepsData();
   const { settings } = useUserSettings();
+  const { pendingAchievements, dismissAchievement, dismissAllAchievements } = useAchievementContext();
   
   useEffect(() => {
     if (query.data) {
@@ -96,6 +98,23 @@ const Achievements = () => {
     }
   };
 
+  const getAchievementIcon = (type) => {
+    switch (type) {
+      case 'badge': return '🏆';
+      case 'milestone': return '⭐';
+      default: return '🎉';
+    }
+  };
+
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'common': return '#94a3b8';
+      case 'uncommon': return '#fbbf24';
+      case 'rare': return '#8b5cf6';
+      default: return '#fbbf24';
+    }
+  };
+
   return (
     <>
       <div className="sticky-header">
@@ -105,7 +124,75 @@ const Achievements = () => {
 
         <div className="achievements-container">
           
-          <h3>Milestone cards (<span style={{color:'gold'}}>{milestoneDays.size}</span>)</h3>
+          {/* Pending Achievements Section */}
+          {pendingAchievements.length > 0 && (
+            <div className="pending-achievements-section">
+              <div className="pending-achievements-header">
+                <p><span>󰝧</span> New Unlocks</p>
+              </div>
+              
+              <div className="pending-achievements-list">
+                <AnimatePresence>
+                  {pendingAchievements.map((achievement, index) => (
+                    <motion.div
+                      key={`${achievement.type}-${achievement.id || achievement.value}-${index}`}
+                      className={`pending-achievement-item ${achievement.type}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="achievement-icon">
+                        {achievement.image ? (
+                          <img 
+                            src={achievement.image} 
+                            alt={achievement.name}
+                            className="achievement-image"
+                          />
+                        ) : (
+                          <span className="achievement-emoji">
+                            {getAchievementIcon(achievement.type)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="achievement-details">
+                        <div className="achievement-name">{achievement.name}</div>
+                        {achievement.description && (
+                          <div className="achievement-description">
+                            {achievement.description}
+                          </div>
+                        )}
+                        <div className="achievement-date">
+                          Unlocked {format(parseISO(achievement.unlockDate), 'MMM do, yyyy')}
+                        </div>
+                      </div>
+
+                      <div className="achievement-actions">
+                        {achievement.type === 'milestone' && (
+                          <div 
+                            className="achievement-rarity"
+                            style={{ color: getRarityColor(achievement.rarity) }}
+                          >
+                            {achievement.rarity}
+                          </div>
+                        )}
+                        <button 
+                          className="dismiss-btn"
+                          onClick={() => dismissAchievement(index)}
+                          title="Dismiss"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+          
+          <h3>Titles</h3>
           {/* Achieved Milestones */}
           <div className="milestones-done-section">
 
@@ -151,7 +238,7 @@ const Achievements = () => {
           </div> */}
 
           <div className="badges-section">
-            <h3>Profile borders (<span style={{color:'gold'}}>{unlockedBadges.length}</span>)</h3>
+            <h3>Emblems</h3>
             <Badges unlockedBadges={unlockedBadges} />
           </div>
         </div>

@@ -18,6 +18,7 @@ import WalkView from './components/WalkView';
 import InsertWalk from './components/InsertWalk';
 import Recorder from './components/Recorder';
 import Walks from './components/Walks';
+import { AchievementProvider } from './contexts/AchievementContext';
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -27,25 +28,27 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <ThemeProvider>
-          <SmartRouter>
-          <AnimatePresence mode="wait">
-            <Routes>
-              <Route path='/' element={<DaysGrid/>}/>
-              <Route path='/month' element={<DaysGrid/>}/>
-              <Route path='/achievements' element={<Achievements/>}/>
-              <Route path='/leaderboard' element={<Leaderboard/>}/>
-              <Route path='/input' element={<NumberInput/>}/>
-              <Route path='/stats' element={<Stats/>}/>
-              <Route path='/settings' element={<SettingsMenu/>}/>
-              <Route path='/shoes' element={<Shoes/>}/>
-              <Route path='/walkview' element={<WalkView/>}/>
-              <Route path='/insert-walk' element={<InsertWalk/>}/>
-              <Route path='/recorder' element={<Recorder/>}/>
-              <Route path='/walks' element={<Walks/>}/>
-            </Routes>
-          </AnimatePresence>
-        </SmartRouter>
-        <Dock />
+          <AchievementProvider>
+            <SmartRouter>
+            <AnimatePresence mode="wait">
+              <Routes>
+                <Route path='/' element={<DaysGrid/>}/>
+                <Route path='/month' element={<DaysGrid/>}/>
+                <Route path='/achievements' element={<Achievements/>}/>
+                <Route path='/leaderboard' element={<Leaderboard/>}/>
+                <Route path='/input' element={<NumberInput/>}/>
+                <Route path='/stats' element={<Stats/>}/>
+                <Route path='/settings' element={<SettingsMenu/>}/>
+                <Route path='/shoes' element={<Shoes/>}/>
+                <Route path='/walkview' element={<WalkView/>}/>
+                <Route path='/insert-walk' element={<InsertWalk/>}/>
+                <Route path='/recorder' element={<Recorder/>}/>
+                <Route path='/walks' element={<Walks/>}/>
+              </Routes>
+            </AnimatePresence>
+          </SmartRouter>
+          <Dock />
+          </AchievementProvider>
         </ThemeProvider>
       </Router>
       {/* <ReactQueryDevtools/> */}

@@ -1,7 +1,10 @@
 .map-container {
     width: 100%;
-    height: 50vh;
+    height: 46vh;
     position: relative;
+}
+.mapboxgl-map {
+    height: 46vh !important;
 }
 
 .map-container canvas {
@@ -73,9 +76,8 @@ a.mapboxgl-ctrl-logo {
 
 .elevation-chart {
     background-color: var(--theme-day-bg);
-    border-radius: 8px;
-    margin-top: 0.5rem;
-    height: 6rem;
+    margin-top: 0.85rem;
+    height: 7rem;
     touch-action: none; /* Prevents page scrolling while interacting with the chart */
     -webkit-user-select: none; /* Prevents text selection during touch */
     user-select: none;
@@ -184,4 +186,27 @@ a.mapboxgl-ctrl-logo {
     font-family: sf-mono;
     color:#000;
     padding-right: 0.3rem;
+}
+
+.cancel-div {
+    margin-top: 0.9rem !important;
+}
+
+.exit-btn {
+    border: 2px solid #dd5240;
+    color: #dd5240;
+    width: 5rem;
+    font-size: 1.5em;
+    font-family: 'sf-mono';
+    padding-right: 1rem;
+    border-radius: 30px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    height: 2.75rem;
+    border-left: none;
+    display: inline-block;
+    position: absolute;
+    top: 0.75rem;
+    z-index: 9;
+    background-color: #040405;
 }

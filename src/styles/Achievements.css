@@ -369,5 +369,152 @@
 
 .select-badge-button.selected:hover {
   transform: none;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  }
+
+/* Pending Achievements Section */
+.pending-achievements-section {
+
+}
+
+.pending-achievements-header {
+  text-align: center;
+  margin-bottom: 0.9rem;
+}
+
+.pending-achievements-header p {
+  margin: 0;
+  font-family: 'sf-semi';
+  font-size: 1rem;
+  color: gold;
+}
+
+.pending-achievements-header p span {
+  font-family: sf-mono;
+  padding-right: 0.3rem;
+  color:gold;
+}
+
+.pending-achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pending-achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+
+.achievement-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.achievement-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.achievement-emoji {
+  font-size: 2rem;
+}
+
+.achievement-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-name {
+  font-family: 'sf-semi';
+  font-size: 1rem;
+  color: var(--theme-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.achievement-description {
+  font-family: 'sf';
+  font-size: 0.85rem;
+  color: var(--theme-text-secondary);
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.achievement-date {
+  font-family: 'sf';
+  font-size: 0.75rem;
+  color: var(--theme-text-tertiary);
+}
+
+.achievement-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.achievement-rarity {
+  font-family: 'sf-semi';
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dismiss-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(156, 163, 175, 0.2);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 50%;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .pending-achievements-section {
+    margin: 0.5rem 0 1.5rem 0;
+    padding: 0.75rem;
+  }
+  
+  .pending-achievements-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  .dismiss-all-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .pending-achievement-item {
+    padding: 0.75rem;
+  }
+  
+  
+  .achievement-name {
+    font-size: 0.9rem;
+  }
+  
+  .achievement-description {
+    font-size: 0.8rem;
+    margin-right: 0.3rem;
+  }
 }

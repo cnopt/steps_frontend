@@ -5,6 +5,7 @@ import { XMLParser } from "fast-xml-parser";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Camera, CameraResultType } from '@capacitor/camera';
+import { App } from '@capacitor/app';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import '../styles/WalkView.css';
 import XPBar from './XPBar';
@@ -378,22 +379,22 @@ export default function WalkView() {
         const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
         const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
         
-        mapRef.current.addSource("boundingBox", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            geometry: {
-              type: "Polygon",
-              coordinates: [[
-                [paddedSW.lng, paddedSW.lat],
-                [paddedNE.lng, paddedSW.lat],
-                [paddedNE.lng, paddedNE.lat],
-                [paddedSW.lng, paddedNE.lat],
-                [paddedSW.lng, paddedSW.lat]
-              ]]
-            }
-          }
-        });
+        // mapRef.current.addSource("boundingBox", {
+        //   type: "geojson",
+        //   data: {
+        //     type: "Feature",
+        //     geometry: {
+        //       type: "Polygon",
+        //       coordinates: [[
+        //         [paddedSW.lng, paddedSW.lat],
+        //         [paddedNE.lng, paddedSW.lat],
+        //         [paddedNE.lng, paddedNE.lat],
+        //         [paddedSW.lng, paddedNE.lat],
+        //         [paddedSW.lng, paddedSW.lat]
+        //       ]]
+        //     }
+        //   }
+        // });
         
         // Glow effect: add blurred, wider lines underneath the main line
         // mapRef.current.addLayer({
@@ -435,28 +436,28 @@ export default function WalkView() {
 
         // Main route line on top of the glows
         // Add bounding box layer
-        mapRef.current.addLayer({
-          id: "boundingBox",
-          type: "fill",
-          source: "boundingBox",
-          paint: {
-            "fill-color": "#f5dd42",
-            "fill-opacity": 0.3,
-          }
-        });
+        // mapRef.current.addLayer({
+        //   id: "boundingBox",
+        //   type: "fill",
+        //   source: "boundingBox",
+        //   paint: {
+        //     "fill-color": "#f5dd42",
+        //     "fill-opacity": 0.3,
+        //   }
+        // });
 
         // Add bounding box outline
-        mapRef.current.addLayer({
-          id: "boundingBoxOutline",
-          type: "line",
-          source: "boundingBox",
-          paint: {
-            "line-color": "#fcb72b",
-            "line-width": 2,
-            "line-opacity": 0.3,
-            "line-dasharray": [2, 2]
-          }
-        });
+        // mapRef.current.addLayer({
+        //   id: "boundingBoxOutline",
+        //   type: "line",
+        //   source: "boundingBox",
+        //   paint: {
+        //     "line-color": "#fcb72b",
+        //     "line-width": 2,
+        //     "line-opacity": 0.3,
+        //     "line-dasharray": [2, 2]
+        //   }
+        // });
 
         // Add main route line
         mapRef.current.addLayer({
@@ -566,6 +567,22 @@ export default function WalkView() {
       }
     };
   }, [gpxData, loading, error]);
+
+  // Handle hardware back button
+  useEffect(() => {
+    const handleBackButton = () => {
+      navigate(-1);
+      return true; // Prevent default behavior
+    };
+
+    // Add back button listener
+    const backButtonListener = App.addListener('backButton', handleBackButton);
+
+    // Cleanup listener on component unmount
+    return () => {
+      backButtonListener.remove();
+    };
+  }, [navigate]);
   
   // Keep rendering the map container while loading, and place the spinner above it.
 
@@ -741,45 +758,45 @@ export default function WalkView() {
           const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
           const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
 
-          map.addSource("boundingBox", {
-            type: "geojson",
-            data: {
-              type: "Feature",
-              geometry: {
-                type: "Polygon",
-                coordinates: [[
-                  [paddedSW.lng, paddedSW.lat],
-                  [paddedNE.lng, paddedSW.lat],
-                  [paddedNE.lng, paddedNE.lat],
-                  [paddedSW.lng, paddedNE.lat],
-                  [paddedSW.lng, paddedSW.lat]
-                ]]
-              }
-            }
-          });
+          // map.addSource("boundingBox", {
+          //   type: "geojson",
+          //   data: {
+          //     type: "Feature",
+          //     geometry: {
+          //       type: "Polygon",
+          //       coordinates: [[
+          //         [paddedSW.lng, paddedSW.lat],
+          //         [paddedNE.lng, paddedSW.lat],
+          //         [paddedNE.lng, paddedNE.lat],
+          //         [paddedSW.lng, paddedNE.lat],
+          //         [paddedSW.lng, paddedSW.lat]
+          //       ]]
+          //     }
+          //   }
+          // });
 
           // Add layers
-          map.addLayer({
-            id: "boundingBox",
-            type: "fill",
-            source: "boundingBox",
-            paint: {
-              "fill-color": "#f5dd42",
-              "fill-opacity": 0.3,
-            }
-          });
+          // map.addLayer({
+          //   id: "boundingBox",
+          //   type: "fill",
+          //   source: "boundingBox",
+          //   paint: {
+          //     "fill-color": "#f5dd42",
+          //     "fill-opacity": 0.3,
+          //   }
+          // });
 
-          map.addLayer({
-            id: "boundingBoxOutline",
-            type: "line",
-            source: "boundingBox",
-            paint: {
-              "line-color": "#fcb72b",
-              "line-width": 2,
-              "line-opacity": 0.3,
-              "line-dasharray": [2, 2]
-            }
-          });
+          // map.addLayer({
+          //   id: "boundingBoxOutline",
+          //   type: "line",
+          //   source: "boundingBox",
+          //   paint: {
+          //     "line-color": "#fcb72b",
+          //     "line-width": 2,
+          //     "line-opacity": 0.3,
+          //     "line-dasharray": [2, 2]
+          //   }
+          // });
 
           map.addLayer({
             id: "gpxRouteLine",
@@ -864,45 +881,45 @@ export default function WalkView() {
             const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
             const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
 
-            map.addSource("boundingBox", {
-              type: "geojson",
-              data: {
-                type: "Feature",
-                geometry: {
-                  type: "Polygon",
-                  coordinates: [[
-                    [paddedSW.lng, paddedSW.lat],
-                    [paddedNE.lng, paddedSW.lat],
-                    [paddedNE.lng, paddedNE.lat],
-                    [paddedSW.lng, paddedNE.lat],
-                    [paddedSW.lng, paddedSW.lat]
-                  ]]
-                }
-              }
-            });
+            // map.addSource("boundingBox", {
+            //   type: "geojson",
+            //   data: {
+            //     type: "Feature",
+            //     geometry: {
+            //       type: "Polygon",
+            //       coordinates: [[
+            //         [paddedSW.lng, paddedSW.lat],
+            //         [paddedNE.lng, paddedSW.lat],
+            //         [paddedNE.lng, paddedNE.lat],
+            //         [paddedSW.lng, paddedNE.lat],
+            //         [paddedSW.lng, paddedSW.lat]
+            //       ]]
+            //     }
+            //   }
+            // });
 
             // Re-add all layers
-            map.addLayer({
-              id: "boundingBox",
-              type: "fill",
-              source: "boundingBox",
-              paint: {
-                "fill-color": "#f5dd42",
-                "fill-opacity": 0.3,
-              }
-            });
+            // map.addLayer({
+            //   id: "boundingBox",
+            //   type: "fill",
+            //   source: "boundingBox",
+            //   paint: {
+            //     "fill-color": "#f5dd42",
+            //     "fill-opacity": 0.3,
+            //   }
+            // });
 
-            map.addLayer({
-              id: "boundingBoxOutline",
-              type: "line",
-              source: "boundingBox",
-              paint: {
-                "line-color": "#fcb72b",
-                "line-width": 2,
-                "line-opacity": 0.3,
-                "line-dasharray": [2, 2]
-              }
-            });
+            // map.addLayer({
+            //   id: "boundingBoxOutline",
+            //   type: "line",
+            //   source: "boundingBox",
+            //   paint: {
+            //     "line-color": "#fcb72b",
+            //     "line-width": 2,
+            //     "line-opacity": 0.3,
+            //     "line-dasharray": [2, 2]
+            //   }
+            // });
 
             map.addLayer({
               id: "gpxRouteLine",
@@ -1015,8 +1032,8 @@ export default function WalkView() {
               })()}
               margin={{
                 top: 5,
-                right: 30,
-                left: -10,
+                right: 15,
+                left: -15,
                 bottom: 0,
               }}
             >
@@ -1031,7 +1048,7 @@ export default function WalkView() {
                 stroke="#222"
                 vertical={false}
               />
-              <XAxis 
+              {/* <XAxis 
                 dataKey="time" 
                 stroke="#666"
                 tick={{ fill: '#666' }}
@@ -1047,7 +1064,7 @@ export default function WalkView() {
                 // })()}
                 // show first time and last time value for the ticks
                 ticks={[gpxData.tracks[0].points[0].time, gpxData.tracks[0].points[2*Math.round(gpxData.tracks[0].points.length/2)/2].time ,gpxData.tracks[0].points[gpxData.tracks[0].points.length -1].time]}
-              />
+              /> */}
               <YAxis 
                 stroke="#666"
                 tick={{ fill: '#666' }}
@@ -1179,6 +1196,14 @@ export default function WalkView() {
       </div> */}
 
       <WalkViewDetails gpxData={gpxData} />
+
+      {/* <div className='cancel-div'>
+        <button
+            onClick={() => navigate(-1)}
+            className="exit-btn"
+          ><span></span>
+        </button>
+      </div> */}
     </>
   );
 }
