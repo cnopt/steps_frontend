@@ -665,15 +665,6 @@ const Badges = ({ unlockedBadges }) => {
             <motion.div 
               key={badge.id}
               className={`badge-item ${isUnlocked ? 'unlocked' : 'locked'} ${isWeatherDisabled ? 'weather-disabled' : ''} ${userSelectedBadgeId === badge.id ? 'user-selected' : ''}`}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ 
-                delay: index * 0.1,
-                duration: 0.2,
-                type: "spring",
-                stiffness: 260,
-                damping: 20
-              }}
               onClick={() => handleBadgeClick(badge, unlockedInfo)}
               style={{ cursor: isUnlocked ? 'pointer' : 'default' }}
             >

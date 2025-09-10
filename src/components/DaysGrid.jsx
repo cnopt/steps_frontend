@@ -529,34 +529,35 @@ const DaysGrid = () => {
                     </div>
                   )}
 
-                  {/* Walk Buttons */}
-                  <div style={{ marginTop: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {selectedDay.walks?.length > 0 && (
-                      <button
-                        onClick={() => navigate('/walkview', { 
-                          state: { 
-                            date: selectedDay.formatted_date,
-                            walkFile: selectedDay.walks[0].filename // For now, just use the first walk
-                          }
-                        })}
-                        style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#2ecc71',
-                          color: 'white',
+                  {/* Dynamic Walk Button */}
+                  <div style={{ marginTop: '1.3rem', textAlign:'right'}}>
+                    <button 
+                      className='add-walk-btn'
+                      onClick={() => {
+                        if (selectedDay.walks?.length > 0) {
+                          navigate('/walkview', { 
+                            state: { 
+                              date: selectedDay.formatted_date,
+                              walkFile: selectedDay.walks[0].filename
+                            }
+                          });
+                        } else {
+                          navigate('/insert-walk', { 
+                            state: { 
+                              selectedDate: selectedDay.formatted_date 
+                            }
+                          });
+                        }
+                      }}
+                      style={{
+                        ...(selectedDay.walks?.length > 0 ? {
+                          backgroundColor: '#a9fb00',
                           border: 'none',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                          fontSize: '0.9em',
-                          fontFamily: 'sf'
-                        }}
-                      >
-                        View Walk
-                      </button>
-                    )}
-                    <button className='add-walk-btn'
-                      onClick={() => navigate('/insert-walk', { state: { selectedDate: selectedDay.formatted_date } })}
+                          color: '#040405'
+                        } : {})
+                      }}
                     >
-                      Add Walk
+                      {selectedDay.walks?.length > 0 ? 'View Walk' : '+ Add Walk'}
                     </button>
                   </div>
 

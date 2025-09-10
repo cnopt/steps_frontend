@@ -715,6 +715,28 @@ export default function WalkView() {
   return (
     <>
       
+      {gpxData && gpxData.tracks[0].points[0].time && (
+        <div className="walk-date-overlay">
+          <div className="date">
+            {new Date(gpxData.tracks[0].points[0].time).toLocaleDateString('en-US', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short'
+            })}
+          </div>
+          <div className="time">
+            {new Date(gpxData.tracks[0].points[0].time).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: false
+            })} - {new Date(gpxData.tracks[0].points[gpxData.tracks[0].points.length - 1].time).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: false
+            })}
+          </div>
+        </div>
+      )}
       <MapComponent
         initialCoords={gpxData ? {
           lng: gpxData.tracks[0].points[0].lon,

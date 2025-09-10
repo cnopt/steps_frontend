@@ -28,11 +28,11 @@ export const generateWalkThumbnail = async (gpxSegments, fileName) => {
       const minLat = Math.min(...lats);
       const maxLat = Math.max(...lats);
 
-      // Add 15% padding
+      // Add 30% padding
       const lngDiff = maxLng - minLng;
       const latDiff = maxLat - minLat;
-      const lngPadding = (lngDiff * 15) / 100;
-      const latPadding = (latDiff * 15) / 100;
+      const lngPadding = (lngDiff * 30) / 100;
+      const latPadding = (latDiff * 30) / 100;
 
       const bounds = new mapboxgl.LngLatBounds([
         [minLng - lngPadding, minLat - latPadding],
@@ -51,7 +51,7 @@ export const generateWalkThumbnail = async (gpxSegments, fileName) => {
         container: canvas,
         style: 'mapbox://styles/mapbox/outdoors-v12', // Good for walk thumbnails
         bounds: bounds,
-        fitBoundsOptions: { padding: 15 },
+        fitBoundsOptions: { padding: 30 },
         preserveDrawingBuffer: true, // Essential for canvas export
         antialias: true,
         attributionControl: false,

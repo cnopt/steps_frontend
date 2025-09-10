@@ -137,10 +137,10 @@ const Achievements = () => {
                     <motion.div
                       key={`${achievement.type}-${achievement.id || achievement.value}-${index}`}
                       className={`pending-achievement-item ${achievement.type}`}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <div className="achievement-icon">
                         {achievement.image ? (
@@ -194,48 +194,36 @@ const Achievements = () => {
           
           <h3>Titles</h3>
           {/* Achieved Milestones */}
-          <div className="milestones-done-section">
-
-            
-            {milestones.slice(0, lastAchievedIndex + 1).reverse().map((milestone) => (
-              <AnimatePresence key={milestone.value}>
-                {unwrappedMilestones.includes(milestone.value) ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    className={`milestone-item achieved ${milestone.rarity}`}
-                  >
-                    <span className="milestone-value">
-                      <span className="milestone-star">󰄵</span> <br/>
-                      {milestone.value.toLocaleString()} <br/> steps
-                    </span>
-                    <span className="milestone-date">
-                      {format(parseISO(milestoneDays.get(milestone.value)), 'do MMM yyyy')}
-                    </span>
-                  </motion.div>
-                ) : (
-                  <FoilPack
-                    milestone={milestone}
-                    onUnwrap={() => handleUnwrap(milestone.value)}
-                  />
-                )}
-              </AnimatePresence>
-            ))}
+          <div className="milestones-section">
+            {milestones.map((milestone) => {
+              const isAchieved = milestone.value <= (milestones[lastAchievedIndex]?.value || 0);
+              const isUnwrapped = unwrappedMilestones.includes(milestone.value);
+              
+              return isAchieved ? (
+                    isUnwrapped ? (
+                      <div className={`milestone-item achieved ${milestone.rarity}`}>
+                        <p className="milestone-value">
+                          <span className="milestone-star">󰖃</span>
+                          {milestone.value.toLocaleString()}
+                        </p>
+                      </div>
+                    ) : (
+                      <FoilPack
+                        milestone={milestone}
+                        onUnwrap={() => handleUnwrap(milestone.value)}
+                      />
+                    )
+                  ) : (
+                    <div className="milestone-item locked">
+                      <p className="milestone-value" aria-hidden="true">
+                        <span className="milestone-star"></span>
+                        {/* Empty placeholder to maintain spacing */}
+                        0
+                      </p>
+                    </div>
+                  );
+            })}
           </div>
-
-          {/* Upcoming Milestones */}
-          {/* <div className="milestones-section upcoming">
-            <h3>Locked ({milestones.length-milestoneDays.size})</h3>
-            {milestones.slice(lastAchievedIndex + 1).map((milestone) => (
-              <div key={milestone.value} className="milestone-item upcoming">
-                <span className="milestone-value">
-                  <span className="milestone-star">☐</span>
-                  {milestone.value.toLocaleString()} steps
-                </span>
-              </div>
-            ))}
-          </div> */}
 
           <div className="badges-section">
             <h3>Emblems</h3>

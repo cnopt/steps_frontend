@@ -5,42 +5,66 @@
     top: 0;
     padding-top: 1px;
     z-index: 100;
-    background-color: #040405;
-    box-shadow: 0 3px 14px #040405;
+    background-color: var(--theme-bg);
+    box-shadow: 0 3px 14px var(--theme-bg);
 }
 
 .achievements-container {
     margin-top: 1rem;
     font-family: sf;
+    width: 97%;
     margin: auto;
     margin-top: 1rem;
     padding-top: 2rem;
 }
 
 .milestone-item {
-    border:2px solid #3b3b3b;
     border-radius: 6px;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
-    width: 8.5rem;
-    display: inline-block;
-    margin-right: 0.75rem;
-    /* border-top-right-radius: 60px; */
+    height: 3.5rem;
+    width: 15rem;
+    transition: all 0.2s ease;
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.milestone-item.locked {
+    opacity: 0.3;
+    background-color: rgba(255,255,255,0.2);
+}
+
+.milestone-item.locked .milestone-value {
+    visibility: hidden;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
 }
 .milestone-star {
     font-family: sf-mono;
     padding-right: 0.7rem;
+    font-size: 1.25em;
 }
 
-.milestones-done-section {
+.milestones-section {
     width: 95vw;
-    height: 10rem;
     overflow-x: scroll;
-    white-space: nowrap;
+    overflow-y: hidden;
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 1.9rem;
+    padding-bottom: 0.5rem;
     &::-webkit-scrollbar {
         display: none;
-      };
+    };
     margin-bottom: 2rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 
@@ -60,13 +84,16 @@
 }
 
 .milestone-value {
-    display: block;
-    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 1.3em;
     border-bottom: 2px solid #2a2a2a;
-    padding-top: 1rem;
-    padding-left: 1rem;
-    padding-bottom: 1.5rem;
+    padding-left: 1.2rem;
     font-family: sf-semi;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 .milestone-date {
     display: block;
@@ -96,7 +123,6 @@
     color:#040405;
 }
 .achieved .milestone-value {
-    padding-top: 1rem;
     border-bottom: 2px solid;
     color:#040405;
     border-radius: 6px;

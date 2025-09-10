@@ -15,7 +15,8 @@
 }
 
 .walks-header {
-    margin-bottom: 1.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 2.5rem;
     text-align: center;
 }
 
@@ -37,7 +38,25 @@
 .walks-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 2.5rem;
+}
+
+.walks-date-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.walks-date-header {
+    margin-bottom: 0.5rem;
+}
+
+.walks-date-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--theme-text-primary);
+    margin: 0;
+    font-family: 'sf-semi', system-ui, -apple-system, sans-serif;
 }
 
 .no-walks {
@@ -58,12 +77,10 @@
 }
 
 .walk-item {
-    background: var(--theme-card-bg);
+    background: rgba(255,255,255,0.12);
     border-radius: 12px;
-    padding: 1rem;
-    border: 1px solid var(--theme-border);
-    transition: all 0.2s ease;
-    cursor: pointer;
+    border: 1px solid grey;
+    transition: all 0.1s ease;
     user-select: none;
 }
 
@@ -71,11 +88,11 @@
     display: flex;
     gap: 1rem;
     align-items: flex-start;
+    flex-direction: column-reverse;
 }
 
 .walk-info {
-    flex: 1;
-    min-width: 0; /* Allows text to shrink */
+    width: 100%;
 }
 
 .walk-thumbnail {
@@ -87,17 +104,15 @@
     border-radius: 8px;
 }
 
-.walk-item:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
 .walk-main-info {
     margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    padding-bottom: 0;
+    text-align: center;
 }
 
 .walk-title {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--theme-text-primary);
     margin: 0 0 0.25rem 0;
@@ -105,7 +120,6 @@
 }
 
 .walk-date {
-    display: none;
     color: var(--theme-text-secondary);
     font-size: 0.9rem;
     margin: 0;
@@ -114,19 +128,18 @@
 
 .walk-meta {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    justify-content: space-between;
+    font-size: 0.75rem;
     color: var(--theme-text-secondary);
     font-family: 'sf-regular', system-ui, -apple-system, sans-serif;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
 }
 
 .walk-time-range,
 .walk-distance,
 .walk-elevation {
     background: var(--theme-bg-secondary);
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
     font-size: 0.8rem;
     white-space: nowrap;
 }
@@ -155,18 +168,11 @@
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
-    .walks-container {
-        padding: 0.75rem;
-        padding-bottom: 6rem;
-    }
     
     .walks-header h1 {
         font-size: 1.75rem;
     }
     
-    .walk-item {
-        padding: 0.875rem;
-    }
     
     .walk-content {
         gap: 0.75rem;

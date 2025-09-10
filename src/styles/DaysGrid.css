@@ -197,10 +197,10 @@ body::-webkit-scrollbar {
 }
 
 .day-details-milestones {
-    margin-top: 0.8rem;
+    margin-top: 0.4rem;
 }
 .day-details-badges {
-    margin-top: 0.8rem;
+    margin-top: 0.4rem;
 }
 
 .hourly-steps-graph {
@@ -208,7 +208,7 @@ body::-webkit-scrollbar {
 }
 
 .add-walk-btn {
-    width: 12rem;
+    width: 10rem;
     height: 2.75rem;
     margin: auto;
     padding: 8px 16px;
@@ -217,4 +217,6 @@ body::-webkit-scrollbar {
     border-radius: 20px;
     font-size: 0.9em;
     font-family: sf-semi;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
 }
