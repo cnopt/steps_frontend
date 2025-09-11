@@ -30,8 +30,8 @@
 }
 
 .milestone-item.locked {
-    opacity: 0.3;
-    background-color: rgba(255,255,255,0.2);
+    /* opacity: 0.3; */
+    background-color: rgba(255,255,255,0.15);
 }
 
 .milestone-item.locked .milestone-value {
@@ -59,6 +59,8 @@
     grid-auto-columns: max-content;
     gap: 1.9rem;
     padding-bottom: 0.5rem;
+    padding-top: 0.9rem;
+    padding-left: 0.95rem;
     &::-webkit-scrollbar {
         display: none;
     };
@@ -177,7 +179,18 @@
     position: relative;
 }
 
-.badge-item.user-selected::after {
+.badge-item.user-selected .badge-img {
+    outline: 2px solid rgba(255,255,255,0.75);
+    outline-offset: 1px;
+}
+
+.milestone-item.user-selected {
+    outline: 2px solid rgba(255,255,255,0.75);
+    outline-offset: 4px;
+    transform: scale(1.02);
+}
+
+/* .badge-item.user-selected::after {
     content: "Selected";
     position: absolute;
     bottom: -5px;
@@ -191,7 +204,7 @@
     font-family: sf-semi;
     white-space: nowrap;
     z-index: 2;
-}
+} */
 
 .badge-img {
     display: inline-block;
@@ -204,10 +217,17 @@
 
 .badge-img img {
     width: 5.9rem;
-    /* border: 7px solid #ddff00;
-    border-radius: 500px;
-    -webkit-border-radius: 500px;
-    -moz-border-radius: 500px; */
+    border-radius: 50%;
+}
+
+/* Style for locked badges */
+.badge-item.locked .badge-img::before {
+    content: "";
+    display: block;
+    width: 5.9rem;
+    height: 5.9rem;
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 50%;
 }
 
 .badge-img.new::before {

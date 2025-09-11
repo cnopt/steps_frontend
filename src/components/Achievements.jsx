@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { useStepsData } from '../hooks/useStepsData';
 import { milestones } from '../helpers/milestones'
 import { useAchievementContext } from '../contexts/AchievementContext';
+import localDataService from '../services/localDataService';
 
 import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +21,9 @@ import VF5ProfileBorder from './VF5ProfileBorder';
 const Achievements = () => {
   const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
-  const [scrollY, setScrollY] = useState(0);
+  const [userSelectedMilestoneValue, setUserSelectedMilestoneValue] = useState(() => {
+    return localDataService.getUserSelectedMilestone();
+  });
   const query = useStepsData();
   const { settings } = useUserSettings();
   const { pendingAchievements, dismissAchievement, dismissAllAchievements } = useAchievementContext();
@@ -35,25 +38,6 @@ const Achievements = () => {
       setUnlockedBadges(newUnlockedBadges);
     }
   }, [query.data, settings.enableWeather]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const profileDesc = document.querySelector('.profile-desc');
-    if (profileDesc) {
-      // Hide profile description when scrolled down 150px or more
-      const shouldHide = scrollY > 50;
-      profileDesc.style.opacity = shouldHide ? '0' : '0.5';
-      profileDesc.style.transition = 'opacity 0.3s ease';
-    }
-  }, [scrollY]);
 
   // Only show loading for steps data
   if (query.isLoading) return <LoadingSpinner/>;
@@ -95,6 +79,19 @@ const Achievements = () => {
   const handleUnwrap = (milestone) => {
     if (!unwrappedMilestones.includes(milestone)) {
       setUnwrappedMilestones([...unwrappedMilestones, milestone]);
+    }
+  };
+
+  const handleMilestoneSelection = (milestone) => {
+    try {
+      // Save selected milestone to localStorage
+      const result = localDataService.setUserSelectedMilestone(milestone);
+      
+      if (result.success) {
+        setUserSelectedMilestoneValue(result.selectedMilestoneValue);
+      }
+    } catch (error) {
+      console.error('Error selecting milestone:', error);
     }
   };
 
@@ -201,7 +198,11 @@ const Achievements = () => {
               
               return isAchieved ? (
                     isUnwrapped ? (
-                      <div className={`milestone-item achieved ${milestone.rarity}`}>
+                      <div 
+                        className={`milestone-item achieved ${milestone.rarity} ${userSelectedMilestoneValue === milestone.value ? 'user-selected' : ''}`}
+                        onClick={() => handleMilestoneSelection(milestone)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <p className="milestone-value">
                           <span className="milestone-star">󰖃</span>
                           {milestone.value.toLocaleString()}

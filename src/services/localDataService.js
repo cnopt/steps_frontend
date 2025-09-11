@@ -590,6 +590,39 @@ class LocalDataService {
       throw error;
     }
   }
+
+  // Get user's selected milestone value
+  getUserSelectedMilestone() {
+    try {
+      const profile = this.getUserProfile();
+      return profile.selectedMilestone || null;
+    } catch (error) {
+      console.error('Error fetching user selected milestone:', error);
+      return null;
+    }
+  }
+
+  // Set user's selected milestone (stores milestone value)
+  setUserSelectedMilestone(milestoneData) {
+    try {
+      const milestoneValue = milestoneData.value;
+      
+      // Update the user profile with the selected milestone value
+      const result = this.updateUserProfile({ 
+        selectedMilestone: milestoneValue,
+        selectedMilestoneUpdatedAt: new Date().toISOString()
+      });
+      
+      return {
+        success: result.success,
+        message: 'Selected milestone updated successfully',
+        selectedMilestoneValue: milestoneValue
+      };
+    } catch (error) {
+      console.error('Error setting user selected milestone:', error);
+      throw error;
+    }
+  }
 }
 
 // Create and export a singleton instance

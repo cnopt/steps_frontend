@@ -598,7 +598,6 @@ const Badges = ({ unlockedBadges }) => {
     return localDataService.getUserSelectedBadge();
   });
   const { settings } = useUserSettings();
-  const lockedBadgeImage = '/locked.png';
 
   const [{ rotateY }, api] = useSpring(() => ({
     rotateY: 0,
@@ -672,7 +671,7 @@ const Badges = ({ unlockedBadges }) => {
                 className={`badge-img ${isNew ? 'new' : ''} ${isWeatherDependent ? 'weather-dependent' : ''}`}
                 whileHover={isUnlocked ? { scale: 1.1 } : { scale: 1.0 }}
               >
-                <img src={isUnlocked ? badge.image : lockedBadgeImage} alt={badge.name} />
+                {isUnlocked && <img src={badge.image} alt={badge.name} />}
                 {isWeatherDependent && (
                   <div className="weather-indicator" title={settings.enableWeather ? 'Weather-dependent badge' : 'Enable weather to unlock'}>
                     ⛅

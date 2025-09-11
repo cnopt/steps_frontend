@@ -3,6 +3,7 @@ import { GiRank2 } from "react-icons/gi";
 import userService from '../services/userService';
 import localDataService from '../services/localDataService';
 import { badges } from '../helpers/badge-list';
+import { milestones } from '../helpers/milestones';
 import '../styles/VF5ProfileBorder.css'
 
 export default function VF5ProfileBorder({ 
@@ -28,6 +29,12 @@ export default function VF5ProfileBorder({
         return userSelectedBadgeId ? badges.find(badge => badge.id === userSelectedBadgeId) : null;
     };
     
+    // Function to get selected milestone data from localStorage (for current user)
+    const getSelectedMilestoneData = () => {
+        const userSelectedMilestoneValue = localDataService.getUserSelectedMilestone();
+        return userSelectedMilestoneValue ? milestones.find(milestone => milestone.value === userSelectedMilestoneValue) : null;
+    };
+    
     // State for selected badge data
     const [selectedBadgeData, setSelectedBadgeData] = useState(() => {
         if (isUsingProps) {
@@ -35,6 +42,14 @@ export default function VF5ProfileBorder({
         } else {
             return getSelectedBadgeData();
         }
+    });
+    
+    // State for selected milestone data (only for non-props usage)
+    const [selectedMilestoneData, setSelectedMilestoneData] = useState(() => {
+        if (!isUsingProps) {
+            return getSelectedMilestoneData();
+        }
+        return null;
     });
     
     // Function to update selected badge data (only for non-props usage)
@@ -45,14 +60,26 @@ export default function VF5ProfileBorder({
         }
     };
     
+    // Function to update selected milestone data (only for non-props usage)
+    const updateSelectedMilestoneData = () => {
+        if (!isUsingProps) {
+            const milestoneData = getSelectedMilestoneData();
+            setSelectedMilestoneData(milestoneData);
+        }
+    };
+    
     // Set up reactive updates (only for non-props usage)
     useEffect(() => {
         if (!isUsingProps) {
             // Initial load
             updateSelectedBadgeData();
+            updateSelectedMilestoneData();
             
             // Listen for storage events and settings updates
-            const handleUpdate = () => updateSelectedBadgeData();
+            const handleUpdate = () => {
+                updateSelectedBadgeData();
+                updateSelectedMilestoneData();
+            };
             
             window.addEventListener('storage', handleUpdate);
             window.addEventListener('settingsUpdate', handleUpdate);
@@ -72,13 +99,13 @@ export default function VF5ProfileBorder({
     }, [propBadgeId, isUsingProps]);
     
     // Create style object for dynamic title image properties
-    const getTitleStyle = (badgeData) => {
-        if (!badgeData?.titleImage) return {};
+    const getTitleStyle = (milestoneData) => {
+        if (!milestoneData?.titleImage) return {};
         
         return {
-            backgroundImage: `url(${badgeData.titleImage})`,
-            backgroundSize: badgeData.titleImageSize || 'cover',
-            backgroundPosition: badgeData.titleImagePos || 'center'
+            backgroundImage: `url(${milestoneData.titleImage})`,
+            backgroundSize: milestoneData.titleImageSize || 'cover',
+            backgroundPosition: milestoneData.titleImagePos || 'center'
         };
     };
 
@@ -93,16 +120,23 @@ export default function VF5ProfileBorder({
 
     return(
         <>
-            <div 
-                className={getSizeClass()}
-                style={getTitleStyle(selectedBadgeData)}
-            >
-                <div className="glare"></div>
-                <p className="username">{username}</p>
+            <div className="profile-border-wrapper">
+                <div 
+                    className={getSizeClass()}
+                    style={getTitleStyle(selectedMilestoneData)}
+                >
+                    <div className="glare"></div>
+                    <p className="username">{username}</p>
+                    {selectedBadgeData && (
+                        <div className={`profile-badge ${size}`}>
+                            <img src={selectedBadgeData.image} alt={selectedBadgeData.name} />
+                        </div>
+                    )}
+                </div>
+                {showDescription && !isUsingProps && (
+                    <p className="profile-desc">This is how you'll show up on the leaderboards</p>
+                )}
             </div>
-            {showDescription && !isUsingProps && (
-                <p className="profile-desc">This is how you'll show up on the leaderboards</p>
-            )}
         </>
     )
 }
