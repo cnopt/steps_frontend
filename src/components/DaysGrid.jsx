@@ -379,6 +379,7 @@ const DaysGrid = () => {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
                         style={{
+                          display:'none',
                           position: 'absolute',
                           top: '50%',
                           left: '50%',
@@ -421,9 +422,16 @@ const DaysGrid = () => {
                           backgroundColor: color,
                           opacity: (day <= 0 || day > daysInMonth) ? 0.2 : 1,
                           outline: selectedDay && dayDate === selectedDay.formatted_date ? '2px solid rgba(255,255,255,0.85)' : 'none',
-                          outlineOffset: selectedDay && dayDate === selectedDay.formatted_date ? '2px' : '0'
+                          outlineOffset: selectedDay && dayDate === selectedDay.formatted_date ? '3px' : '0'
                         }}
-                      />
+                      >
+                        {/* Walk indicator */}
+                        {dayData.walks?.length > 0 && (
+                          <div className="walk-indicator">
+                            󰖃
+                          </div>
+                        )}
+                      </motion.div>
                     ) : (
                       <div 
                         className="day-empty"

@@ -96,6 +96,17 @@ body::-webkit-scrollbar {
     width: 38px;
     height: 38px;
     border-radius: 6px;
+    position: relative;
+}
+
+.walk-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 5px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    font-family: sf-mono;
+    z-index: 3;
 }
 
 .day-empty {

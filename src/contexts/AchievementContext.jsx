@@ -16,6 +16,7 @@ export const useAchievementContext = () => {
 export const AchievementProvider = ({ children }) => {
   const [pendingAchievements, setPendingAchievements] = useLocalStorage('pendingAchievements', []);
   const [lastCheckedDataHash, setLastCheckedDataHash] = useLocalStorage('lastCheckedDataHash', '');
+  const [dismissedAchievements, setDismissedAchievements] = useLocalStorage('dismissedAchievements', []);
   
   const { data: stepsData, isSuccess: stepsDataLoaded } = useStepsData();
   const { checkForNewAchievements } = useAchievementChecker();
@@ -43,12 +44,14 @@ export const AchievementProvider = ({ children }) => {
           if (newAchievements && newAchievements.length > 0) {
             console.log('[ACHIEVEMENT CONTEXT] Found new achievements:', newAchievements);
             
-            // Add to pending achievements (avoiding duplicates)
+            // Add to pending achievements (avoiding duplicates and dismissed achievements)
             setPendingAchievements(prev => {
               const existingIds = prev.map(a => `${a.type}-${a.id || a.value}`);
-              const newOnes = newAchievements.filter(a => 
-                !existingIds.includes(`${a.type}-${a.id || a.value}`)
-              );
+              const newOnes = newAchievements.filter(a => {
+                const achievementId = `${a.type}-${a.id || a.value}`;
+                return !existingIds.includes(achievementId) && 
+                       !dismissedAchievements.includes(achievementId);
+              });
               return [...prev, ...newOnes];
             });
           }
@@ -64,15 +67,36 @@ export const AchievementProvider = ({ children }) => {
       const timeoutId = setTimeout(checkAchievements, 1000);
       return () => clearTimeout(timeoutId);
     }
-  }, [stepsData, stepsDataLoaded, lastCheckedDataHash, checkForNewAchievements, setLastCheckedDataHash, setPendingAchievements, createDataHash]);
+  }, [stepsData, stepsDataLoaded, lastCheckedDataHash, checkForNewAchievements, setLastCheckedDataHash, setPendingAchievements, createDataHash, dismissedAchievements]);
 
   const dismissAchievement = useCallback((achievementIndex) => {
+    // Get the achievement being dismissed to track it
+    const achievementToDismiss = pendingAchievements[achievementIndex];
+    if (achievementToDismiss) {
+      const achievementId = `${achievementToDismiss.type}-${achievementToDismiss.id || achievementToDismiss.value}`;
+      
+      // Add to dismissed achievements list
+      setDismissedAchievements(prev => 
+        prev.includes(achievementId) ? prev : [...prev, achievementId]
+      );
+    }
+    
+    // Remove from pending achievements
     setPendingAchievements(prev => prev.filter((_, index) => index !== achievementIndex));
-  }, [setPendingAchievements]);
+  }, [pendingAchievements, setPendingAchievements, setDismissedAchievements]);
 
   const dismissAllAchievements = useCallback(() => {
+    // Track all achievements being dismissed
+    pendingAchievements.forEach(achievement => {
+      const achievementId = `${achievement.type}-${achievement.id || achievement.value}`;
+      setDismissedAchievements(prev => 
+        prev.includes(achievementId) ? prev : [...prev, achievementId]
+      );
+    });
+    
+    // Clear all pending achievements
     setPendingAchievements([]);
-  }, [setPendingAchievements]);
+  }, [pendingAchievements, setPendingAchievements, setDismissedAchievements]);
 
   const value = {
     pendingAchievements,

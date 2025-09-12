@@ -122,15 +122,10 @@ const Achievements = () => {
               </div>
               
               <div className="pending-achievements-list">
-                <AnimatePresence>
                   {pendingAchievements.map((achievement, index) => (
-                    <motion.div
+                    <div
                       key={`${achievement.type}-${achievement.id || achievement.value}-${index}`}
                       className={`pending-achievement-item ${achievement.type}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
                     >
                       <div className="achievement-icon">
                         {achievement.image ? (
@@ -167,9 +162,8 @@ const Achievements = () => {
                           ✕
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
-                </AnimatePresence>
               </div>
             </div>
           )}

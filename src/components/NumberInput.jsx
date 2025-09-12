@@ -6,7 +6,6 @@ import localDataService from '../services/localDataService';
 
 import '../styles/NumberInput.css'
 import XPBar from "./XPBar";
-import AchievementNotification from './AchievementNotification';
 import PageTransition from './PageTransition';
 
 
@@ -21,12 +20,7 @@ const NumberInput = () => {
   const queryClient = useQueryClient();
   const { data: stepsData } = useStepsData();
   const { addStepsData } = useAddStepsData();
-  const { 
-    checkForNewAchievements, 
-    achievementNotifications, 
-    clearNotifications, 
-    dismissNotification 
-  } = useAchievementChecker();
+  const { checkForNewAchievements } = useAchievementChecker();
 
   useEffect(() => {
     const onboardingStatus = localDataService.getOnboardingStatus();
@@ -208,13 +202,6 @@ const NumberInput = () => {
           )}
         </div>
         
-        {/* Achievement Notifications */}
-        <AchievementNotification
-          achievements={achievementNotifications}
-          onDismiss={dismissNotification}
-          onClearAll={clearNotifications}
-          autoDismissTime={3000}
-        />
     </>
   );
 };

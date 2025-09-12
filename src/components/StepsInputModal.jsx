@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from "@tanstack/react-query";
 import { useAddStepsData } from '../hooks/useStepsData';
 import { useAchievementChecker } from '../hooks/useAchievementChecker';
-import AchievementNotification from './AchievementNotification';
 import '../styles/NumberInput.css'; // Reuse existing styles
 
 const StepsInputModal = ({ isOpen, selectedDate, onSuccess, onClose }) => {
@@ -11,12 +10,7 @@ const StepsInputModal = ({ isOpen, selectedDate, onSuccess, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const { addStepsData } = useAddStepsData();
-  const { 
-    checkForNewAchievements, 
-    achievementNotifications, 
-    clearNotifications, 
-    dismissNotification 
-  } = useAchievementChecker();
+  const { checkForNewAchievements } = useAchievementChecker();
 
   // Reset input when modal opens/closes
   useEffect(() => {
@@ -267,13 +261,6 @@ const StepsInputModal = ({ isOpen, selectedDate, onSuccess, onClose }) => {
         </>
       )}
       
-      {/* Achievement Notifications */}
-      <AchievementNotification
-        achievements={achievementNotifications}
-        onDismiss={dismissNotification}
-        onClearAll={clearNotifications}
-        autoDismissTime={1200000}
-      />
     </AnimatePresence>
   );
 };
