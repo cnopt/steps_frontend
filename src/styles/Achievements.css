@@ -12,10 +12,14 @@
 .achievements-container {
     margin-top: 1rem;
     font-family: sf;
-    width: 97%;
     margin: auto;
     margin-top: 1rem;
     padding-top: 2rem;
+    overflow-x: hidden;
+}
+
+.achievements-container h3, .badges-section h3 {
+  padding-left: 0.7rem;
 }
 
 .milestone-item {
@@ -60,7 +64,7 @@
     gap: 1.9rem;
     padding-bottom: 0.5rem;
     padding-top: 0.9rem;
-    padding-left: 0.95rem;
+    padding-left: 1.5rem;
     &::-webkit-scrollbar {
         display: none;
     };
@@ -259,9 +263,6 @@
     background-color: black;
     border-radius: 500px;
 }
-.badge-img.new {
-    
-}
 
 .weather-indicator {
     position: absolute;
@@ -420,7 +421,8 @@
 
 /* Pending Achievements Section */
 .pending-achievements-section {
-
+  width: 89%;
+  margin: auto;
 }
 
 .pending-achievements-header {
@@ -453,8 +455,25 @@
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 48px;
   transition: all 0.2s ease;
+  animation: goldenPulse 3s ease-in-out infinite;
+}
+
+@keyframes goldenPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 215, 0, 0.1),
+      0 0 40px rgba(255, 215, 0, 0.05),
+      0 0 60px rgba(255, 215, 0, 0.02);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(255, 215, 0, 0.25),
+      0 0 60px rgba(255, 215, 0, 0.15),
+      0 0 85px rgba(255, 215, 0, 0.08),
+      0 0 105px rgba(255, 215, 0, 0.04);
+  }
 }
 
 
@@ -475,7 +494,20 @@
 }
 
 .achievement-emoji {
-  font-size: 2rem;
+  font-size: 1.5em;
+  font-family: sf-mono;
+}
+
+.achievement-emoji.common {
+  color: silver;
+}
+
+.achievement-emoji.uncommon {
+  color: gold;
+}
+
+.achievement-emoji.rare {
+  color: blueviolet;
 }
 
 .achievement-details {
@@ -551,7 +583,7 @@
   }
   
   .pending-achievement-item {
-    padding: 0.75rem;
+    padding: 1rem;
   }
   
   

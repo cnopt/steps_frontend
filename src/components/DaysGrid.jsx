@@ -506,7 +506,7 @@ const DaysGrid = () => {
                       <p className='day-details-milestone'>
                         <span>★</span>
                         <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity), fontSize:'0.8em' }}>
-                          {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps milestone
+                          {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps
                         </span>
                       </p>
                     </div>

@@ -6,7 +6,6 @@ import { useUserSettings } from './useUserSettings';
 
 export function useAchievementChecker() {
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
-  const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
   const [dismissedMilestoneNotifications, setDismissedMilestoneNotifications] = useLocalStorage('dismissedMilestoneNotifications', []);
   const [achievementNotifications, setAchievementNotifications] = useState([]);
   const { settings } = useUserSettings();
@@ -26,13 +25,12 @@ export function useAchievementChecker() {
         const milestone = milestones[currentMilestoneIndex];
         milestoneDays.set(milestone.value, dayData.formatted_date);
         
-        // Check if this milestone is newly unlocked and notification hasn't been dismissed
-        if (!unwrappedMilestones.includes(milestone.value) && 
-            !dismissedMilestoneNotifications.includes(milestone.value)) {
+        // Check if this milestone notification hasn't been dismissed
+        if (!dismissedMilestoneNotifications.includes(milestone.value)) {
           newMilestones.push({
             type: 'milestone',
             value: milestone.value,
-            name: `${milestone.value.toLocaleString()} Steps Milestone`,
+            name: `${milestone.value.toLocaleString()} Steps`,
             rarity: milestone.rarity,
             unlockDate: dayData.formatted_date
           });
@@ -43,7 +41,7 @@ export function useAchievementChecker() {
     }
 
     return { milestoneDays, newMilestones };
-  }, [unwrappedMilestones, dismissedMilestoneNotifications]);
+  }, [dismissedMilestoneNotifications]);
 
   // Main function to check for new achievements
   const checkForNewAchievements = useCallback(async (stepsData) => {

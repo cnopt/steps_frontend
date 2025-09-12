@@ -5,7 +5,6 @@ import { milestones } from '../helpers/milestones'
 import { useAchievementContext } from '../contexts/AchievementContext';
 import localDataService from '../services/localDataService';
 
-import FoilPack from './FoilPack';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import XPBar from './XPBar';
@@ -19,7 +18,6 @@ import GlowingButton from './GlowingButton';
 import VF5ProfileBorder from './VF5ProfileBorder';
 
 const Achievements = () => {
-  const [unwrappedMilestones, setUnwrappedMilestones] = useLocalStorage('unwrappedMilestones', []);
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
   const [userSelectedMilestoneValue, setUserSelectedMilestoneValue] = useState(() => {
     return localDataService.getUserSelectedMilestone();
@@ -76,11 +74,6 @@ const Achievements = () => {
     return format(date, 'do MMMM yyyy');
   };
 
-  const handleUnwrap = (milestone) => {
-    if (!unwrappedMilestones.includes(milestone)) {
-      setUnwrappedMilestones([...unwrappedMilestones, milestone]);
-    }
-  };
 
   const handleMilestoneSelection = (milestone) => {
     try {
@@ -98,7 +91,7 @@ const Achievements = () => {
   const getAchievementIcon = (type) => {
     switch (type) {
       case 'badge': return '🏆';
-      case 'milestone': return '⭐';
+      case 'milestone': return '󰖃';
       default: return '🎉';
     }
   };
@@ -147,7 +140,7 @@ const Achievements = () => {
                             className="achievement-image"
                           />
                         ) : (
-                          <span className="achievement-emoji">
+                          <span className={`achievement-emoji ${achievement.rarity || ''}`}>
                             {getAchievementIcon(achievement.type)}
                           </span>
                         )}
@@ -166,14 +159,6 @@ const Achievements = () => {
                       </div>
 
                       <div className="achievement-actions">
-                        {achievement.type === 'milestone' && (
-                          <div 
-                            className="achievement-rarity"
-                            style={{ color: getRarityColor(achievement.rarity) }}
-                          >
-                            {achievement.rarity}
-                          </div>
-                        )}
                         <button 
                           className="dismiss-btn"
                           onClick={() => dismissAchievement(index)}
@@ -194,35 +179,27 @@ const Achievements = () => {
           <div className="milestones-section">
             {milestones.map((milestone) => {
               const isAchieved = milestone.value <= (milestones[lastAchievedIndex]?.value || 0);
-              const isUnwrapped = unwrappedMilestones.includes(milestone.value);
               
               return isAchieved ? (
-                    isUnwrapped ? (
-                      <div 
-                        className={`milestone-item achieved ${milestone.rarity} ${userSelectedMilestoneValue === milestone.value ? 'user-selected' : ''}`}
-                        onClick={() => handleMilestoneSelection(milestone)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <p className="milestone-value">
-                          <span className="milestone-star">󰖃</span>
-                          {milestone.value.toLocaleString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <FoilPack
-                        milestone={milestone}
-                        onUnwrap={() => handleUnwrap(milestone.value)}
-                      />
-                    )
-                  ) : (
-                    <div className="milestone-item locked">
-                      <p className="milestone-value" aria-hidden="true">
-                        <span className="milestone-star"></span>
-                        {/* Empty placeholder to maintain spacing */}
-                        0
-                      </p>
-                    </div>
-                  );
+                <div 
+                  className={`milestone-item achieved ${milestone.rarity} ${userSelectedMilestoneValue === milestone.value ? 'user-selected' : ''}`}
+                  onClick={() => handleMilestoneSelection(milestone)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <p className="milestone-value">
+                    <span className="milestone-star">󰖃</span>
+                    {milestone.value.toLocaleString()}
+                  </p>
+                </div>
+              ) : (
+                <div className="milestone-item locked">
+                  <p className="milestone-value" aria-hidden="true">
+                    <span className="milestone-star"></span>
+                    {/* Empty placeholder to maintain spacing */}
+                    0
+                  </p>
+                </div>
+              );
             })}
           </div>
 

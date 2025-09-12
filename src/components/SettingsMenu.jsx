@@ -373,7 +373,6 @@ const SettingsMenu = () => {
       // include additional data that might not be in localDataService
       const additionalData = {
         unlockedBadges: JSON.parse(localStorage.getItem('unlockedBadges') || '[]'),
-        unwrappedMilestones: JSON.parse(localStorage.getItem('unwrappedMilestones') || '[]'),
         viewedBadges: JSON.parse(localStorage.getItem('viewedBadges') || '[]'),
         weatherData: JSON.parse(localStorage.getItem('weatherData') || 'null')
       };
@@ -524,12 +523,6 @@ const SettingsMenu = () => {
                     const currentBadges = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
                     const mergedBadges = [...new Set([...currentBadges, ...additional.unlockedBadges])];
                     localStorage.setItem('unlockedBadges', JSON.stringify(mergedBadges));
-                  }
-                  
-                  if (additional.unwrappedMilestones && Array.isArray(additional.unwrappedMilestones)) {
-                    const currentMilestones = JSON.parse(localStorage.getItem('unwrappedMilestones') || '[]');
-                    const mergedMilestones = [...new Set([...currentMilestones, ...additional.unwrappedMilestones])];
-                    localStorage.setItem('unwrappedMilestones', JSON.stringify(mergedMilestones));
                   }
                   
                   if (additional.viewedBadges && Array.isArray(additional.viewedBadges)) {
