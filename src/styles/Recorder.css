@@ -1,12 +1,21 @@
-/* .recorder {
+.recorder {
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
 .recorder__map {
+  height: 45vh;
+  position: relative; /* Required for absolute positioned overlays */
+}
+
+.recorder__lower {
   flex: 1;
-} */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+}
 @font-face {
     font-family: sf;
     src: url('../assets/sf-regular.otf');
@@ -21,18 +30,50 @@
 }
 
 .mapboxgl-map {
-    height: 50vh;
+    height: 45vh;
 }
 .mapboxgl-canvas-container {
-  height: 50vh;
+  height: 45vh;
 }
 .mapboxgl-canvas-container canvas {
-    height: 50vh;
+    height: 45vh;
+}
+
+/* Black overlay that fades away once the map is fully ready */
+.map-fade-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 2;
+    opacity: 1;
+    transition: opacity 200ms ease-in-out;
+}
+
+.map-fade-overlay.is-hidden {
+    opacity: 0;
+}
+
+/* Centered spinner overlay above fade overlay */
+.map-loading-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Disabled button styles */
+.recorder__button:disabled {
+    opacity: 0.3;
+    pointer-events: none;
 }
 
 .recorder__info {
-  
+  margin-top: 0.5rem;
 }
+
 .recorder__info span {
   font-family: sf;
   font-size: 0.8em;
@@ -89,6 +130,7 @@
   width: 100%; */
   margin-top: 0.5rem;
   justify-content: center;
+  gap: 9px;
 }
 
 .column {
@@ -102,10 +144,11 @@
 
 .recorder__controls {
   /* padding: 10px; */
-  display: flex;
+  /* display: flex; */
   gap: 10px;
   justify-content: center;
-  margin-top: 2rem;
+  height: 13rem;
+  /* margin-top: 2rem; */
 }
 .recorder__controls span {
   font-family: sf-mono;
@@ -129,7 +172,8 @@
 }
 
 .start-button-div {
-
+  text-align: center;
+  margin-top: 3rem;
 }
 .start-button-div p {
   font-family: sf;
@@ -167,12 +211,21 @@
   border-top-left-radius: 0;
 }
 
+.recorder__button--poi {
+  width: 8rem;
+  background-color: #23043d;
+  color: #c084fc;
+  font-size: 1.1em;
+  height: 2.75rem;
+  margin-bottom: 0.2rem;
+}
+
 
 .cancel-div {
   width: 100%;
   display: flex;
   justify-content: left;
-  margin-top: 1.75rem;
+  margin-top: 1.85rem;
 }
 .recorder__button--cancel {
   border: 1px solid #dd5240;
@@ -185,6 +238,61 @@
   border-bottom-left-radius: 0;
   height: 3rem;
   border-left: none;
+}
+
+/* Map style control styles */
+.map-style-control {
+  position: absolute;
+  top: 45px;
+  right: 9px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 1);
+  border-radius: 6px;
+  height: 1.25rem;
+  padding: 0.5rem .15rem .4rem 0rem;
+}
+
+.map-style-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-family: 'sf';
+  font-size: 1em;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+  display: block;
+  width: 100%;
+  text-align: center;
+  height: 2.25rem;
+}
+
+.map-style-button.active {
+  background: #037bfc;
+}
+
+.map-style-toggle {
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  font-family: 'sf-mono';
+  font-size: 1.6em;
+  height: 1rem;
+  background: none;
+}
+
+.map-style-options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  overflow: hidden;
+  width: 5rem;
 }
 
 

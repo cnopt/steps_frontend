@@ -457,37 +457,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 48px;
   transition: all 0.2s ease;
-  animation: goldenPulse 3s ease-in-out infinite, fadeUpIn 0.4s ease-out;
+  animation: goldenPulse 3s ease-in-out infinite, fadeUpIn 0.3s ease-out;
 }
 
-/* Stagger the animation for each achievement item */
-.pending-achievement-item:nth-child(1) {
-  animation-delay: 0s, 0s;
-}
-
-.pending-achievement-item:nth-child(2) {
-  animation-delay: 0s, 0.1s;
-}
-
-.pending-achievement-item:nth-child(3) {
-  animation-delay: 0s, 0.2s;
-}
-
-.pending-achievement-item:nth-child(4) {
-  animation-delay: 0s, 0.3s;
-}
-
-.pending-achievement-item:nth-child(5) {
-  animation-delay: 0s, 0.4s;
-}
-
-.pending-achievement-item:nth-child(6) {
-  animation-delay: 0s, 0.5s;
-}
-
-.pending-achievement-item:nth-child(n+7) {
-  animation-delay: 0s, 0.6s;
-}
 
 @keyframes fadeUpIn {
   0% {

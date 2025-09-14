@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/WalkViewDetails.css';
 
-const StatsPanel = ({ track, points }) => {
+const StatsPanel = ({ track, points, walkMetadata }) => {
   // Calculate duration
   const startTime = new Date(points[0].time);
   const endTime = new Date(points[points.length - 1].time);
@@ -24,7 +24,11 @@ const StatsPanel = ({ track, points }) => {
     maxElevation = Math.max(maxElevation, points[i].ele);
   }
 
-  const distance = track.distance.total;
+  // Use stored distance from walk metadata (already in miles) if available,
+  // otherwise convert from GPX parser distance (meters to miles)
+  const distance = walkMetadata?.total_distance !== undefined 
+    ? walkMetadata.total_distance 
+    : (track.distance.total / 1609.34); // Convert meters to miles
 
   return (
     <div className="walk-details-container">
@@ -32,7 +36,7 @@ const StatsPanel = ({ track, points }) => {
         <div className='column'>
           <div className="walk-stat">
             <span className="stat-label">Distance</span>
-            <p className="stat-value">{(distance / 1000).toFixed(2)}<span>mi</span></p>
+            <p className="stat-value">{distance.toFixed(1)}<span>mi</span></p>
           </div>
         </div>
         <div className='column'>
@@ -72,17 +76,79 @@ const PhotosPanel = () => {
   );
 };
 
-const SpotsPanel = () => {
+const SpotsPanel = ({ waypoints }) => {
+  if (!waypoints || waypoints.length === 0) {
+    return (
+      <div className="walk-details-container">
+        <div className="row" style={{ justifyContent: 'center', marginTop: '2rem' }}>
+          <p style={{ opacity: 0.6, fontFamily: 'sf' }}>No spots marked yet</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getPoiIcon = (type) => {
+    switch (type) {
+      case 'plant':
+        return '🌿';
+      case 'bug':
+        return '🐛';
+      case 'view':
+        return '🏞️';
+      default:
+        return '📍';
+    }
+  };
+
+  const getPoiLabel = (type) => {
+    switch (type) {
+      case 'plant':
+        return 'Plant';
+      case 'bug':
+        return 'Bug';
+      case 'view':
+        return 'Nice View';
+      default:
+        return 'Point of Interest';
+    }
+  };
+
   return (
     <div className="walk-details-container">
-      <div className="row" style={{ justifyContent: 'center', marginTop: '2rem' }}>
-        <p style={{ opacity: 0.6, fontFamily: 'sf' }}>No spots marked yet</p>
+      <div className="spots-list">
+        {waypoints.map((waypoint, index) => (
+          <div key={index} className="spot-item">
+            <div className="spot-icon">
+              <span>{getPoiIcon(waypoint.type)}</span>
+            </div>
+            <div className="spot-details">
+              <div className="spot-title">{getPoiLabel(waypoint.type)}</div>
+              {waypoint.description && (
+                <div className="spot-description">{waypoint.description}</div>
+              )}
+              {waypoint.time && (
+                <div className="spot-time">
+                  {new Date(waypoint.time).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </div>
+              )}
+              <div className="spot-location">
+                {waypoint.lat.toFixed(6)}, {waypoint.lng.toFixed(6)}
+                {waypoint.ele && (
+                  <span className="spot-elevation"> • {Math.round(waypoint.ele)}m</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default function WalkViewDetails({ gpxData }) {
+export default function WalkViewDetails({ gpxData, walkMetadata, waypoints }) {
   const [activePanel, setActivePanel] = useState('stats');
 
   if (!gpxData || !gpxData.tracks || gpxData.tracks.length === 0) {
@@ -115,9 +181,9 @@ export default function WalkViewDetails({ gpxData }) {
             <span>{activePanel === 'spots' ? '󰍎' : '󰟙'}</span>
           </p>
         </div>
-        {activePanel === 'stats' && <StatsPanel track={track} points={points} />}
+        {activePanel === 'stats' && <StatsPanel track={track} points={points} walkMetadata={walkMetadata} />}
         {activePanel === 'photos' && <PhotosPanel />}
-        {activePanel === 'spots' && <SpotsPanel />}
+        {activePanel === 'spots' && <SpotsPanel waypoints={waypoints} />}
       </div>
     </>
   );

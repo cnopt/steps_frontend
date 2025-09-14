@@ -1,0 +1,126 @@
+@font-face {
+    font-family: sf;
+    src: url('../assets/sf-regular.otf');
+}
+
+.poi-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.poi-dialog {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 0;
+  width: 90%;
+  max-width: 400px;
+  color: white;
+  font-family: sf;
+}
+
+.poi-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+.poi-dialog__header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: normal;
+}
+
+.poi-dialog__close {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poi-dialog__close:hover {
+  color: #999;
+}
+
+.poi-dialog__content {
+  padding: 0 20px 20px 20px;
+}
+
+.poi-dialog__content p {
+  margin: 0 0 20px 0;
+  text-align: center;
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+.poi-options {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.poi-option {
+  background: #2a2a2a;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 20px 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  font-family: sf;
+}
+
+.poi-option:hover {
+  border-color: #555;
+  background: #333;
+}
+
+.poi-option:active {
+  transform: scale(0.95);
+}
+
+.poi-option--plant:hover {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.poi-option--bug:hover {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.poi-option--view:hover {
+  border-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.1);
+}
+
+.poi-icon {
+  font-size: 24px;
+}
+
+.poi-label {
+  color: white;
+  font-size: 0.8em;
+  text-align: center;
+}

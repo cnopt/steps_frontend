@@ -9,9 +9,19 @@ import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../styles/Recorder.css';
 import ProgressDialog from './ProgressDialog';
+import POIDialog from './POIDialog';
+import StopRecordingDialogue from './StopRecordingDialogue';
+import LoadingSpinner from './LoadingSpinner';
  
 
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
+
+const MAP_STYLES = [
+  { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
+  { id: 'satellite-streets-v12', name: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  { id: 'dark-v11', name: 'Dark', url: 'mapbox://styles/mapbox/dark-v11' },
+  { id: 'light-v11', name: 'Light', url: 'mapbox://styles/mapbox/light-v11' },
+];
 
 function Recorder() {
   const location = useLocation();
@@ -43,6 +53,10 @@ function Recorder() {
 
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [initialCoords, setInitialCoords] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [hasFadedIn, setHasFadedIn] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(true);
+  const fadeTimeoutRef = useRef(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -62,6 +76,18 @@ function Recorder() {
   // Progress dialog state
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [progressStages, setProgressStages] = useState([]);
+
+  // POI dialog state
+  const [showPOIDialog, setShowPOIDialog] = useState(false);
+  const [pendingPOICoords, setPendingPOICoords] = useState(null);
+  const [recordedPOIs, setRecordedPOIs] = useState([]);
+
+  // Map style control state
+  const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[2]); // Default to dark style
+  const [showStyleOptions, setShowStyleOptions] = useState(false);
+
+  // Stop recording dialog state
+  const [showStopDialog, setShowStopDialog] = useState(false);
 
   // Progress dialog helper functions
   const initializeProgressStages = () => {
@@ -111,6 +137,95 @@ function Recorder() {
   const handleProgressDialogClose = () => {
     setShowProgressDialog(false);
     navigate(-1);
+  };
+
+  // POI handling functions
+  const handlePOIButtonPress = () => {
+    // Capture current coordinates when POI button is pressed
+    const currentCoords = latestCoordsRef.current;
+    if (!currentCoords) {
+      pushLog('No GPS location available for POI');
+      return;
+    }
+    
+    const currentTime = new Date().toISOString();
+    
+    setPendingPOICoords({
+      lat: currentCoords.lat,
+      lng: currentCoords.lng,
+      ele: currentCoords.ele,
+      timestamp: currentTime
+    });
+    setShowPOIDialog(true);
+    pushLog(`POI location captured at ${new Date(currentTime).toLocaleTimeString()}, select type...`);
+  };
+
+  const handlePOISelect = (poiType) => {
+    if (!pendingPOICoords) return;
+    
+    const newPOI = {
+      ...pendingPOICoords,
+      type: poiType,
+      id: Date.now() // Simple ID generation
+    };
+    
+    setRecordedPOIs(prev => [...prev, newPOI]);
+    setPendingPOICoords(null);
+    pushLog(`${poiType.charAt(0).toUpperCase() + poiType.slice(1)} POI recorded`);
+  };
+
+  const handlePOIDialogClose = () => {
+    setShowPOIDialog(false);
+    setPendingPOICoords(null);
+  };
+
+  // Map style change handler
+  const handleStyleChange = (style) => {
+    setCurrentStyle(style);
+    if (mapRef.current) {
+      // Store current coordinates before style change
+      const currentCoords = pathCoordsRef.current.slice();
+      
+      mapRef.current.setStyle(style.url);
+      
+      // Re-add path source and layer after style loads
+      mapRef.current.once('style.load', () => {
+        // Ensure we're working with the latest coordinates
+        pathCoordsRef.current = currentCoords;
+        
+        // Force recreation of layer, then source (correct order: remove layer before source)
+        if (mapRef.current.getLayer(PATH_LAYER_ID)) {
+          mapRef.current.removeLayer(PATH_LAYER_ID);
+        }
+        if (mapRef.current.getSource(PATH_SOURCE_ID)) {
+          mapRef.current.removeSource(PATH_SOURCE_ID);
+        }
+        
+        mapRef.current.addSource(PATH_SOURCE_ID, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: currentCoords },
+            properties: {}
+          }
+        });
+        
+        mapRef.current.addLayer({
+          id: PATH_LAYER_ID,
+          type: 'line',
+          source: PATH_SOURCE_ID,
+          layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'visible' },
+          paint: {
+            'line-color': '#2da1ff',
+            'line-width': 4,
+            'line-opacity': 0.9
+          }
+        });
+        
+        // Ensure the latest path data is rendered
+        updatePathSourceData();
+      });
+    }
   };
 
   // Calculate distance between two points using Haversine formula
@@ -521,6 +636,9 @@ function Recorder() {
      gpxSegmentsRef.current = []; // All segments
      latestCoordsRef.current = null;
      
+     // Clear POIs
+     setRecordedPOIs([]);
+     
      // Clear any existing path from the map
      const map = mapRef.current;
      if (map) {
@@ -592,6 +710,66 @@ function Recorder() {
     if (ENABLE_CONTROL_NOTIFICATION) {
       scheduleControlNotification('recording');
     }
+  };
+
+  const handleStopButtonPress = () => {
+    setShowStopDialog(true);
+  };
+
+  const handleDiscardWalk = () => {
+    // Perform the same actions as the old cancel button
+    setIsRecording(false);
+    setIsPaused(false);
+    // Clear all timers and time tracking
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    recordingStartTimeRef.current = null;
+    totalPausedTimeRef.current = 0;
+    lastPauseTimeRef.current = null;
+    setElapsedTime(0);
+    setCurrentElevation(null);
+    stopPositionWatcher();
+    stopBackgroundWatcher();
+    if (ENABLE_CONTROL_NOTIFICATION) {
+      cancelControlNotification();
+    }
+    
+    // Clear all coordinate references
+    latestCoordsRef.current = null;
+    pathCoordsRef.current = [];
+    gpxPointsRef.current = [];
+    gpxSegmentsRef.current = [];
+    
+    // Clear the path from the map if it exists
+    const map = mapRef.current;
+    if (map) {
+      const source = map.getSource(PATH_SOURCE_ID);
+      if (source) {
+        source.setData({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: [] },
+          properties: {}
+        });
+      }
+    }
+    
+    // Clear POIs
+    setRecordedPOIs([]);
+    
+    pushLog('Walk discarded');
+    setShowStopDialog(false);
+    navigate(-1);
+  };
+
+  const handleFinishWalk = () => {
+    setShowStopDialog(false);
+    stopRecording();
+  };
+
+  const handleStopDialogClose = () => {
+    setShowStopDialog(false);
   };
 
      const stopRecording = async () => {
@@ -692,6 +870,36 @@ function Recorder() {
           'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
           'xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 https://www.topografix.com/GPX/1/1/gpx.xsd'
         });
+
+      // Add waypoints (POIs) before track elements
+      for (const poi of recordedPOIs) {
+        const wpt = doc.ele('wpt', { 
+          lat: String(poi.lat), 
+          lon: String(poi.lng) 
+        });
+        
+        if (typeof poi.ele === 'number') {
+          wpt.ele('ele').txt(String(poi.ele)).up();
+        }
+        
+        // Add timestamp when POI was recorded
+        if (poi.timestamp) {
+          wpt.ele('time').txt(poi.timestamp).up();
+        }
+        
+        // Add comment and description based on POI type
+        const poiDescriptions = {
+          plant: { cmt: 'Interesting plant spotted', desc: 'Found an interesting plant species during the walk' },
+          bug: { cmt: 'Bug observation', desc: 'Observed interesting insect or small creature' },
+          view: { cmt: 'Scenic viewpoint', desc: 'Beautiful view worth remembering' }
+        };
+        
+        const poiInfo = poiDescriptions[poi.type] || { cmt: 'Point of interest', desc: 'Interesting location during walk' };
+        wpt.ele('cmt').txt(poiInfo.cmt).up();
+        wpt.ele('desc').txt(poiInfo.desc).up();
+        
+        wpt.up();
+      }
 
       const trk = doc.ele('trk');
       const segments = gpxSegmentsRef.current.filter(segment => Array.isArray(segment) && segment.length > 0);
@@ -951,7 +1159,7 @@ function Recorder() {
         // Store current coordinates before style change
         const currentCoords = pathCoordsRef.current.slice();
         
-        map.setStyle('mapbox://styles/mapbox/dark-v11');
+        map.setStyle(currentStyle.url);
         
         // Re-add path source and layer after style loads
         map.once('style.load', () => {
@@ -1083,7 +1291,7 @@ function Recorder() {
     // Create map with appropriate style based on connection status
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: isOnline ? 'mapbox://styles/mapbox/dark-v11' : {
+      style: isOnline ? currentStyle.url : {
         version: 8,
         sources: {
           [PATH_SOURCE_ID]: {
@@ -1148,16 +1356,41 @@ function Recorder() {
       console.error('[GeolocateControl] error', err);
     });
 
-    // immediate location fetch to see the blue dot
-    if (mapRef.current && typeof mapRef.current.once === 'function') {
-      mapRef.current.once('load', () => geolocate.trigger());
-    } else {
+    // Handle map loading and fade in
+    mapRef.current.on('load', () => {
+      // Trigger geolocate
       geolocate.trigger();
-    }
+      
+      // Handle fade in when map is fully loaded
+      const handleIdle = () => {
+        setHasFadedIn(true);
+        if (fadeTimeoutRef.current) {
+          clearTimeout(fadeTimeoutRef.current);
+        }
+        fadeTimeoutRef.current = setTimeout(() => {
+          setShowSpinner(false);
+          setMapReady(true);
+        }, 200);
+      };
+
+      if (mapRef.current && typeof mapRef.current.once === 'function') {
+        mapRef.current.once('idle', handleIdle);
+      } else if (mapRef.current) {
+        // Fallback: listen then remove listener
+        const onIdle = () => {
+          handleIdle();
+          mapRef.current && mapRef.current.off('idle', onIdle);
+        };
+        mapRef.current.on('idle', onIdle);
+      }
+    });
 
     return () => {
       window.removeEventListener('online', handleOnlineStatus);
       window.removeEventListener('offline', handleOfflineStatus);
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
       mapRef.current && mapRef.current.remove();
     };
   }, [initialCoords]);
@@ -1204,8 +1437,44 @@ function Recorder() {
 
   return (
     <div className="recorder">
-      <div ref={mapContainer} className="recorder__map" />
-      <div className='recorder__info'>
+      <div ref={mapContainer} className="recorder__map">
+        {showSpinner && (
+          <div className="map-loading-spinner">
+            <LoadingSpinner />
+          </div>
+        )}
+        <div className={`map-fade-overlay ${hasFadedIn ? 'is-hidden' : ''}`} />
+        
+        {mapReady && (
+          <div className="map-style-control">
+          <button 
+            className="map-style-toggle"
+            onClick={() => setShowStyleOptions(!showStyleOptions)}
+          >
+            󰌨
+          </button>
+          
+          {showStyleOptions && (
+            <div className="map-style-options">
+              {MAP_STYLES.map(style => (
+                <button
+                  key={style.id}
+                  className={`map-style-button ${style.id === currentStyle.id ? 'active' : ''}`}
+                  onClick={() => {
+                    handleStyleChange(style);
+                    setShowStyleOptions(false);
+                  }}
+                >
+                  {style.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        )}
+      </div>
+      <div className="recorder__lower">
+        <div className='recorder__info'>
         { /* *** FOUR BOX LAYOUT *** */ }
         {/* <div className='row'>
           <div className='column'>
@@ -1267,32 +1536,43 @@ function Recorder() {
               <button
                 onClick={startRecording}
                 className="recorder__button recorder__button--start"
+                disabled={!mapReady || !initialCoords || !permissionGranted}
               >
                 <span> </span>
               </button>
-              <p>Start recording</p>
+              <p>{!mapReady || !initialCoords || !permissionGranted ? 'Getting location...' : 'Start recording'}</p>
             </div>
           </>
         ) : (
           <>
-            {isPaused ? (
+            <div className='row'>
               <button
-                onClick={resumeRecording}
-                className="recorder__button recorder__button--resume"
-              ><span>󰐊</span>
+                onClick={handlePOIButtonPress}
+                className="recorder__button recorder__button--poi"
+                title="Record Point of Interest"
+              ><span>󰍎</span>
               </button>
-            ) : (
+            </div>
+            <div className='row'>
+              {isPaused ? (
+                <button
+                  onClick={resumeRecording}
+                  className="recorder__button recorder__button--resume"
+                ><span>󰐊</span>
+                </button>
+              ) : (
+                <button
+                  onClick={pauseRecording}
+                  className="recorder__button recorder__button--pause"
+                ><span></span>
+                </button>
+              )}
               <button
-                onClick={pauseRecording}
-                className="recorder__button recorder__button--pause"
-              ><span></span>
+                onClick={handleStopButtonPress}
+                className="recorder__button recorder__button--stop"
+              ><span>󰓛</span>
               </button>
-            )}
-            <button
-              onClick={stopRecording}
-              className="recorder__button recorder__button--stop"
-            ><span>󰓛</span>
-            </button>
+            </div>
           </>
         )}
 
@@ -1305,12 +1585,13 @@ function Recorder() {
         </button> */}
       </div>
 
-      <div className='cancel-div'>
+      {/* <div className='cancel-div'>
         <button
             onClick={() => navigate(-1)}
             className="recorder__button recorder__button--cancel"
           ><span></span>
         </button>
+      </div> */}
       </div>
 
       {/* <div style={{
@@ -1337,6 +1618,18 @@ function Recorder() {
         isOpen={showProgressDialog}
         stages={progressStages}
         onClose={handleProgressDialogClose}
+      />
+      
+      <POIDialog
+        isOpen={showPOIDialog}
+        onClose={handlePOIDialogClose}
+        onSelectPOI={handlePOISelect}
+      />
+      
+      <StopRecordingDialogue
+        isOpen={showStopDialog}
+        onDiscard={handleDiscardWalk}
+        onFinishWalk={handleFinishWalk}
       />
     </div>
   );

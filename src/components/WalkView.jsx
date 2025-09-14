@@ -12,6 +12,7 @@ import XPBar from './XPBar';
 import MapComponent from './MapComponent';
 import WalkViewDetails from './WalkViewDetails';
 import exifr from 'exifr';
+import { useStepsData } from '../hooks/useStepsData';
 
 // Arrow configuration options
   const ARROW_CONFIG = {
@@ -31,6 +32,7 @@ import exifr from 'exifr';
 export default function WalkView() {
   const location = useLocation();
   const navigate = useNavigate();
+  const stepsQuery = useStepsData();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const positionMarkerRef = useRef(null);
@@ -39,11 +41,14 @@ export default function WalkView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [gpxData, setGpxData] = useState(null);
+  const [walkMetadata, setWalkMetadata] = useState(null);
   const [hasFadedIn, setHasFadedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(true);
   const fadeTimeoutRef = useRef(null);
   const [imageMetadata, setImageMetadata] = useState(null);
   const [imageError, setImageError] = useState(null);
+  const [waypoints, setWaypoints] = useState([]);
+  const poiMarkersRef = useRef([]);
 
 
 
@@ -226,7 +231,83 @@ export default function WalkView() {
       setImageError(err.message || 'Error processing image');
     }
   };
+
+  // Add POI markers to the map
+  const addPOIMarkers = (map, waypoints) => {
+    // Clean up existing POI markers
+    poiMarkersRef.current.forEach(marker => marker.remove());
+    poiMarkersRef.current = [];
+
+    waypoints.forEach((waypoint, index) => {
+      const getPoiIcon = (type) => {
+        switch (type) {
+          case 'plant': return '🌿';
+          case 'bug': return '🐛';
+          case 'view': return '🏞️';
+          default: return '📍';
+        }
+      };
+
+      // Create marker element
+      const markerElement = document.createElement('div');
+      markerElement.className = 'poi-marker';
+      markerElement.innerHTML = getPoiIcon(waypoint.type);
+      markerElement.style.cursor = 'pointer';
+      markerElement.style.fontSize = '20px';
+      markerElement.style.textShadow = '0 0 3px rgba(0,0,0,0.8)';
+
+      // Create and add the marker
+      const marker = new mapboxgl.Marker({
+        element: markerElement,
+      })
+        .setLngLat([waypoint.lng, waypoint.lat])
+        .addTo(map);
+
+      // Add click event to show popup
+      markerElement.addEventListener('click', () => {
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setLngLat([waypoint.lng, waypoint.lat])
+          .setHTML(`
+            <div style="font-family: sf; color: #333;">
+              <div style="font-weight: bold; margin-bottom: 5px;">
+                ${getPoiIcon(waypoint.type)} ${waypoint.type.charAt(0).toUpperCase() + waypoint.type.slice(1)}
+              </div>
+              ${waypoint.description ? `<div style="margin-bottom: 5px;">${waypoint.description}</div>` : ''}
+              ${waypoint.time ? `<div style="font-size: 0.8em; color: #888; margin-bottom: 5px;">
+                ${new Date(waypoint.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>` : ''}
+              <div style="font-size: 0.8em; color: #666;">
+                ${waypoint.lat.toFixed(6)}, ${waypoint.lng.toFixed(6)}
+                ${waypoint.ele ? ` • ${Math.round(waypoint.ele)}m` : ''}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+      });
+
+      poiMarkersRef.current.push(marker);
+    });
+  };
   
+  // Load walk metadata from steps data
+  useEffect(() => {
+    if (stepsQuery.data && location.state?.walkFile) {
+      // Find the walk metadata from the steps data
+      const walkFile = location.state.walkFile;
+      
+      // Search through all dates to find the walk
+      for (const dayEntry of stepsQuery.data) {
+        if (dayEntry.walks && dayEntry.walks.length > 0) {
+          const walk = dayEntry.walks.find(w => w.filename === walkFile);
+          if (walk) {
+            setWalkMetadata(walk);
+            break;
+          }
+        }
+      }
+    }
+  }, [stepsQuery.data, location.state?.walkFile]);
+
   // First useEffect to load and parse GPX data
   useEffect(() => {
     const loadGPXData = async () => {
@@ -264,7 +345,7 @@ export default function WalkView() {
         //   }))
         // });
 
-        // Parse with fast-xml-parser
+        // Parse with fast-xml-parser to extract waypoints
         const xmlParser = new XMLParser({
           ignoreAttributes: false,
           attributeNamePrefix: "@_",
@@ -272,13 +353,43 @@ export default function WalkView() {
         });
         const xmlResult = xmlParser.parse(gpxText);
         
-        // Log the raw XML parsing result
-        // console.log('fast-xml-parser result:', xmlResult);
-
-        //console.log(xmlResult.gpx.name);
-        //console.log(xmlResult.gpx.extensions['os:distance']);
-
+        // Extract waypoints (POIs) from GPX
+        const extractedWaypoints = [];
+        if (xmlResult.gpx && xmlResult.gpx.wpt) {
+          const wptArray = Array.isArray(xmlResult.gpx.wpt) ? xmlResult.gpx.wpt : [xmlResult.gpx.wpt];
+          
+          wptArray.forEach(wpt => {
+            if (wpt['@_lat'] && wpt['@_lon']) {
+              const waypoint = {
+                lat: parseFloat(wpt['@_lat']),
+                lng: parseFloat(wpt['@_lon']),
+                ele: wpt.ele ? parseFloat(wpt.ele) : undefined,
+                comment: wpt.cmt || '',
+                description: wpt.desc || '',
+                time: wpt.time || null,
+              };
+              
+              // Determine POI type from comment or description
+              const commentLower = (waypoint.comment || '').toLowerCase();
+              const descLower = (waypoint.description || '').toLowerCase();
+              
+              if (commentLower.includes('plant') || descLower.includes('plant')) {
+                waypoint.type = 'plant';
+              } else if (commentLower.includes('bug') || commentLower.includes('insect') || descLower.includes('bug') || descLower.includes('insect')) {
+                waypoint.type = 'bug';
+              } else if (commentLower.includes('view') || commentLower.includes('scenic') || descLower.includes('view') || descLower.includes('scenic')) {
+                waypoint.type = 'view';
+              } else {
+                waypoint.type = 'unknown';
+              }
+              
+              extractedWaypoints.push(waypoint);
+            }
+          });
+        }
         
+        console.log('Extracted waypoints:', extractedWaypoints);
+        setWaypoints(extractedWaypoints);
         setGpxData(gpx);
         setLoading(false);
       } catch (err) {
@@ -558,6 +669,9 @@ export default function WalkView() {
       if (photoMarkerRef.current) {
         photoMarkerRef.current.remove();
       }
+      // Clean up POI markers
+      poiMarkersRef.current.forEach(marker => marker.remove());
+      poiMarkersRef.current = [];
       if (mapRef.current) {
         // Remove bounding box layers and source before removing the map
         if (mapRef.current.getLayer('boundingBox')) mapRef.current.removeLayer('boundingBox');
@@ -866,6 +980,11 @@ export default function WalkView() {
 
           map.fitBounds(bounds, { padding: 50 });
           setMapReady(true);
+
+          // Add POI markers if waypoints exist
+          if (waypoints && waypoints.length > 0) {
+            addPOIMarkers(map, waypoints);
+          }
         }}
         onStyleChange={(style, map) => {
           // Re-add terrain and layers after style change
@@ -978,6 +1097,11 @@ export default function WalkView() {
             // Re-add position marker
             if (positionMarkerRef.current) {
               positionMarkerRef.current.addTo(map);
+            }
+
+            // Re-add POI markers
+            if (waypoints && waypoints.length > 0) {
+              addPOIMarkers(map, waypoints);
             }
           });
         }}
@@ -1217,7 +1341,7 @@ export default function WalkView() {
         )}
       </div> */}
 
-      <WalkViewDetails gpxData={gpxData} />
+      <WalkViewDetails gpxData={gpxData} walkMetadata={walkMetadata} waypoints={waypoints} />
 
       {/* <div className='cancel-div'>
         <button
