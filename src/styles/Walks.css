@@ -1,3 +1,9 @@
+@font-face {
+    font-family: ndot;
+    src: url('../assets/Ndot-57.otf');
+}
+
+
 .walks-container {
     padding: 1rem;
     padding-bottom: 6rem; /* Space for dock */
@@ -136,7 +142,7 @@
     justify-content: space-between;
     font-size: 0.75rem;
     color: var(--theme-text-secondary);
-    font-family: 'sf-regular', system-ui, -apple-system, sans-serif;
+    font-family: 'ndot';
     padding-left: 0.75rem;
     padding-right: 0.75rem;
 }

@@ -160,18 +160,20 @@ function Recorder() {
     pushLog(`POI location captured at ${new Date(currentTime).toLocaleTimeString()}, select type...`);
   };
 
-  const handlePOISelect = (poiType) => {
+  const handlePOISelect = (poiData) => {
     if (!pendingPOICoords) return;
     
     const newPOI = {
       ...pendingPOICoords,
-      type: poiType,
+      type: poiData.type,
+      name: poiData.name,
+      description: poiData.description,
       id: Date.now() // Simple ID generation
     };
     
     setRecordedPOIs(prev => [...prev, newPOI]);
     setPendingPOICoords(null);
-    pushLog(`${poiType.charAt(0).toUpperCase() + poiType.slice(1)} POI recorded`);
+    pushLog(`${poiData.type.charAt(0).toUpperCase() + poiData.type.slice(1)} POI recorded: ${poiData.name}`);
   };
 
   const handlePOIDialogClose = () => {
@@ -772,6 +774,30 @@ function Recorder() {
     setShowStopDialog(false);
   };
 
+  const getDefaultPOIName = (type) => {
+    const names = {
+      plant: 'Interesting Plant',
+      bug: 'Bug Observation', 
+      view: 'Scenic View',
+      water: 'Water Feature',
+      animal: 'Animal Sighting',
+      landmark: 'Landmark'
+    };
+    return names[type] || 'Point of Interest';
+  };
+
+  const getDefaultPOIDescription = (type) => {
+    const descriptions = {
+      plant: 'Found an interesting plant species during the walk',
+      bug: 'Observed interesting insect or small creature',
+      view: 'Beautiful view worth remembering',
+      water: 'Water feature or source encountered',
+      animal: 'Wildlife spotted during the walk',
+      landmark: 'Notable landmark or structure'
+    };
+    return descriptions[type] || 'Interesting location during walk';
+  };
+
      const stopRecording = async () => {
      setIsRecording(false);
      setIsPaused(false);
@@ -887,16 +913,16 @@ function Recorder() {
           wpt.ele('time').txt(poi.timestamp).up();
         }
         
-        // Add comment and description based on POI type
-        const poiDescriptions = {
-          plant: { cmt: 'Interesting plant spotted', desc: 'Found an interesting plant species during the walk' },
-          bug: { cmt: 'Bug observation', desc: 'Observed interesting insect or small creature' },
-          view: { cmt: 'Scenic viewpoint', desc: 'Beautiful view worth remembering' }
-        };
+        // Add comment and description from POI data
+        // Use custom name if provided, otherwise fall back to default
+        const cmt = poi.name || getDefaultPOIName(poi.type);
         
-        const poiInfo = poiDescriptions[poi.type] || { cmt: 'Point of interest', desc: 'Interesting location during walk' };
-        wpt.ele('cmt').txt(poiInfo.cmt).up();
-        wpt.ele('desc').txt(poiInfo.desc).up();
+        wpt.ele('cmt').txt(cmt).up();
+        
+        // Only add description if it's not empty
+        if (poi.description && poi.description.trim()) {
+          wpt.ele('desc').txt(poi.description.trim()).up();
+        }
         
         wpt.up();
       }
@@ -1549,7 +1575,7 @@ function Recorder() {
               <button
                 onClick={handlePOIButtonPress}
                 className="recorder__button recorder__button--poi"
-                title="Record Point of Interest"
+                title="Add Marker"
               ><span>󰍎</span>
               </button>
             </div>
@@ -1624,6 +1650,7 @@ function Recorder() {
         isOpen={showPOIDialog}
         onClose={handlePOIDialogClose}
         onSelectPOI={handlePOISelect}
+        pendingPOICoords={pendingPOICoords}
       />
       
       <StopRecordingDialogue
