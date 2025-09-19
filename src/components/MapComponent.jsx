@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from "mapbox-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import LoadingSpinner from './LoadingSpinner';
+import { useUserSettings } from '../hooks/useUserSettings';
 
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
@@ -21,9 +22,16 @@ export default function MapComponent({
   className = "map-container",
   children
 }) {
+  const { settings, updateSettings } = useUserSettings();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
-  const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[0]);
+  
+  // Initialize currentStyle based on user's saved preference
+  const getInitialStyle = () => {
+    return MAP_STYLES.find(style => style.id === settings.mapLayer) || MAP_STYLES[0];
+  };
+  
+  const [currentStyle, setCurrentStyle] = useState(getInitialStyle);
   const [showStyleOptions, setShowStyleOptions] = useState(false);
   const [hasFadedIn, setHasFadedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(showLoadingSpinner);
@@ -31,6 +39,9 @@ export default function MapComponent({
 
   const handleStyleChange = (style) => {
     setCurrentStyle(style);
+    // Save the map layer preference
+    updateSettings({ mapLayer: style.id });
+    
     if (mapRef.current) {
       mapRef.current.setStyle(style.url);
       if (onStyleChange) {
@@ -38,6 +49,20 @@ export default function MapComponent({
       }
     }
   };
+
+  // Update currentStyle when settings change (e.g., from other components)
+  useEffect(() => {
+    const newStyle = MAP_STYLES.find(style => style.id === settings.mapLayer);
+    if (newStyle && newStyle.id !== currentStyle.id) {
+      setCurrentStyle(newStyle);
+      if (mapRef.current) {
+        mapRef.current.setStyle(newStyle.url);
+        if (onStyleChange) {
+          onStyleChange(newStyle, mapRef.current);
+        }
+      }
+    }
+  }, [settings.mapLayer]);
 
   useEffect(() => {
     if (!mapContainer.current || !initialCoords) return;

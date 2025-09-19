@@ -52,24 +52,42 @@ const POIDialog = ({ isOpen, onClose, onSelectPOI, pendingPOICoords }) => {
 
   const getDefaultName = (type) => {
     const names = {
-      plant: 'Interesting Plant',
-      bug: 'Bug Observation', 
+      bird: 'Bird Sighting',
+      wildlife: 'Wildlife Sighting',
+      insect: 'Insect Observation',
+      flower: 'Beautiful Flower',
+      tree: 'Notable Tree',
       view: 'Scenic View',
       water: 'Water Feature',
-      animal: 'Animal Sighting',
-      landmark: 'Landmark'
+      landmark: 'Landmark',
+      photo: 'Photo Spot',
+      picnic: 'Picnic Spot',
+      rest: 'Rest Stop',
+      trail: 'Trail Point',
+      memory: 'Special Memory',
+      lost: 'Lost Item',
+      building: 'Interesting Building'
     };
     return names[type] || 'Point of Interest';
   };
 
   const getDefaultDescription = (type) => {
     const descriptions = {
-      plant: 'Found an interesting plant species during the walk',
-      bug: 'Observed interesting insect or small creature',
+      bird: 'Spotted an interesting bird during the walk',
+      wildlife: 'Wildlife spotted during the walk',
+      insect: 'Observed interesting insect or small creature',
+      flower: 'Beautiful flowers worth remembering',
+      tree: 'Notable tree - large, old, or unusual species',
       view: 'Beautiful view worth remembering',
       water: 'Water feature or source encountered',
-      animal: 'Wildlife spotted during the walk',
-      landmark: 'Notable landmark or structure'
+      landmark: 'Notable landmark or structure',
+      photo: 'Perfect spot for photos',
+      picnic: 'Great place to stop and eat',
+      rest: 'Good rest stop with seating',
+      trail: 'Important trail junction or feature',
+      memory: 'Special moment or memory from the walk',
+      lost: 'Location where item was lost',
+      building: 'Interesting architecture or building'
     };
     return descriptions[type] || 'Interesting location during walk';
   };
@@ -100,58 +118,94 @@ const POIDialog = ({ isOpen, onClose, onSelectPOI, pendingPOICoords }) => {
           <div className="poi-options-container">
             <div className="poi-options">
               <button 
-                className={`poi-option poi-option--plant ${selectedType === 'plant' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('plant')}
+                className={`poi-option poi-option--bird ${selectedType === 'bird' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('bird')}
               >
-                <span className="poi-icon">¥</span>
+                <span className="poi-icon">🦅</span>
               </button>
               <button 
-                className={`poi-option poi-option--bug ${selectedType === 'bug' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('bug')}
+                className={`poi-option poi-option--wildlife ${selectedType === 'wildlife' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('wildlife')}
               >
-                <span className="poi-icon">O</span>
+                <span className="poi-icon">🦌</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--insect ${selectedType === 'insect' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('insect')}
+              >
+                <span className="poi-icon">🦋</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--flower ${selectedType === 'flower' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('flower')}
+              >
+                <span className="poi-icon">🌸</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--tree ${selectedType === 'tree' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('tree')}
+              >
+                <span className="poi-icon">🌳</span>
               </button>
               <button 
                 className={`poi-option poi-option--view ${selectedType === 'view' ? 'selected' : ''}`}
                 onClick={() => handlePOISelect('view')}
               >
-                <span className="poi-icon">@</span>
+                <span className="poi-icon">🏔️</span>
               </button>
               <button 
                 className={`poi-option poi-option--water ${selectedType === 'water' ? 'selected' : ''}`}
                 onClick={() => handlePOISelect('water')}
               >
-                <span className="poi-icon">#</span>
-              </button>
-              <button 
-                className={`poi-option poi-option--animal ${selectedType === 'animal' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('animal')}
-              >
-                <span className="poi-icon">:::</span>
+                <span className="poi-icon">🏞️</span>
               </button>
               <button 
                 className={`poi-option poi-option--landmark ${selectedType === 'landmark' ? 'selected' : ''}`}
                 onClick={() => handlePOISelect('landmark')}
               >
-                <span className="poi-icon">/</span>
+                <span className="poi-icon">🏛️</span>
               </button>
               <button 
-                className={`poi-option poi-option--landmark ${selectedType === 'landmark' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('landmark')}
+                className={`poi-option poi-option--photo ${selectedType === 'photo' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('photo')}
               >
-                <span className="poi-icon">+</span>
+                <span className="poi-icon">📸</span>
               </button>
               <button 
-                className={`poi-option poi-option--landmark ${selectedType === 'landmark' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('landmark')}
+                className={`poi-option poi-option--picnic ${selectedType === 'picnic' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('picnic')}
               >
-                <span className="poi-icon">$</span>
+                <span className="poi-icon">🧺</span>
               </button>
               <button 
-                className={`poi-option poi-option--landmark ${selectedType === 'landmark' ? 'selected' : ''}`}
-                onClick={() => handlePOISelect('landmark')}
+                className={`poi-option poi-option--rest ${selectedType === 'rest' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('rest')}
               >
-                <span className="poi-icon">&</span>
+                <span className="poi-icon">🪑</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--trail ${selectedType === 'trail' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('trail')}
+              >
+                <span className="poi-icon">🥾</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--memory ${selectedType === 'memory' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('memory')}
+              >
+                <span className="poi-icon">💭</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--lost ${selectedType === 'lost' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('lost')}
+              >
+                <span className="poi-icon">❗</span>
+              </button>
+              <button 
+                className={`poi-option poi-option--building ${selectedType === 'building' ? 'selected' : ''}`}
+                onClick={() => handlePOISelect('building')}
+              >
+                <span className="poi-icon">🏠</span>
               </button>
             </div>
           </div>

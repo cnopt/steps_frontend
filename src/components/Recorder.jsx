@@ -12,6 +12,7 @@ import ProgressDialog from './ProgressDialog';
 import POIDialog from './POIDialog';
 import StopRecordingDialogue from './StopRecordingDialogue';
 import LoadingSpinner from './LoadingSpinner';
+import { useUserSettings } from '../hooks/useUserSettings';
  
 
 mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
@@ -26,6 +27,7 @@ const MAP_STYLES = [
 function Recorder() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { settings, updateSettings } = useUserSettings();
 
   const selectedDate = location.state?.selectedDate || new Date().toLocaleDateString();
 
@@ -82,8 +84,11 @@ function Recorder() {
   const [pendingPOICoords, setPendingPOICoords] = useState(null);
   const [recordedPOIs, setRecordedPOIs] = useState([]);
 
-  // Map style control state
-  const [currentStyle, setCurrentStyle] = useState(MAP_STYLES[2]); // Default to dark style
+  // Map style control state - Initialize based on user preference
+  const getInitialStyle = () => {
+    return MAP_STYLES.find(style => style.id === settings.mapLayer) || MAP_STYLES[0]; // Fallback to outdoors style
+  };
+  const [currentStyle, setCurrentStyle] = useState(getInitialStyle);
   const [showStyleOptions, setShowStyleOptions] = useState(false);
 
   // Stop recording dialog state
@@ -184,6 +189,9 @@ function Recorder() {
   // Map style change handler
   const handleStyleChange = (style) => {
     setCurrentStyle(style);
+    // Save the map layer preference
+    updateSettings({ mapLayer: style.id });
+    
     if (mapRef.current) {
       // Store current coordinates before style change
       const currentCoords = pathCoordsRef.current.slice();
@@ -229,6 +237,14 @@ function Recorder() {
       });
     }
   };
+
+  // Update currentStyle when settings change (e.g., from other components)
+  useEffect(() => {
+    const newStyle = MAP_STYLES.find(style => style.id === settings.mapLayer);
+    if (newStyle && newStyle.id !== currentStyle.id) {
+      setCurrentStyle(newStyle);
+    }
+  }, [settings.mapLayer]);
 
   // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -776,24 +792,42 @@ function Recorder() {
 
   const getDefaultPOIName = (type) => {
     const names = {
-      plant: 'Interesting Plant',
-      bug: 'Bug Observation', 
+      bird: 'Bird Sighting',
+      wildlife: 'Wildlife Sighting',
+      insect: 'Insect Observation',
+      flower: 'Beautiful Flower',
+      tree: 'Notable Tree',
       view: 'Scenic View',
       water: 'Water Feature',
-      animal: 'Animal Sighting',
-      landmark: 'Landmark'
+      landmark: 'Landmark',
+      photo: 'Photo Spot',
+      picnic: 'Picnic Spot',
+      rest: 'Rest Stop',
+      trail: 'Trail Point',
+      memory: 'Special Memory',
+      lost: 'Lost Item',
+      building: 'Interesting Building'
     };
     return names[type] || 'Point of Interest';
   };
 
   const getDefaultPOIDescription = (type) => {
     const descriptions = {
-      plant: 'Found an interesting plant species during the walk',
-      bug: 'Observed interesting insect or small creature',
+      bird: 'Spotted an interesting bird during the walk',
+      wildlife: 'Wildlife spotted during the walk',
+      insect: 'Observed interesting insect or small creature',
+      flower: 'Beautiful flowers worth remembering',
+      tree: 'Notable tree - large, old, or unusual species',
       view: 'Beautiful view worth remembering',
       water: 'Water feature or source encountered',
-      animal: 'Wildlife spotted during the walk',
-      landmark: 'Notable landmark or structure'
+      landmark: 'Notable landmark or structure',
+      photo: 'Perfect spot for photos',
+      picnic: 'Great place to stop and eat',
+      rest: 'Good rest stop with seating',
+      trail: 'Important trail junction or feature',
+      memory: 'Special moment or memory from the walk',
+      lost: 'Location where item was lost',
+      building: 'Interesting architecture or building'
     };
     return descriptions[type] || 'Interesting location during walk';
   };
@@ -923,6 +957,9 @@ function Recorder() {
         if (poi.description && poi.description.trim()) {
           wpt.ele('desc').txt(poi.description.trim()).up();
         }
+        
+        // Add POI type as a custom field for better type detection on read
+        wpt.ele('type').txt(poi.type).up();
         
         wpt.up();
       }

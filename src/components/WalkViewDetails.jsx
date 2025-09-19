@@ -88,29 +88,57 @@ const SpotsPanel = ({ waypoints }) => {
   }
 
   const getPoiIcon = (type) => {
-    switch (type) {
-      case 'plant':
-        return '🌿';
-      case 'bug':
-        return '🐛';
-      case 'view':
-        return '🏞️';
-      default:
-        return '📍';
-    }
+    const iconMap = {
+      bird: '🦅',
+      wildlife: '🦌',
+      insect: '🦋',
+      flower: '🌸',
+      tree: '🌳',
+      view: '🏔️',
+      water: '🏞️',
+      landmark: '🏛️',
+      photo: '📸',
+      picnic: '🧺',
+      rest: '🪑',
+      trail: '🥾',
+      memory: '💭',
+      lost: '❗',
+      building: '🏠',
+      // Legacy types from old system
+      plant: '🌿',
+      bug: '🐛'
+    };
+    return iconMap[type] || '📍';
   };
 
-  const getPoiLabel = (type) => {
-    switch (type) {
-      case 'plant':
-        return 'Plant';
-      case 'bug':
-        return 'Bug';
-      case 'view':
-        return 'Nice View';
-      default:
-        return 'Point of Interest';
+  const getDisplayName = (waypoint) => {
+    // Use comment (which contains the POI name) if available, otherwise fall back to type-based label
+    if (waypoint.comment && waypoint.comment.trim()) {
+      return waypoint.comment.trim();
     }
+    
+    // Fallback to type-based labels for older waypoints
+    const typeLabels = {
+      bird: 'Bird Sighting',
+      wildlife: 'Wildlife Sighting',
+      insect: 'Insect Observation',
+      flower: 'Beautiful Flower',
+      tree: 'Notable Tree',
+      view: 'Scenic View',
+      water: 'Water Feature',
+      landmark: 'Landmark',
+      photo: 'Photo Spot',
+      picnic: 'Picnic Spot',
+      rest: 'Rest Stop',
+      trail: 'Trail Point',
+      memory: 'Special Memory',
+      lost: 'Lost Item',
+      building: 'Interesting Building',
+      // Legacy types
+      plant: 'Plant',
+      bug: 'Bug'
+    };
+    return typeLabels[waypoint.type] || 'Point of Interest';
   };
 
   return (
@@ -122,9 +150,9 @@ const SpotsPanel = ({ waypoints }) => {
               <span>{getPoiIcon(waypoint.type)}</span>
             </div>
             <div className="spot-details">
-              <div className="spot-title">{getPoiLabel(waypoint.type)}</div>
-              {waypoint.description && (
-                <div className="spot-description">{waypoint.description}</div>
+              <div className="spot-title">{getDisplayName(waypoint)}</div>
+              {waypoint.description && waypoint.description.trim() && (
+                <div className="spot-description">{waypoint.description.trim()}</div>
               )}
               {waypoint.time && (
                 <div className="spot-time">

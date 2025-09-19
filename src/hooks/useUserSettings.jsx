@@ -12,7 +12,8 @@ export const useUserSettings = () => {
       weight: profile.weight || 70,
       gender: profile.gender || 'M',
       enableWeather: profile.enableWeather || false,
-      theme: profile.theme || 'default'
+      theme: profile.theme || 'default',
+      mapLayer: profile.mapLayer || 'outdoors-v12'
     };
   };
 
@@ -26,7 +27,8 @@ export const useUserSettings = () => {
         weight: profile.weight || 70,
         gender: profile.gender || 'M',
         enableWeather: profile.enableWeather || false,
-        theme: profile.theme || 'default'
+        theme: profile.theme || 'default',
+        mapLayer: profile.mapLayer || 'outdoors-v12'
       });
     };
 

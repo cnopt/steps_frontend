@@ -33,7 +33,6 @@ export default function WalkView() {
   const location = useLocation();
   const navigate = useNavigate();
   const stepsQuery = useStepsData();
-  const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const positionMarkerRef = useRef(null);
   const photoMarkerRef = useRef(null);
@@ -240,12 +239,27 @@ export default function WalkView() {
 
     waypoints.forEach((waypoint, index) => {
       const getPoiIcon = (type) => {
-        switch (type) {
-          case 'plant': return '🌿';
-          case 'bug': return '🐛';
-          case 'view': return '🏞️';
-          default: return '📍';
-        }
+        const iconMap = {
+          bird: '🦅',
+          wildlife: '🦌',
+          insect: '🦋',
+          flower: '🌸',
+          tree: '🌳',
+          view: '🏔️',
+          water: '🏞️',
+          landmark: '🏛️',
+          photo: '📸',
+          picnic: '🧺',
+          rest: '🪑',
+          trail: '🥾',
+          memory: '💭',
+          lost: '❗',
+          building: '🏠',
+          // Legacy types from old system
+          plant: '🌿',
+          bug: '🐛'
+        };
+        return iconMap[type] || '📍';
       };
 
       // Create marker element
@@ -265,14 +279,19 @@ export default function WalkView() {
 
       // Add click event to show popup
       markerElement.addEventListener('click', () => {
+        // Use comment (POI name) if available, otherwise fall back to type
+        const displayName = waypoint.comment && waypoint.comment.trim() 
+          ? waypoint.comment.trim()
+          : waypoint.type.charAt(0).toUpperCase() + waypoint.type.slice(1);
+          
         const popup = new mapboxgl.Popup({ offset: 25 })
           .setLngLat([waypoint.lng, waypoint.lat])
           .setHTML(`
             <div style="font-family: sf; color: #333;">
               <div style="font-weight: bold; margin-bottom: 5px;">
-                ${getPoiIcon(waypoint.type)} ${waypoint.type.charAt(0).toUpperCase() + waypoint.type.slice(1)}
+                ${getPoiIcon(waypoint.type)} ${displayName}
               </div>
-              ${waypoint.description ? `<div style="margin-bottom: 5px;">${waypoint.description}</div>` : ''}
+              ${waypoint.description && waypoint.description.trim() ? `<div style="margin-bottom: 5px;">${waypoint.description.trim()}</div>` : ''}
               ${waypoint.time ? `<div style="font-size: 0.8em; color: #888; margin-bottom: 5px;">
                 ${new Date(waypoint.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>` : ''}
@@ -369,18 +388,50 @@ export default function WalkView() {
                 time: wpt.time || null,
               };
               
-              // Determine POI type from comment or description
-              const commentLower = (waypoint.comment || '').toLowerCase();
-              const descLower = (waypoint.description || '').toLowerCase();
-              
-              if (commentLower.includes('plant') || descLower.includes('plant')) {
-                waypoint.type = 'plant';
-              } else if (commentLower.includes('bug') || commentLower.includes('insect') || descLower.includes('bug') || descLower.includes('insect')) {
-                waypoint.type = 'bug';
-              } else if (commentLower.includes('view') || commentLower.includes('scenic') || descLower.includes('view') || descLower.includes('scenic')) {
-                waypoint.type = 'view';
+              // Use explicit type field if available (for newer GPX files), otherwise fall back to keyword detection
+              if (wpt.type) {
+                waypoint.type = wpt.type;
               } else {
-                waypoint.type = 'unknown';
+                // Legacy: Determine POI type from comment or description for older files
+                const commentLower = (waypoint.comment || '').toLowerCase();
+                const descLower = (waypoint.description || '').toLowerCase();
+                
+                // Check for specific POI types based on keywords in comment/description
+                if (commentLower.includes('bird') || descLower.includes('bird')) {
+                  waypoint.type = 'bird';
+                } else if (commentLower.includes('wildlife') || descLower.includes('wildlife')) {
+                  waypoint.type = 'wildlife';
+                } else if (commentLower.includes('insect') || commentLower.includes('bug') || descLower.includes('insect') || descLower.includes('bug')) {
+                  waypoint.type = 'insect';
+                } else if (commentLower.includes('flower') || descLower.includes('flower')) {
+                  waypoint.type = 'flower';
+                } else if (commentLower.includes('tree') || descLower.includes('tree')) {
+                  waypoint.type = 'tree';
+                } else if (commentLower.includes('view') || commentLower.includes('scenic') || descLower.includes('view') || descLower.includes('scenic')) {
+                  waypoint.type = 'view';
+                } else if (commentLower.includes('water') || descLower.includes('water')) {
+                  waypoint.type = 'water';
+                } else if (commentLower.includes('landmark') || descLower.includes('landmark')) {
+                  waypoint.type = 'landmark';
+                } else if (commentLower.includes('photo') || descLower.includes('photo')) {
+                  waypoint.type = 'photo';
+                } else if (commentLower.includes('picnic') || descLower.includes('picnic')) {
+                  waypoint.type = 'picnic';
+                } else if (commentLower.includes('rest') || descLower.includes('rest')) {
+                  waypoint.type = 'rest';
+                } else if (commentLower.includes('trail') || descLower.includes('trail')) {
+                  waypoint.type = 'trail';
+                } else if (commentLower.includes('memory') || descLower.includes('memory')) {
+                  waypoint.type = 'memory';
+                } else if (commentLower.includes('lost') || descLower.includes('lost')) {
+                  waypoint.type = 'lost';
+                } else if (commentLower.includes('building') || descLower.includes('building')) {
+                  waypoint.type = 'building';
+                } else if (commentLower.includes('plant') || descLower.includes('plant')) {
+                  waypoint.type = 'plant';
+                } else {
+                  waypoint.type = 'unknown';
+                }
               }
               
               extractedWaypoints.push(waypoint);
@@ -402,285 +453,6 @@ export default function WalkView() {
     loadGPXData();
   }, [location.state]);
 
-  // Second useEffect to initialize map after GPX data is loaded and container is ready
-  useEffect(() => {
-    if (!gpxData || !mapContainer.current || loading || error) return;
-
-    try {
-      const points = gpxData.tracks[0].points.map((pt) => [pt.lon, pt.lat]);
-      const pointsWithElevation = gpxData.tracks[0].points.map((pt) => [pt.lon, pt.lat, pt.ele || 0]);
-      
-      const bounds = new mapboxgl.LngLatBounds();
-      points.forEach((p) => bounds.extend(p));
-      
-      mapRef.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: currentStyle.url,
-        center: bounds.getCenter().toArray(),
-        zoom: 14,
-        antialias: true,
-        dragPan: true,
-        dragRotate: true
-      });
-      
-      mapRef.current.on("style.load", () => {
-        mapRef.current.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxZoom: 14
-        });
-        mapRef.current.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        
-        const smoothPath = function(coordinates, interval = 10) {
-          const smoothed = [];
-          
-          for (let i = 0; i < coordinates.length; i += interval) {
-            const windowStart = Math.max(0, i - interval);
-            const windowEnd = Math.min(coordinates.length, i + interval);
-            const window = coordinates.slice(windowStart, windowEnd);
-            
-            let avgLng = 0, avgLat = 0, avgEle = 0;
-            window.forEach(coord => {
-              avgLng += coord[0];
-              avgLat += coord[1];
-              avgEle += coord[2] || 0;
-            });
-            
-            avgLng /= window.length;
-            avgLat /= window.length;
-            avgEle /= window.length;
-            
-            smoothed.push([avgLng, avgLat, avgEle]);
-          }
-          
-          return smoothed;
-        };
-        
-        const smoothCoordinates = smoothPath(pointsWithElevation, 10);
-        const smoothPoints = smoothCoordinates.map(coord => [coord[0], coord[1]]);
-
-        // We no longer need per-point arrows; we'll draw arrows along the line geometry
-        
-        // Add the main route source
-        mapRef.current.addSource("gpxRoute", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: points,
-            },
-          },
-        });
-
-        // Add bounding box source with padding
-        const sw = bounds.getSouthWest();
-        const ne = bounds.getNorthEast();
-        
-        // Calculate the size of the current bounding box
-        const lngDiff = ne.lng - sw.lng;
-        const latDiff = ne.lat - sw.lat;
-        
-        // Calculate padding based on percentage
-        const lngPadding = (lngDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
-        const latPadding = (latDiff * DEBUG_BBOX_PADDING_PERCENT) / 100;
-        
-        // Create padded coordinates
-        const paddedSW = { lng: sw.lng - lngPadding, lat: sw.lat - latPadding };
-        const paddedNE = { lng: ne.lng + lngPadding, lat: ne.lat + latPadding };
-        
-        // mapRef.current.addSource("boundingBox", {
-        //   type: "geojson",
-        //   data: {
-        //     type: "Feature",
-        //     geometry: {
-        //       type: "Polygon",
-        //       coordinates: [[
-        //         [paddedSW.lng, paddedSW.lat],
-        //         [paddedNE.lng, paddedSW.lat],
-        //         [paddedNE.lng, paddedNE.lat],
-        //         [paddedSW.lng, paddedNE.lat],
-        //         [paddedSW.lng, paddedSW.lat]
-        //       ]]
-        //     }
-        //   }
-        // });
-        
-        // Glow effect: add blurred, wider lines underneath the main line
-        // mapRef.current.addLayer({
-        //   id: "gpxRouteGlowOuter",
-        //   type: "line",
-        //   source: "gpxRoute",
-        //   paint: {
-        //     "line-color": "#037bfc",
-        //     "line-width": 40,
-        //     "line-opacity": 0.35,
-        //     "line-blur": 28
-        //   }
-        // });
-
-        // mapRef.current.addLayer({
-        //   id: "gpxRouteGlowInner",
-        //   type: "line",
-        //   source: "gpxRoute",
-        //   paint: {
-        //     "line-color": "#2da1ff",
-        //     "line-width": 22,
-        //     "line-opacity": 0.6,
-        //     "line-blur": 12
-        //   }
-        // });
-
-        // Intense core glow to enhance prominence
-        // mapRef.current.addLayer({
-        //   id: "gpxRouteCoreGlow",
-        //   type: "line",
-        //   source: "gpxRoute",
-        //   paint: {
-        //     "line-color": "#ffffff",
-        //     "line-width": 8,
-        //     "line-opacity": 0.45,
-        //     "line-blur": 4
-        //   }
-        // });
-
-        // Main route line on top of the glows
-        // Add bounding box layer
-        // mapRef.current.addLayer({
-        //   id: "boundingBox",
-        //   type: "fill",
-        //   source: "boundingBox",
-        //   paint: {
-        //     "fill-color": "#f5dd42",
-        //     "fill-opacity": 0.3,
-        //   }
-        // });
-
-        // Add bounding box outline
-        // mapRef.current.addLayer({
-        //   id: "boundingBoxOutline",
-        //   type: "line",
-        //   source: "boundingBox",
-        //   paint: {
-        //     "line-color": "#fcb72b",
-        //     "line-width": 2,
-        //     "line-opacity": 0.3,
-        //     "line-dasharray": [2, 2]
-        //   }
-        // });
-
-        // Add main route line
-        mapRef.current.addLayer({
-          id: "gpxRouteLine",
-          type: "line",
-          source: "gpxRoute",
-          paint: {
-            "line-color": "#2da1ff",
-            "line-width": 2,
-            "line-opacity": 1
-          }
-        });
-
-        // Add arrows along the line itself using a text glyph. This auto-orients to line direction.
-        mapRef.current.addLayer({
-          id: "gpxRouteArrows",
-          type: "symbol",
-          source: "gpxRoute",
-          layout: {
-            "symbol-placement": "line",
-            "symbol-spacing": ARROW_CONFIG.spacing,
-            "text-field": "➤",
-            "text-size": 12 * ARROW_CONFIG.size,
-            "text-rotation-alignment": "map",
-            "text-keep-upright": false,
-            "text-allow-overlap": true
-          },
-          paint: {
-            "text-color": ARROW_CONFIG.color,
-            "text-opacity": ARROW_CONFIG.opacity,
-            "text-halo-color": "rgba(0,0,0,0.25)",
-            "text-halo-width": 1
-          }
-        });
-        
-        // Initialize position marker
-        //console.log('Initializing marker with points:', points);
-        const markerElement = document.createElement('div');
-        markerElement.className = 'position-marker';
-        
-        // Ensure we have valid coordinates
-        if (points.length > 0) {
-          //console.log('Creating marker at coordinates:', points[0]);
-          positionMarkerRef.current = new mapboxgl.Marker({
-            element: markerElement,
-          })
-            .setLngLat(points[0])
-            .addTo(mapRef.current);
-          
-          //console.log('Marker created:', positionMarkerRef.current);
-        } else {
-          console.error('No points available for marker initialization');
-        }
-
-        mapRef.current.fitBounds(bounds, { padding: 50 });
-        // Ensure the camera centers on the position marker initially with a smooth ease
-        // if (points.length > 0) {
-        //   mapRef.current.easeTo({ center: points[0], duration: easeToDuration, curve: easeToCurve});
-        // }
-        //mapRef.current.easeTo({ pitch: 20, duration: 0 });
-        setMapReady(true);
-
-        // Fade in only when the map is fully idle (no ongoing rendering or tile requests)
-        const handleIdle = () => {
-          // Start fading overlay; keep spinner visible until fade completes
-          setHasFadedIn(true);
-          if (fadeTimeoutRef.current) {
-            clearTimeout(fadeTimeoutRef.current);
-          }
-          fadeTimeoutRef.current = setTimeout(() => {
-            setShowSpinner(false);
-          }, 200); // matches CSS transition + small buffer
-        };
-
-        if (mapRef.current && typeof mapRef.current.once === 'function') {
-          mapRef.current.once('idle', handleIdle);
-        } else if (mapRef.current) {
-          // Fallback: listen then remove listener
-          const onIdle = () => {
-            handleIdle();
-            mapRef.current && mapRef.current.off('idle', onIdle);
-          };
-          mapRef.current.on('idle', onIdle);
-        }
-      });
-    } catch (err) {
-      console.error("Error initializing map:", err);
-      setError(err.message);
-    }
-
-    return () => {
-      if (fadeTimeoutRef.current) {
-        clearTimeout(fadeTimeoutRef.current);
-      }
-      if (positionMarkerRef.current) {
-        positionMarkerRef.current.remove();
-      }
-      if (photoMarkerRef.current) {
-        photoMarkerRef.current.remove();
-      }
-      // Clean up POI markers
-      poiMarkersRef.current.forEach(marker => marker.remove());
-      poiMarkersRef.current = [];
-      if (mapRef.current) {
-        // Remove bounding box layers and source before removing the map
-        if (mapRef.current.getLayer('boundingBox')) mapRef.current.removeLayer('boundingBox');
-        if (mapRef.current.getLayer('boundingBoxOutline')) mapRef.current.removeLayer('boundingBoxOutline');
-        if (mapRef.current.getSource('boundingBox')) mapRef.current.removeSource('boundingBox');
-        mapRef.current.remove();
-      }
-    };
-  }, [gpxData, loading, error]);
 
   // Handle hardware back button
   useEffect(() => {
