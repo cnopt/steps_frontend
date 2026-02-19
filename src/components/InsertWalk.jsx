@@ -1,7 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Encoding } from '@capacitor/filesystem';
 import localDataService from '../services/localDataService';
+import {
+  ensureWalksDirectory,
+  writeFileToWalkDirectories,
+  deleteFileFromWalkDirectories
+} from '../helpers/walkStorage';
 
 const InsertWalk = () => {
   const location = useLocation();
@@ -27,11 +32,7 @@ const InsertWalk = () => {
 
         // Create the walks directory if it doesn't exist
         try {
-          await Filesystem.mkdir({
-            path: 'walks',
-            directory: Directory.Documents,
-            recursive: true
-          });
+          await ensureWalksDirectory('walks');
         } catch (error) {
           // Directory might already exist, continue
         }
@@ -41,10 +42,9 @@ const InsertWalk = () => {
         
         // Save the file using Capacitor's Filesystem API
         try {
-          await Filesystem.writeFile({
+          await writeFileToWalkDirectories({
             path: `walks/${newFileName}`,
             data: fileContent,
-            directory: Directory.Documents,
             encoding: Encoding.UTF8
           });
 
@@ -66,10 +66,7 @@ const InsertWalk = () => {
             
             // Clean up the file since we couldn't update the steps data
             try {
-              await Filesystem.deleteFile({
-                path: `walks/${newFileName}`,
-                directory: Directory.Documents
-              });
+              await deleteFileFromWalkDirectories(`walks/${newFileName}`);
             } catch (cleanupError) {
               console.error('Error cleaning up file:', cleanupError);
             }

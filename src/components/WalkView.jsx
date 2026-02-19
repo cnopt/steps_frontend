@@ -3,7 +3,7 @@ import mapboxgl from "mapbox-gl";
 import GPXParser from "gpxparser";
 import { XMLParser } from "fast-xml-parser";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Encoding } from '@capacitor/filesystem';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -13,6 +13,7 @@ import MapComponent from './MapComponent';
 import WalkViewDetails from './WalkViewDetails';
 import exifr from 'exifr';
 import { useStepsData } from '../hooks/useStepsData';
+import { readFileFromWalkDirectories } from '../helpers/walkStorage';
 
 // Arrow configuration options
   const ARROW_CONFIG = {
@@ -335,9 +336,8 @@ export default function WalkView() {
           throw new Error('No walk file specified');
         }
 
-        const result = await Filesystem.readFile({
+        const result = await readFileFromWalkDirectories({
           path: `walks/${location.state.walkFile}`,
-          directory: Directory.Documents,
           encoding: Encoding.UTF8
         });
 

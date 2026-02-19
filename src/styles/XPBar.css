@@ -80,6 +80,8 @@
     height: 5rem;
     position: relative;
     z-index: 101;
+    width: 96%;
+    margin: auto;
 }
 
 .details-content {
@@ -108,3 +110,7 @@
 .level-details.expanded .details-content p:nth-child(2) { transition-delay: 0.13s; }
 .level-details.expanded .details-content p:nth-child(3) { transition-delay: 0.17s; }
 .level-details.expanded .details-content p:nth-child(4) { transition-delay: 0.20s; }
+
+.level-details.expanded .details-content p span {
+    font-weight: 700;
+}

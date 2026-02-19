@@ -7,6 +7,7 @@ import { MdCalendarMonth, MdBadge } from "react-icons/md";
 import { HiIdentification } from "react-icons/hi2";
 import { PiSneakerFill } from "react-icons/pi";
 import { RiWalkLine } from "react-icons/ri";
+import { MdLeaderboard } from "react-icons/md";
 import { useAchievementContext } from '../contexts/AchievementContext';
 
 export default function Dock() {
@@ -25,21 +26,11 @@ export default function Dock() {
                 <p>Grid</p>
             </Link>
             
-            <Link to={`/stats`} className='dock-item'>
+            {/* <Link to={`/stats`} className='dock-item'>
                 <BiStats />
                 <p>Stats</p>
-            </Link>
+            </Link> */}
 
-            <Link to={`/walks`} className='dock-item'>
-                <RiWalkLine style={{fontSize:'1.65em'}} />
-                <p>Walk</p>
-            </Link>
-            
-            <Link to={`/leaderboard`} className='dock-item'>
-                <IoTrophy style={{fontSize:'1.3em'}}/>
-                <p>Leaderboard</p>
-            </Link>
-            
             <Link to={`/achievements`} className='dock-item dock-item-achievements'>
                 <div className="dock-icon-container">
                     <HiIdentification />
@@ -49,6 +40,18 @@ export default function Dock() {
                 </div>
                 <p>Badges</p>
             </Link>
+        
+            
+            <Link to={`/walks`} className='dock-item'>
+                <RiWalkLine style={{fontSize:'1.65em'}} />
+                <p>Walk</p>
+            </Link>
+
+            <Link to={`/leaderboard`} className='dock-item'>
+                <MdLeaderboard style={{fontSize:'1.3em'}}/>
+                <p>Leaderboard</p>
+            </Link>
+
 
             {/* <Link to={`/walkview`} className='dock-item'>
                 <PiSneakerFill />

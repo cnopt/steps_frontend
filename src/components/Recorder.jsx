@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Geolocation } from '@capacitor/geolocation';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Encoding } from '@capacitor/filesystem';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import localDataService from '../services/localDataService';
 import { create } from 'xmlbuilder2';
@@ -13,9 +13,13 @@ import POIDialog from './POIDialog';
 import StopRecordingDialogue from './StopRecordingDialogue';
 import LoadingSpinner from './LoadingSpinner';
 import { useUserSettings } from '../hooks/useUserSettings';
+import {
+  ensureWalksDirectory,
+  writeFileToWalkDirectories,
+  deleteFileFromWalkDirectories
+} from '../helpers/walkStorage';
  
 
-mapboxgl.accessToken = "pk.eyJ1IjoiY25vcHQiLCJhIjoiY21kZjVqcWE2MDhvNzJtcjFrdzVkeWZmOSJ9.6YvvBMhtSYQlWWebyg25eQ";
 
 const MAP_STYLES = [
   { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
@@ -999,32 +1003,18 @@ function Recorder() {
       const fileName = `${day}-${month}-${year}-${timeClassification}-${actualTime}.gpx`;
 
              // Ensure walks directory exists
-       try {
-         try {
-           await Filesystem.readdir({
-             path: 'walks',
-             directory: Directory.Documents
-           });
-           pushLog('Walks directory verified');
-         } catch {
-           // Directory doesn't exist, create it
-           await Filesystem.mkdir({ 
-             path: 'walks', 
-             directory: Directory.Documents, 
-             recursive: true 
-           });
-           pushLog('Walks directory created');
-         }
-       } catch (dirError) {
+      try {
+        await ensureWalksDirectory('walks');
+        pushLog('Walks directory verified');
+      } catch (dirError) {
          console.error('Directory check/create failed:', dirError);
          throw new Error('Could not access or create walks directory: ' + dirError.message);
        }
 
       try {
-        await Filesystem.writeFile({
+        await writeFileToWalkDirectories({
           path: `walks/${fileName}`,
           data: xml,
-          directory: Directory.Documents,
           encoding: Encoding.UTF8
         });
         pushLog(`GPX saved to walks/${fileName}`);
@@ -1039,32 +1029,17 @@ function Recorder() {
           
           // Ensure thumbnails directory exists before saving
           try {
-            // Check if directory exists first
-            try {
-              await Filesystem.readdir({
-                path: 'walks/thumbnails',
-                directory: Directory.Documents
-              });
-              pushLog('Thumbnail directory verified');
-            } catch {
-              // Directory doesn't exist, create it
-              await Filesystem.mkdir({ 
-                path: 'walks/thumbnails', 
-                directory: Directory.Documents, 
-                recursive: true 
-              });
-              pushLog('Thumbnail directory created');
-            }
+            await ensureWalksDirectory('walks/thumbnails');
+            pushLog('Thumbnail directory verified');
           } catch (dirError) {
             console.error('Directory check/create failed:', dirError);
             throw new Error('Could not access or create thumbnail directory: ' + dirError.message);
           }
           
           // Save thumbnail to filesystem
-          await Filesystem.writeFile({
+          await writeFileToWalkDirectories({
             path: `walks/thumbnails/${thumbnail.fileName}`,
             data: thumbnail.imageData.split(',')[1], // Remove data:image/png;base64, prefix
-            directory: Directory.Documents,
             encoding: Encoding.Base64
           });
           
@@ -1142,7 +1117,7 @@ function Recorder() {
           
           // Attempt cleanup
           try {
-            await Filesystem.deleteFile({ path: `walks/${fileName}`, directory: Directory.Documents });
+            await deleteFileFromWalkDirectories(`walks/${fileName}`);
             pushLog('Saved file removed due to metadata update failure');
           } catch (cleanupError) {
             console.error('Cleanup error:', cleanupError);
@@ -1173,20 +1148,22 @@ function Recorder() {
   };
 
 
-  // Ask for location permission up front (Capacitor Android)
+  // Ask for runtime permissions up front (location)
   useEffect(() => {
     const ensurePermissions = async () => {
       try {
-        const status = await Geolocation.checkPermissions();
-        if (status.location !== 'granted') {
-          const req = await Geolocation.requestPermissions();
-          if (req.location !== 'granted') {
+        // Location permission
+        const locationStatus = await Geolocation.checkPermissions();
+        if (locationStatus.location !== 'granted') {
+          const locationReq = await Geolocation.requestPermissions();
+          if (locationReq.location !== 'granted') {
             return;
           }
         }
+
         setPermissionGranted(true);
       } catch (e) {
-        console.error('Geolocation permission error:', e);
+        console.error('Permission setup error:', e);
       }
     };
     ensurePermissions();

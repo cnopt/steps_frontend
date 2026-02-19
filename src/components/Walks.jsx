@@ -5,6 +5,7 @@ import XPBar from './XPBar';
 import Dock from './Dock';
 import LoadingSpinner from './LoadingSpinner';
 import WalkThumbnail from './WalkThumbnail';
+import { getTodayLocalDateString } from '../helpers/dateUtils';
 import '../styles/Walks.css';
 
 export default function Walks() {
@@ -42,26 +43,17 @@ export default function Walks() {
     });
 
     // Sort walks by newest to oldest (using walk date)
-    const sortedWalks = allWalks.sort((a, b) => {
+    const sortedWalks = [...allWalks].sort((a, b) => {
         return new Date(b.date) - new Date(a.date);
     });
-
-    // Group walks by date
-    const walksByDate = sortedWalks.reduce((acc, walk) => {
-        const date = walk.date;
-        if (!acc[date]) {
-            acc[date] = [];
-        }
-        acc[date].push(walk);
-        return acc;
-    }, {});
 
     return (
         <>
             <XPBar />
             <div className="walks-container">
                 <div className="walks-header">
-                    <p className="walks-count">{sortedWalks.length} walks recorded</p>
+                    <p className="walks-count"><span>{sortedWalks.length}</span> walks recorded</p>
+                    <p className="walks-helper-info"><span>󰆽</span> Press a card to open the full walk</p>
                 </div>
                 
                 <div className="walks-list">
@@ -71,130 +63,76 @@ export default function Walks() {
                             <p>Start recording your walks to see them here.</p>
                         </div>
                     ) : (
-                        Object.entries(walksByDate).map(([date, walks]) => (
-                            <div key={date} className="walks-date-group">
-                                <div className="walks-date-header">
-                                    <h2>{formatDate(date)}</h2>
+                        sortedWalks.map((walk, index) => (
+                            <div
+                                key={`${walk.date}-${walk.filename}-${index}`}
+                                className="walk-row"
+                                onClick={() => handleWalkClick(walk)}
+                            >
+                                <div className="walk-cell walk-cell-date">
+                                    <span className="walk-date-primary">
+                                        {formatDateDDMMYY(walk.date)}
+                                    </span>
+                                    <span className="walk-date-secondary">
+                                        {walk.start_time && walk.end_time
+                                            ? formatTimeRange(walk.start_time, walk.end_time)
+                                            : '-'}
+                                    </span>
                                 </div>
-                                {walks.map((walk, index) => (
-                                <div 
-                                    key={`${walk.date}-${walk.filename}-${index}`} 
-                                    className="walk-item"
-                                    onClick={() => handleWalkClick(walk)}
+                                <div
+                                    className="walk-cell walk-cell-main"
                                 >
-                                    <div className="walk-content">
-                                        <WalkThumbnail 
-                                            walkFileName={walk.filename}
-                                            className="walk-thumbnail"
-                                            style={{ 
-                                                width: '100%', 
-                                                height: '110px', 
-                                                borderRadius: '12px',
-                                                borderTopLeftRadius: 0,
-                                                borderTopRightRadius: 0,
-                                                flexShrink: 0
-                                            }}
-                                            alt={`${walk.name} thumbnail`}
-                                        />
-                                        <div className="walk-info">
-                                            <div className="walk-main-info">
-                                                <h3 className="walk-title">{walk.name.substring(walk.name.indexOf(' ') + 1)}</h3>
-                                            </div>
-                                            <div className="walk-meta">
-                                                {walk.start_time && walk.end_time && (
-                                                    <span className="walk-time-range">
-                                                        {formatTimeRange(walk.start_time, walk.end_time)}
-                                                    </span>
-                                                )}
-                                                {walk.total_distance !== undefined && (
-                                                    <span className="walk-distance">
-                                                        {walk.total_distance.toFixed(1)} mi
-                                                    </span>
-                                                )}
-                                                {walk.min_elevation !== undefined && walk.max_elevation !== undefined && (
-                                                    <span className="walk-elevation">
-                                                        {Math.round(walk.min_elevation)}m - {Math.round(walk.max_elevation)}m
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                    <div
+                                        className="walk-cell-name"
+                                        title={formatWalkName(walk.name)}
+                                    >
+                                        {formatWalkName(walk.name)}
+                                    </div>
+                                    <div className="walk-cell-distance">
+                                        {formatDistance(walk.total_distance)}
                                     </div>
                                 </div>
-                                ))}
+                                <div className="walk-cell walk-cell-thumbnail">
+                                    <WalkThumbnail
+                                        walkFileName={walk.filename}
+                                        className="walk-thumbnail"
+                                        alt={`${formatWalkName(walk.name)} thumbnail`}
+                                    />
+                                </div>
                             </div>
                         ))
                     )}
                 </div>
+            </div>
+            <div className="walks-sticky-add">
+                <button
+                    type="button"
+                    className="walks-add-new-btn"
+                    onClick={() => navigate('/insert-walk', {
+                        state: {
+                            selectedDate: getTodayLocalDateString()
+                        }
+                    })}
+                >
+                    <span>󰖃</span> Record New Walk
+                </button>
             </div>
             <Dock />
         </>
     );
 }
 
-// Helper function to get ordinal suffix (1st, 2nd, 3rd, etc)
-function getOrdinalSuffix(day) {
-    if (day > 3 && day < 21) return 'th';
-    switch (day % 10) {
-        case 1:  return 'st';
-        case 2:  return 'nd';
-        case 3:  return 'rd';
-        default: return 'th';
-    }
-}
-
-// Helper function to check if a date is in the current week
-function isInCurrentWeek(date, today) {
-    const todayDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const dateDay = date.getDay();
-    
-    // Calculate the start of the current week (Sunday)
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - todayDay);
-    startOfWeek.setHours(0, 0, 0, 0);
-    
-    return date >= startOfWeek && date <= today;
-}
-
-// Helper function to format date in a readable way
-function formatDate(dateString) {
+function formatDateDDMMYY(dateString) {
     const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
 
-    // Set hours to 0 for date comparison
-    date.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    yesterday.setHours(0, 0, 0, 0);
-
-    if (date.getTime() === today.getTime()) {
-        return 'Today';
-    } else if (date.getTime() === yesterday.getTime()) {
-        return 'Yesterday';
-    } else if (isInCurrentWeek(date, today)) {
-        // If it's this week, just show the day name
-        return date.toLocaleDateString('en-US', { weekday: 'long' });
-    } else {
-        // For dates from last week or earlier, show the full date
-        const day = date.getDate();
-        const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const month = date.toLocaleDateString('en-US', { month: 'long' });
-        const year = date.getFullYear();
-        const currentYear = today.getFullYear();
-        
-        const formattedDate = `${weekday} ${day}${getOrdinalSuffix(day)} ${month}`;
-        return year !== currentYear ? `${formattedDate}, ${year}` : formattedDate;
+    if (Number.isNaN(date.getTime())) {
+        return dateString || '-';
     }
-}
 
-// Helper function to format time
-function formatTime(timeString) {
-    const time = new Date(timeString);
-    return time.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
 }
 
 // Helper function to format time range (start - end)
@@ -211,4 +149,23 @@ function formatTimeRange(startTimeString, endTimeString) {
     };
     
     return `${formatTime24(startTime)} - ${formatTime24(endTime)}`;
+}
+
+function formatWalkName(name) {
+    if (!name) return 'Untitled walk';
+    const firstSpace = name.indexOf(' ');
+    return firstSpace > -1 ? name.substring(firstSpace + 1) : name;
+}
+
+function formatDistance(distance) {
+    if (distance === undefined || distance === null) {
+        return '-';
+    }
+
+    const numericDistance = Number(distance);
+    if (Number.isNaN(numericDistance)) {
+        return '-';
+    }
+
+    return `${numericDistance.toFixed(1)} mi`;
 }

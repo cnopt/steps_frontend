@@ -2,14 +2,14 @@ export const badges = [
     {
         id: 1,
         name: "5 Hundo",
-        description: "Complete 500,000 steps",
+        description: "Log 500,000 steps",
         image: '/badges/sticker_1.png',
         unlockDate: null,
     },
     {
         id: 2,
         name: "Marathon Runner",
-        description: "Complete 25,000 steps in a single day",
+        description: "Log 25,000 steps in a single day",
         image: '/badges/sticker_2.png',
         unlockDate: null,
     },
@@ -23,14 +23,14 @@ export const badges = [
     {
         id: 4,
         name: "Weekend Demon",
-        description: "Complete 20,000 steps over a weekend",
+        description: "Log 20,000 steps over a weekend",
         image: '/badges/sticker_4.png',
         unlockDate: null,
     },
     {
         id: 5,
         name: "One Million",
-        description: "Complete 1,000,000 steps",
+        description: "Log 1,000,000 steps",
         image: '/badges/sticker_5.png',
         unlockDate: null,
     },
@@ -59,7 +59,7 @@ export const badges = [
     {
         id: 9,
         name: "Rain Demon",
-        description: "Complete 10,000 steps in a single rainy day",
+        description: "Log 10,000 steps in a single rainy day",
         image: '/badges/sticker_9.png',
         unlockDate: null,
         requiresWeather: true,

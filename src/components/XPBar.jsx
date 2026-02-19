@@ -156,8 +156,8 @@ export default function XPBar() {
                 <div className={`level-details ${isExpanded ? 'expanded' : ''}`}>
                     <div className="details-content">
                         {/* <p>󰇆</p> */}
-                        <p>XP for Next Level: {Math.floor(levelInfo.nextLevelXP).toLocaleString()}</p>
-                        <p>XP Needed: {Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</p>
+                        <p>Next level: <span>{Math.floor(levelInfo.nextLevelXP).toLocaleString()}</span></p>
+                        <p>Steps needed: <span>{Math.floor(levelInfo.nextLevelXP - allTimeTotalSteps).toLocaleString()}</span></p>
                     </div>
                 </div>
             </div>

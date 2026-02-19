@@ -161,6 +161,139 @@
   font-family: sf;
 }
 
+.achievement-progress-list {
+  width: 92%;
+  margin: 0 auto 4rem auto;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.achievement-progress-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0;
+  padding: 0.85rem 0.95rem;
+  min-height: 5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.achievement-progress-card.unlocked {
+  border-color: rgb(34 197 41 / 45%);
+  background: rgb(49 197 34 / 20%);
+}
+
+.achievement-progress-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.achievement-progress-name {
+  margin: 0;
+  font-family: sf-semi;
+  font-size: 0.95rem;
+}
+
+.achievement-progress-state {
+  margin: 0;
+  font-family: sf-semi;
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+.achievement-progress-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.weather-achievement-icon {
+  color: #f97316;
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.progress-icon.incomplete {
+  color: #636363;
+  opacity: 1;
+}
+
+.progress-icon.partial {
+  color: #787878;
+  opacity: 1;
+}
+
+.progress-icon.complete {
+  color: #136331;
+  opacity: 0;
+}
+
+.achievement-progress-requirement {
+  margin: 0.75rem 0 0.45rem 0;
+  font-size: 0.85rem;
+  color: var(--theme-text-secondary);
+}
+
+.achievement-progress-card.unlocked .achievement-progress-requirement {
+  color: #7b9083;
+}
+
+.achievement-progress-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  margin-top: 0.85rem;
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgb(110 110 110) 0%, #dcdcdc 100%);
+  transition: width 0.25s ease;
+}
+
+.achievement-progress-card.unlocked .achievement-progress-fill {
+  background: linear-gradient(90deg, #22c55e 0%, #86efac 100%);
+}
+
+.achievement-progress-value {
+  margin: 0.45rem 0 0 0;
+  font-size: 0.65rem;
+  color: var(--theme-text-secondary);
+}
+
+.progress-current-value {
+  opacity: 1;
+}
+
+.progress-target-value {
+  opacity: 0.5;
+}
+
+.attempt-progress-value {
+  margin-top: auto;
+  padding-top: 0.45rem;
+  opacity: 0.65;
+}
+
+.attempt-progress-value::before {
+  content: "ⓘ ";
+}
+
+.completion-date-value {
+  margin-top: auto;
+  padding-top: 0.45rem;
+  color: #4c724c;
+  font-weight: bold;
+  text-align: right;
+}
+
 .badge-container {
     width: 98%;
     margin: auto;

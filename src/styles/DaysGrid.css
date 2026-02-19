@@ -43,8 +43,10 @@ body::-webkit-scrollbar {
 
 .day-grid-date-selector {
     display: flex;
-    justify-content: space-between; 
-    align-items: end; 
+    width: 92%;
+    margin: auto;
+    justify-content: space-between;
+    align-items: end;
 }
 .day-grid-date-selector p {
     margin: 0;

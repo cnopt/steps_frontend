@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Encoding } from '@capacitor/filesystem';
 import { generateWalkThumbnail } from '../helpers/thumbnailGenerator';
+import {
+  ensureWalksDirectory,
+  writeFileToWalkDirectories,
+  readFileFromWalkDirectories
+} from '../helpers/walkStorage';
 
 const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk thumbnail' }) => {
   const [thumbnailSrc, setThumbnailSrc] = useState(null);
@@ -11,9 +16,8 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
   const loadThumbnail = async () => {
     try {
       const thumbnailFileName = walkFileName.replace('.gpx', '.png');
-      const result = await Filesystem.readFile({
+      const result = await readFileFromWalkDirectories({
         path: `walks/thumbnails/${thumbnailFileName}`,
-        directory: Directory.Documents,
         encoding: Encoding.Base64
       });
       
@@ -84,9 +88,8 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
       setError(false);
       
       // Read the GPX file
-      const gpxResult = await Filesystem.readFile({
+      const gpxResult = await readFileFromWalkDirectories({
         path: `walks/${walkFileName}`,
-        directory: Directory.Documents,
         encoding: Encoding.UTF8
       });
       
@@ -102,23 +105,15 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
       
       // Ensure thumbnails directory exists
       try {
-        await Filesystem.readdir({
-          path: 'walks/thumbnails',
-          directory: Directory.Documents
-        });
+        await ensureWalksDirectory('walks/thumbnails');
       } catch {
-        await Filesystem.mkdir({ 
-          path: 'walks/thumbnails', 
-          directory: Directory.Documents, 
-          recursive: true 
-        });
+        // If directory prep fails, write call below will report error.
       }
       
       // Save thumbnail to filesystem
-      await Filesystem.writeFile({
+      await writeFileToWalkDirectories({
         path: `walks/thumbnails/${thumbnail.fileName}`,
         data: thumbnail.imageData.split(',')[1], // Remove data:image/png;base64, prefix
-        directory: Directory.Documents,
         encoding: Encoding.Base64
       });
       
@@ -156,51 +151,42 @@ const WalkThumbnail = ({ walkFileName, className = '', style = {}, alt = 'Walk t
   }
 
   if (error || !thumbnailSrc) {
+    const handleRetry = (e) => {
+      e.stopPropagation();
+      if (!regenerating) {
+        regenerateThumbnail();
+      }
+    };
+
     return (
-      <div 
-        className={`walk-thumbnail-placeholder ${className}`}
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+      <button
+        type="button"
+        className={`walk-thumbnail-placeholder walk-thumbnail-retry ${className}`}
+        onClick={handleRetry}
+        aria-label={regenerating ? 'Generating thumbnail' : 'Retry thumbnail generation'}
+        title={regenerating ? 'Generating thumbnail' : 'Retry thumbnail generation'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
-          flexDirection: 'column',
-          gap: '8px',
-          ...style 
+          border: 'none',
+          cursor: regenerating ? 'default' : 'pointer',
+          ...style
         }}
       >
-        {regenerating ? (
-          <>
-            <div className="loading-spinner" style={{
-              width: '24px',
-              height: '24px',
-              border: '2px solid rgba(255,255,255,0.3)',
-              borderTop: '2px solid rgba(255,255,255,0.8)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <span style={{
-              fontSize: '12px',
-              color: 'rgba(255,255,255,0.7)',
-              textAlign: 'center'
-            }}>Generating...</span>
-          </>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              regenerateThumbnail();
-            }}
-            style={{
-              color: 'rgba(255,255,255,0.8)',
-              padding: '8px 12px',
-              fontSize: '12px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Generate Thumbnail
-          </button>
-        )}
-      </div>
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: '22px',
+            lineHeight: 1,
+            color: '#a85200',
+            transform: regenerating ? 'rotate(0deg)' : 'none',
+            animation: regenerating ? 'spin 1s linear infinite' : 'none'
+          }}
+        >
+          ↻
+        </span>
+      </button>
     );
   }
 

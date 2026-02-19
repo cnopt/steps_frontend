@@ -228,6 +228,24 @@ const DaysGrid = () => {
     }
   };
 
+  const dayDetailsVariants = {
+    enter: (direction) => ({
+      opacity: 0,
+      x: direction === 0 ? 0 : (direction === 1 ? -20 : 20),
+      y: direction === 0 ? 5 : 0
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      y: 0
+    },
+    exit: (direction) => ({
+      opacity: 0,
+      x: direction === 0 ? 0 : (direction === 1 ? 20 : -20),
+      y: direction === 0 ? -5 : 0
+    })
+  };
+
   const isHourlyStepsEnabled = true
 
   return (
@@ -299,8 +317,9 @@ const DaysGrid = () => {
                   if (daysWithData[day]) {
                     // Compare dates to determine slide direction
                     if (selectedDay) {
-                      const currentSelectedDate = new Date(selectedDay.formatted_date);
-                      const newSelectedDate = new Date(daysWithData[day].formatted_date);
+                      // Compare YYYY-MM-DD strings directly to avoid timezone parsing quirks
+                      const currentSelectedDate = selectedDay.formatted_date;
+                      const newSelectedDate = daysWithData[day].formatted_date;
                       
                       if (newSelectedDate < currentSelectedDate) {
                         setSlideDirection(1); // slide from left
@@ -448,25 +467,15 @@ const DaysGrid = () => {
               })}
             </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" custom={slideDirection}>
             <motion.div 
               className="day-details"
               key={selectedDay ? selectedDay.formatted_date : selectedEmptyDay ? selectedEmptyDay : 'empty'}
-              initial={{ 
-                opacity: 0, 
-                x: slideDirection === 0 ? 0 : (slideDirection === 1 ? -20 : 20),
-                y: slideDirection === 0 ? 5 : 0 
-              }}
-              animate={{ 
-                opacity: 1, 
-                x: 0,
-                y: 0 
-              }}
-              exit={{ 
-                opacity: 0,
-                x: slideDirection === 0 ? 0 : (slideDirection === 1 ? 20 : -20),
-                y: slideDirection === 0 ? -5 : 0
-              }}
+              custom={slideDirection}
+              variants={dayDetailsVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
               transition={{ 
                 duration: 0.2,
                 ease: "easeOut"
