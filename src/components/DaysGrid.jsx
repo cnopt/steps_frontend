@@ -19,7 +19,7 @@ import StepsInputModal from './StepsInputModal';
 import HealthDataImportModal from './HealthDataImportModal';
 import localDataService from '../services/localDataService';
 import Today from './Today';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getTodayLocalDateString, isToday as isTodayLocal } from '../helpers/dateUtils';
 
 const getWeatherIcon = (weatherString) => {
@@ -53,6 +53,7 @@ const wasBadgeUnlockedOnDate = (date, unlockedBadges) => {
 
 const DaysGrid = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const query = useStepsData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
@@ -561,7 +562,8 @@ const DaysGrid = () => {
                         } else {
                           navigate('/insert-walk', { 
                             state: { 
-                              selectedDate: selectedDay.formatted_date 
+                              selectedDate: selectedDay.formatted_date,
+                              backgroundLocation: location
                             }
                           });
                         }

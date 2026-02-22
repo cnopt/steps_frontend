@@ -293,7 +293,6 @@ export const getLeaderboardWithProfiles = async (date, limit = 10) => {
         date,
         user_profiles (
           username,
-          selected_badge,
           created_at,
           updated_at
         )
@@ -366,7 +365,7 @@ export const getWeeklyLeaderboardWithProfiles = async (startDate, endDate, limit
     // Fetch user profiles
     const { data: profiles, error: profileError } = await supabase
       .from('user_profiles')
-      .select('user_id, username, selected_badge, created_at, updated_at')
+      .select('user_id, username, created_at, updated_at')
       .in('user_id', userIds);
 
     if (profileError) {
@@ -442,7 +441,7 @@ export const getAllTimeLeaderboardWithProfiles = async (limit = 10) => {
     // Fetch user profiles
     const { data: profiles, error: profileError } = await supabase
       .from('user_profiles')
-      .select('user_id, username, selected_badge, created_at, updated_at')
+      .select('user_id, username, created_at, updated_at')
       .in('user_id', userIds);
 
     if (profileError) {

@@ -137,7 +137,6 @@ const Leaderboard = () => {
       const profileData = {
         user_id: userProfile.userId || userData.user_id,
         username: userProfile.username || userData.username,
-        selected_badge: userProfile.selectedBadge || null,
         created_at: userProfile.createdAt || new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -406,7 +405,6 @@ const Leaderboard = () => {
                       <div className="user-section">
                         <VF5ProfileBorder 
                           username={entry.profile?.username || entry.name || `User${entry.user_id}`}
-                          badgeId={entry.profile?.selected_badge}
                           showDescription={false}
                           size="small"
                         />

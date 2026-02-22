@@ -1,7 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { BrowserRouter as Router, Routes, Route, Link, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import './styles/App.css'
 import DaysGrid from './components/DaysGrid';
 import Achievements from './components/Achievements';
@@ -30,29 +30,46 @@ function App() {
         <ThemeProvider>
           <AchievementProvider>
             <SmartRouter>
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route path='/' element={<DaysGrid/>}/>
-                <Route path='/month' element={<DaysGrid/>}/>
-                <Route path='/achievements' element={<Achievements/>}/>
-                <Route path='/leaderboard' element={<Leaderboard/>}/>
-                <Route path='/input' element={<NumberInput/>}/>
-                <Route path='/stats' element={<Stats/>}/>
-                <Route path='/settings' element={<SettingsMenu/>}/>
-                <Route path='/shoes' element={<Shoes/>}/>
-                <Route path='/walkview' element={<WalkView/>}/>
-                <Route path='/insert-walk' element={<InsertWalk/>}/>
-                <Route path='/recorder' element={<Recorder/>}/>
-                <Route path='/walks' element={<Walks/>}/>
-              </Routes>
-            </AnimatePresence>
-          </SmartRouter>
-          <Dock />
+              <AppRoutes />
+            </SmartRouter>
+            <Dock />
           </AchievementProvider>
         </ThemeProvider>
       </Router>
       {/* <ReactQueryDevtools/> */}
     </QueryClientProvider>
+  );
+}
+
+function AppRoutes() {
+  const location = useLocation();
+  const backgroundLocation = location.state?.backgroundLocation;
+
+  return (
+    <>
+      <AnimatePresence mode="wait">
+        <Routes location={backgroundLocation || location}>
+          <Route path='/' element={<DaysGrid/>}/>
+          <Route path='/month' element={<DaysGrid/>}/>
+          <Route path='/achievements' element={<Achievements/>}/>
+          <Route path='/leaderboard' element={<Leaderboard/>}/>
+          <Route path='/input' element={<NumberInput/>}/>
+          <Route path='/stats' element={<Stats/>}/>
+          <Route path='/settings' element={<SettingsMenu/>}/>
+          <Route path='/shoes' element={<Shoes/>}/>
+          <Route path='/walkview' element={<WalkView/>}/>
+          <Route path='/insert-walk' element={<InsertWalk/>}/>
+          <Route path='/recorder' element={<Recorder/>}/>
+          <Route path='/walks' element={<Walks/>}/>
+        </Routes>
+      </AnimatePresence>
+
+      {backgroundLocation && (
+        <Routes>
+          <Route path='/insert-walk' element={<InsertWalk/>}/>
+        </Routes>
+      )}
+    </>
   );
 }
 

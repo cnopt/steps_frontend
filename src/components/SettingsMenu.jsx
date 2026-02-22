@@ -813,7 +813,7 @@ const SettingsMenu = () => {
             </div>
           </div>
 
-          <div className="theme-settings">
+          {/* <div className="theme-settings">
             <h2>Theme</h2>
             <div className="theme-selector">
               <button
@@ -864,7 +864,7 @@ const SettingsMenu = () => {
                 <span>Light</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="health-connect-settings">
             <h2>Health Connect Debug</h2>

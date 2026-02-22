@@ -73,6 +73,18 @@ const Achievements = () => {
     }
   };
 
+  const getAchievementPreviewStyle = (milestone) => {
+    if (!milestone?.titleImage) {
+      return undefined;
+    }
+
+    return {
+      '--achievement-preview-image': `url(${milestone.titleImage})`,
+      '--achievement-preview-size': milestone.titleImageSize || 'cover',
+      '--achievement-preview-position': milestone.titleImagePos || 'center'
+    };
+  };
+
   const getAchievementIcon = (type) => {
     switch (type) {
       case 'badge': return '🏆';
@@ -159,7 +171,7 @@ const Achievements = () => {
     <>
       <div className="sticky-header">
         <XPBar/>
-        <VF5ProfileBorder/>
+        <VF5ProfileBorder />
       </div>
 
         <div className="achievements-container">
@@ -222,7 +234,7 @@ const Achievements = () => {
             </div>
           )}
           
-          <h3>Titles</h3>
+          <h3>Milestones</h3>
           {/* Achieved Milestones */}
           <div className="milestones-section">
             {milestones.map((milestone) => {
@@ -231,9 +243,7 @@ const Achievements = () => {
               return isAchieved ? (
                 <div 
                   key={milestone.value}
-                  className={`milestone-item achieved ${milestone.rarity} ${userSelectedMilestoneValue === milestone.value ? 'user-selected' : ''}`}
-                  onClick={() => handleMilestoneSelection(milestone)}
-                  style={{ cursor: 'pointer' }}
+                  className={`milestone-item achieved ${milestone.rarity}`}
                 >
                   <p className="milestone-value">
                     <span className="milestone-star">󰖃</span>
@@ -255,23 +265,37 @@ const Achievements = () => {
           <div className="badges-section">
             <h3>Achievements</h3>
             <div className="achievement-progress-list">
-              {challengeBadges.map((badge) => {
+              {challengeBadges.map((badge, badgeIndex) => {
                 const isUnlocked = unlockedBadgeIds.has(badge.id);
                 const unlockedBadge = unlockedBadgeMap.get(badge.id);
+                const linkedMilestone = milestones[badgeIndex] || null;
+                const isSelectedBackground = linkedMilestone && userSelectedMilestoneValue === linkedMilestone.value;
+                const isSelectable = Boolean(isUnlocked && linkedMilestone);
                 const progress = badgeProgress[badge.id] || { percent: 0, label: 'No progress yet', isBinary: false, displayMode: 'bar' };
                 const displayMode = progress.displayMode || (progress.isBinary ? 'binary' : 'bar');
                 const progressPercent = isUnlocked ? 100 : Math.round(progress.percent * 100);
-                const hasAnyProgress = !isUnlocked && (progress.hasProgress ?? progressPercent > 0);
-                const progressStateIcon = isUnlocked ? '●' : (hasAnyProgress ? '◐' : '○');
-                const progressStateLabel = isUnlocked ? 'Completed' : (hasAnyProgress ? 'In progress' : 'Not started');
-                const progressStateClass = isUnlocked ? 'complete' : (hasAnyProgress ? 'partial' : 'incomplete');
+                const progressStateIcon = '🔒';
+                const progressStateLabel = 'Locked';
+                const progressStateClass = 'locked';
                 const progressValueClass = `achievement-progress-value ${progress.labelVariant === 'attempt' ? 'attempt-progress-value' : ''}`;
                 const formattedUnlockDate = formatAchievementUnlockDate(unlockedBadge?.unlockDate);
 
                 return (
                   <div
                     key={badge.id}
-                    className={`achievement-progress-card ${isUnlocked ? 'unlocked' : 'locked'}`}
+                    className={`achievement-progress-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelectedBackground ? 'user-selected' : ''} ${isUnlocked && linkedMilestone?.titleImage ? 'has-preview-image' : ''}`}
+                    onClick={isSelectable ? () => handleMilestoneSelection(linkedMilestone) : undefined}
+                    onKeyDown={(event) => {
+                      if (!isSelectable) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleMilestoneSelection(linkedMilestone);
+                      }
+                    }}
+                    role={isSelectable ? 'button' : undefined}
+                    tabIndex={isSelectable ? 0 : undefined}
+                    aria-disabled={!isSelectable}
+                    style={isUnlocked ? getAchievementPreviewStyle(linkedMilestone) : undefined}
                   >
                     <div className="achievement-progress-header">
                       <p className="achievement-progress-name">{badge.name}</p>
@@ -281,13 +305,15 @@ const Achievements = () => {
                             ⛅
                           </span>
                         )}
-                        <p
-                          className={`achievement-progress-state progress-icon ${progressStateClass}`}
-                          aria-label={progressStateLabel}
-                          title={progressStateLabel}
-                        >
-                          {progressStateIcon}
-                        </p>
+                        {!isUnlocked ? (
+                          <p
+                            className={`achievement-progress-state progress-icon ${progressStateClass}`}
+                            aria-label={progressStateLabel}
+                            title={progressStateLabel}
+                          >
+                            {progressStateIcon}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
 
@@ -312,9 +338,10 @@ const Achievements = () => {
 
                     {isUnlocked && (
                       <p className="achievement-progress-value completion-date-value">
-                        {formattedUnlockDate ? `✔ Completed ${formattedUnlockDate}` : 'Completed'}
+                        {formattedUnlockDate ? `✔ ${formattedUnlockDate}` : 'Completed'}
                       </p>
                     )}
+
                   </div>
                 );
               })}

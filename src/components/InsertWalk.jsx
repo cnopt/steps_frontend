@@ -2,15 +2,19 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Encoding } from '@capacitor/filesystem';
 import localDataService from '../services/localDataService';
+import PageTransition from './PageTransition';
+import { getLocalDateString, getTodayLocalDateString } from '../helpers/dateUtils';
 import {
   ensureWalksDirectory,
   writeFileToWalkDirectories,
   deleteFileFromWalkDirectories
 } from '../helpers/walkStorage';
+import '../styles/InsertWalk.css';
 
 const InsertWalk = () => {
   const location = useLocation();
   const selectedDate = location.state?.selectedDate;
+  const dateLabel = formatInsertWalkDate(selectedDate);
   const [status, setStatus] = useState('');
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -85,82 +89,95 @@ const InsertWalk = () => {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto' }}>
-      <h3>Upload Walk for {selectedDate}</h3>
-      
-      <input
-        type="file"
-        accept=".gpx"
-        onChange={handleFileUpload}
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-      />
-      
-      <button 
-        onClick={() => navigate('/recorder', { state: { selectedDate } })}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          fontFamily: 'sf',
-          fontSize:'1em',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          width: '100%'
-        }}
-      >
-        Start Recording Walk
-      </button>
+    <div className="insert-walk-page">
+      <PageTransition>
+        <div className="insert-walk-transition">
+          <div className="insert-walk-container">
+            <div className="insert-walk-header">
+              <button
+                type="button"
+                className="insert-walk-back-btn"
+                onClick={() => navigate(-1)}
+                aria-label="Go back"
+              >
+                󰁍
+              </button>
+              <p>
+                Add walk for <span className="insert-walk-date">{dateLabel}</span>
+              </p>
+            </div>
+          
+          <input
+            type="file"
+            accept=".gpx"
+            onChange={handleFileUpload}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+          />
+          
+          <button 
+            onClick={() => navigate('/recorder', { state: { selectedDate } })}
+            className="insert-walk-record-btn"
+          >
+            <span>󰖃</span> Start Recording Walk
+          </button>
 
-      <button 
-        onClick={() => fileInputRef.current.click()}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#037bfc',
-          fontFamily: 'sf',
-          fontSize:'1em',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          marginBottom: '10px',
-          width: '100%'
-        }}
-      >
-        Select GPX File
-      </button>
+          <button 
+            onClick={() => fileInputRef.current.click()}
+            className="insert-walk-select-btn"
+          >
+            Import GPX File
+          </button>
 
-      
+          
 
-      {status && (
-        <p style={{ 
-          marginTop: '20px',
-          padding: '10px',
-          backgroundColor: status.includes('successful') ? '#4CAF50' : '#f44336',
-          color: 'white',
-          borderRadius: '5px'
-        }}>
-          {status}
-        </p>
-      )}
-
-      <button 
-        onClick={() => navigate(-1)}
-        style={{
-          marginTop: '20px',
-          padding: '10px 20px',
-          backgroundColor: 'transparent',
-          color: '#666',
-          border: '1px solid #666',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}
-      >
-        Cancel
-      </button>
+            {status && (
+              <p className={`insert-walk-status ${status.includes('successful') ? 'success' : 'error'}`}>
+                {status}
+              </p>
+            )}
+          </div>
+        </div>
+      </PageTransition>
     </div>
   );
 };
+
+function formatInsertWalkDate(dateString) {
+  if (!dateString) {
+    return 'today';
+  }
+
+  if (dateString === getTodayLocalDateString()) {
+    return 'today';
+  }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (dateString === getLocalDateString(yesterday)) {
+    return 'yesterday';
+  }
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return dateString;
+  }
+
+  const day = date.getDate();
+  const month = date.toLocaleString('en-GB', { month: 'short' });
+
+  const remainder10 = day % 10;
+  const remainder100 = day % 100;
+  let suffix = 'th';
+  if (remainder10 === 1 && remainder100 !== 11) {
+    suffix = 'st';
+  } else if (remainder10 === 2 && remainder100 !== 12) {
+    suffix = 'nd';
+  } else if (remainder10 === 3 && remainder100 !== 13) {
+    suffix = 'rd';
+  }
+
+  return `${day}${suffix} ${month}`;
+}
 
 export default InsertWalk;

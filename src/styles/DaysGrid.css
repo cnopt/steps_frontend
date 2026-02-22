@@ -169,6 +169,9 @@ body::-webkit-scrollbar {
 .day-details-badge span {
     margin-right: 0.75rem !important;
 }
+.day-details-milestone span {
+    margin-right: 0.6rem !important;
+}
 
 .day-details-second-row {
     display: flex;
