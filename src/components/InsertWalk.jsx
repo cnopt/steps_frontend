@@ -94,14 +94,6 @@ const InsertWalk = () => {
         <div className="insert-walk-transition">
           <div className="insert-walk-container">
             <div className="insert-walk-header">
-              <button
-                type="button"
-                className="insert-walk-back-btn"
-                onClick={() => navigate(-1)}
-                aria-label="Go back"
-              >
-                󰁍
-              </button>
               <p>
                 Add walk for <span className="insert-walk-date">{dateLabel}</span>
               </p>
@@ -127,6 +119,15 @@ const InsertWalk = () => {
             className="insert-walk-select-btn"
           >
             Import GPX File
+          </button>
+
+          <button
+            type="button"
+            className="insert-walk-close-btn"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+          >
+            ✕
           </button>
 
           

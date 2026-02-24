@@ -51,7 +51,8 @@ export const ensureWalksDirectory = async (path) => {
         recursive: true
       });
     } catch (error) {
-      // Ignore "already exists"; fail only if primary write target cannot be prepared.
+      const msg = error?.message || '';
+      if (msg.includes('already exists')) continue;
       if (i === 0) {
         primaryError = error;
       }
