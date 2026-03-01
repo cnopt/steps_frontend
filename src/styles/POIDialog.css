@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,12 +161,17 @@
 
 .poi-option.selected {
   outline: 2px solid white;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
+
+.poi-options.has-selection .poi-option:not(.selected) {
+  opacity: 0.4;
+}
+
 
 .poi-icon {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 1.8em;
+  font-size: 1.2em;
   vertical-align: middle;
   line-height: 1;
 }

@@ -4,6 +4,9 @@ export const badges = [
         name: "5 Hundo",
         description: "Log 500,000 steps",
         image: '/badges/sticker_1.png',
+        titleImage: '/titles/red-blue-chinese.png',
+        titleImageSize: '150%',
+        titleImagePos: '32% 50%',
         unlockDate: null,
     },
     {
@@ -11,6 +14,9 @@ export const badges = [
         name: "Marathon Runner",
         description: "Log 25,000 steps in a single day",
         image: '/badges/sticker_2.png',
+        titleImage: '/titles/green.jpg',
+        titleImageSize: '200%',
+        titleImagePos: '62% 66%',
         unlockDate: null,
     },
     {
@@ -18,6 +24,9 @@ export const badges = [
         name: "Consistent MF",
         description: "Walk at least 8,000 steps for 7 days in a row",
         image: '/badges/sticker_3.png',
+        titleImage: '/titles/green.jpg',
+        titleImageSize: '200%',
+        titleImagePos: '62% 66%',
         unlockDate: null,
     },
     {
@@ -25,6 +34,9 @@ export const badges = [
         name: "Weekend Demon",
         description: "Log 20,000 steps over a weekend",
         image: '/badges/sticker_4.png',
+        titleImage: '/titles/evil-vines.png',
+        titleImageSize: '150%',
+        titleImagePos: '62% 66%',
         unlockDate: null,
     },
     {
@@ -32,6 +44,9 @@ export const badges = [
         name: "One Million",
         description: "Log 1,000,000 steps",
         image: '/badges/sticker_5.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null,
     },
     {
@@ -39,6 +54,9 @@ export const badges = [
         name: "Four Seasons",
         description: "Log steps in all four seasons of the year",
         image: '/badges/sticker_6.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -46,6 +64,9 @@ export const badges = [
         name: "Month Demon",
         description: "Log 300,000 steps in a single month",
         image: '/badges/sticker_7.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -53,6 +74,9 @@ export const badges = [
         name: "Rain Wizard",
         description: "Log 100,000 total steps on rainy days",
         image: '/badges/sticker_8.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -61,6 +85,9 @@ export const badges = [
         name: "Rain Demon",
         description: "Log 10,000 steps in a single rainy day",
         image: '/badges/sticker_9.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -69,6 +96,9 @@ export const badges = [
         name: "Weekend Wizard",
         description: "Log 500,000 steps on weekends",
         image: '/badges/sticker_10.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null,
     },
     {
@@ -76,6 +106,9 @@ export const badges = [
         name: "420",
         description: "Blaze it up",
         image: '/badges/sticker_11.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -83,6 +116,9 @@ export const badges = [
         name: "Lazy Weekend",
         description: "Less than 5,000 steps over a weekend. You must be ill.",
         image: '/badges/sticker_12.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -90,6 +126,9 @@ export const badges = [
         name: "Summer Solstice",
         description: "Rinsed it on 20th June",
         image: '/badges/sticker_13.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -97,6 +136,9 @@ export const badges = [
         name: "1337",
         description: "1337 h4x0r",
         image: '/badges/sticker_14.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -104,6 +146,9 @@ export const badges = [
         name: "1111",
         description: "Exactly 1111 Steps",
         image: '/badges/sticker_15.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null,
     },
     {
@@ -111,6 +156,9 @@ export const badges = [
         name: "9999",
         description: "Exactly 9999 Steps",
         image: '/badges/sticker16_.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -118,6 +166,9 @@ export const badges = [
         name: "Deja-vu",
         description: "Exact same step count 2 days in a row.. woah",
         image: '/badges/sticker_17.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -125,6 +176,9 @@ export const badges = [
         name: "Sanka, ya dead?",
         description: "Less than 1000 steps for 7 days in a row",
         image: '/badges/sticker_18.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
     },
     {
@@ -132,6 +186,9 @@ export const badges = [
         name: "Fuck the Cold",
         description: "Decent walk on a freeeezing day",
         image: '/badges/sticker_19.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -140,6 +197,9 @@ export const badges = [
         name: "Consecutive Climber",
         description: "Increased your step count every day for 5 days straight",
         image: '/badges/sticker_20.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null
     },
     {
@@ -147,6 +207,9 @@ export const badges = [
         name: "Fuck Me It's Hot",
         description: "10,000 steps on a bloody hot day",
         image: '/badges/sticker_21.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -155,6 +218,9 @@ export const badges = [
         name: "Half Marathon",
         description: "Walked the distance of a Half Marathon (21.1km)",
         image: '/badges/sticker_22.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null
     },
     {
@@ -162,6 +228,9 @@ export const badges = [
         name: "Marathon",
         description: "Walked the distance of a Marathon (42.2km)",
         image: '/badges/sticker_23.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null
     },
     {
@@ -169,6 +238,9 @@ export const badges = [
         name: "100 Miles",
         description: "Walked 100 miles",
         image: '/badges/sticker_24.png',
+        titleImage: '/titles/vf-kids.jpg',
+        titleImageSize: '158%',
+        titleImagePos: '-5% 79%',
         unlockDate: null
     },
     {
@@ -176,6 +248,9 @@ export const badges = [
         name: "200 Miles",
         description: "Walked 200 miles",
         image: '/badges/sticker_25.png',
+        titleImage: '/titles/sharp-blue.jpg',
+        titleImageSize: '115%',
+        titleImagePos: '30% 45%',
         unlockDate: null
     },
     {
@@ -183,6 +258,9 @@ export const badges = [
         name: "Mental Weekend",
         description: "50k Steps In One Weekend",
         image: '/badges/sticker_26.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -190,6 +268,9 @@ export const badges = [
         name: "2222",
         description: "Exactly 2222 Steps",
         image: '/badges/sticker_27.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -197,6 +278,9 @@ export const badges = [
         name: "3333",
         description: "Exactly 3333 Steps",
         image: '/badges/sticker_28.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -204,6 +288,9 @@ export const badges = [
         name: "4444",
         description: "Exactly 4444 Steps",
         image: '/badges/sticker_29.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -211,6 +298,9 @@ export const badges = [
         name: "5555",
         description: "Exactly 5555 Steps",
         image: '/badges/sticker_30.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -218,6 +308,9 @@ export const badges = [
         name: "Doesn't Bother Me",
         description: "500k Steps On Rainy Days",
         image: '/badges/sticker_31.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -226,6 +319,9 @@ export const badges = [
         name: "White Blanket",
         description: "Big walk in the snow",
         image: '/badges/sticker_32.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -234,6 +330,9 @@ export const badges = [
         name: "Ramping Up",
         description: "3 months in a row where total steps increased",
         image: '/badges/sticker_33.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -241,6 +340,9 @@ export const badges = [
         name: "Ramping Up II",
         description: "6 months in a row where total steps increased",
         image: '/badges/sticker_34.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -248,6 +350,9 @@ export const badges = [
         name: "6666",
         description: "Exactly 6666 Steps",
         image: '/badges/sticker_35.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -255,6 +360,9 @@ export const badges = [
         name: "7777",
         description: "Exactly 7777 Steps",
         image: '/badges/sticker_36.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -262,6 +370,9 @@ export const badges = [
         name: "8888",
         description: "Exactly 8888 Steps",
         image: '/badges/sticker_37.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {
@@ -269,6 +380,9 @@ export const badges = [
         name: "Just The Cold Init",
         description: "100k total steps in the bloody cold",
         image: '/badges/sticker_38.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -277,6 +391,9 @@ export const badges = [
         name: "Just The Cold Init II",
         description: "500k total steps in the bloody cold",
         image: '/badges/sticker_39.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null,
         requiresWeather: true,
     },
@@ -285,6 +402,9 @@ export const badges = [
         name: "500 Miles",
         description: "Haha Like The Song",
         image: '/badges/sticker_40.png',
+        titleImage: '/titles/blue-yellow-blocks.jpg',
+        titleImageSize: '100%',
+        titleImagePos: '0% 45%',
         unlockDate: null
     },
     {

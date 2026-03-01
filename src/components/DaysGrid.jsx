@@ -352,7 +352,8 @@ const DaysGrid = () => {
                     onClick={handleDayClick}
                     style={{
                       position: 'relative',
-                      cursor: (day > 0 && day <= daysInMonth) ? 'pointer' : 'default'
+                      cursor: (day > 0 && day <= daysInMonth) ? 'pointer' : 'default',
+                      zIndex: selectedDay && dayDate === selectedDay.formatted_date ? 1000 : undefined
                     }}
                   >
                     {dayData && (
@@ -519,31 +520,26 @@ const DaysGrid = () => {
                         </span>
                     </p>
                   </div> */}
-                  {milestoneDays.has(selectedDay.formatted_date) && (
-                    <div className='day-details-milestones'>
-                      <p className='day-details-milestone'>
-                        <span>★</span>
-                        <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity), fontSize:'0.8em' }}>
-                          {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps
-                        </span>
-                      </p>
-                    </div>
-                  )}
-
-                  {wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges) && (
-                    <div className='day-details-badges'>
-                      <div className='day-details-badge'>
-                        {unlockedBadges
-                          .filter(badge => badge.unlockDate === selectedDay.formatted_date)
-                          .map(badge => (
-                            <p key={badge.id}>
-                              <span style={{color:'gold'}}>󰻂</span>
-                              <span style={{ color: 'gold', fontSize:'0.8em'}}>
-                                {badge.name} unlocked
-                              </span>
-                            </p>
-                          ))}
-                      </div>
+                  {(milestoneDays.has(selectedDay.formatted_date) || wasBadgeUnlockedOnDate(selectedDay.formatted_date, unlockedBadges)) && (
+                    <div className='day-details-achievements'>
+                      {milestoneDays.has(selectedDay.formatted_date) && (
+                        <div className='day-details-achievement-chip day-details-achievement-chip--milestone'>
+                          <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity) }}>★</span>
+                          <span style={{ color: getRarityColor(milestoneDays.get(selectedDay.formatted_date).rarity) }}>
+                            {milestoneDays.get(selectedDay.formatted_date).value.toLocaleString()} steps
+                          </span>
+                        </div>
+                      )}
+                      {unlockedBadges
+                        .filter(badge => badge.unlockDate === selectedDay.formatted_date)
+                        .map(badge => (
+                          <div key={badge.id} className='day-details-achievement-chip day-details-achievement-chip--badge'>
+                            <span style={{color:'gold'}}>󰻂</span>
+                            <span style={{ color: 'gold' }}>
+                              {badge.name}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   )}
 

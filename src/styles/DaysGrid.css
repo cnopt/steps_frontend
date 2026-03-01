@@ -158,19 +158,38 @@ body::-webkit-scrollbar {
     margin-right: 0.33rem;
     font-size: 0.9em;
 }
-.day-details-milestone {
-    color: gold !important;
-    font-family: sf-med;
-    margin-bottom: 0.5rem;
+.day-details-achievements {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
 }
-.day-details-badge p {
-    margin-bottom: 0.5rem;
+.day-details-achievements::-webkit-scrollbar {
+    display: none;
 }
-.day-details-badge span {
-    margin-right: 0.75rem !important;
+.day-details-achievement-chip {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+    font-size: 0.8em;
+    padding: 0rem 0.55rem;
+    white-space: nowrap;
+    font-family: sf-mono;
 }
-.day-details-milestone span {
-    margin-right: 0.6rem !important;
+.day-details-achievement-chip.day-details-achievement-chip--badge {
+    gap: 0.7rem;
+}
+.day-details-achievement-chip:first-child {
+    padding-left: 0;
+}
+.day-details-achievement-chip--milestone {
+    font-family: sf-mono;
 }
 
 .day-details-second-row {
@@ -212,12 +231,6 @@ body::-webkit-scrollbar {
     margin: 0;
 }
 
-.day-details-milestones {
-    margin-top: 0.4rem;
-}
-.day-details-badges {
-    margin-top: 0.4rem;
-}
 
 .hourly-steps-graph {
     display: none;

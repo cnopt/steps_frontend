@@ -591,35 +591,34 @@ class LocalDataService {
     }
   }
 
-  // Get user's selected milestone value
-  getUserSelectedMilestone() {
+  // Get the id of the user's selected background badge
+  getSelectedBadgeId() {
     try {
       const profile = this.getUserProfile();
-      return profile.selectedMilestone || null;
+      return profile.selectedBadgeId || null;
     } catch (error) {
-      console.error('Error fetching user selected milestone:', error);
+      console.error('Error fetching selected badge id:', error);
       return null;
     }
   }
 
-  // Set user's selected milestone (stores milestone value)
-  setUserSelectedMilestone(milestoneData) {
+  // Set the user's selected background badge (stores badge id)
+  setSelectedBadgeId(badge) {
     try {
-      const milestoneValue = milestoneData.value;
-      
-      // Update the user profile with the selected milestone value
-      const result = this.updateUserProfile({ 
-        selectedMilestone: milestoneValue,
-        selectedMilestoneUpdatedAt: new Date().toISOString()
+      const badgeId = badge.id;
+
+      const result = this.updateUserProfile({
+        selectedBadgeId: badgeId,
+        selectedBadgeUpdatedAt: new Date().toISOString()
       });
-      
+
       return {
         success: result.success,
-        message: 'Selected milestone updated successfully',
-        selectedMilestoneValue: milestoneValue
+        message: 'Selected badge updated successfully',
+        selectedBadgeId: badgeId
       };
     } catch (error) {
-      console.error('Error setting user selected milestone:', error);
+      console.error('Error setting selected badge id:', error);
       throw error;
     }
   }

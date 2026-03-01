@@ -1,3 +1,8 @@
+@font-face {
+    font-family: newrodin;
+    src: url('../assets/FOT-NewRodinPro-EB.otf');
+  }
+
 .profile-border-wrapper {
     position: relative;
     width: 95%;
@@ -36,7 +41,7 @@
     width: 95%;
     margin: auto;
     margin-top: 1.5rem;
-    height: 5rem;
+    height: 4rem;
     /* background-color: #000e7b; */
 
 
@@ -76,7 +81,7 @@
     position: absolute;
     border-radius: 7px;
     width: 100%;
-    height: 16px;
+    height: 12px;
     background-color: rgba(255,255,255,0.25);
     z-index:2;
 }
@@ -99,22 +104,27 @@
     width: 100%;
     height: 80%;
     background: #000000;
-    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 5%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(360deg,rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 0) 50%);
     z-index:2;
     border-bottom-left-radius: 7px;
     border-bottom-right-radius: 7px;
 }
-.vf5-profile-border .username {
-    font-family: sf-semi;
+.profile-border-frame {
+    position: relative;
+}
+
+.vf5-profile-border + .username {
+    font-family: newrodin;
     margin: 0;
     padding: 0;
-    padding-top: 18px;
-    padding-left: 28px;
-    font-size: 22px;
+    font-size: 1.6em;
     font-weight: normal;
-    position: relative;
-    z-index: 3;
-    text-shadow:0px 0 14px rgba(0,0,0.5);
+    font-style: italic;
+    position: absolute;
+    bottom: -0.72em;
+    right: 2.5rem;
+    z-index: 5;
+    text-shadow: 0px 0 14px rgba(0,0,0.5);
 }
 
 .profile-box {
@@ -157,7 +167,7 @@
     margin: 0;
     padding: 0;
     text-align: center;
-    margin-top: 0.6rem;
+    margin-top: 1.1rem;
     opacity: 0.5;
     transition: opacity 0.3s ease;
     position: relative;
@@ -211,16 +221,16 @@ body {
     border-bottom-right-radius: 5px;
 }
 
-.vf5-profile-border-small .username {
+.vf5-profile-border-small + .username {
     font-family: sf-semi;
     margin: 0;
     padding: 0;
-    padding-top: 11px;
-    padding-left: 18px;
     font-size: 17px;
     font-weight: normal;
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    bottom: -0.4em;
+    left: 18px;
+    z-index: 5;
     text-shadow: 0px 0 14px rgba(0,0,0.5);
 }
 
@@ -260,15 +270,15 @@ body {
     border-bottom-right-radius: 9px;
 }
 
-.vf5-profile-border-large .username {
+.vf5-profile-border-large + .username {
     font-family: sf-semi;
     margin: 0;
     padding: 0;
-    padding-top: 26px;
-    padding-left: 36px;
     font-size: 28px;
     font-weight: normal;
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    bottom: -0.45em;
+    left: 36px;
+    z-index: 5;
     text-shadow: 0px 0 14px rgba(0,0,0.5);
 }

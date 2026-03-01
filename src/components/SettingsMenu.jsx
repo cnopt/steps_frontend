@@ -6,6 +6,9 @@ import '../styles/SettingsMenu.css'
 
 import XPBar from "./XPBar";
 import PageTransition from './PageTransition';
+import StopRecordingDialogue from './StopRecordingDialogue';
+import POIDialog from './POIDialog';
+import ProgressDialog from './ProgressDialog';
 import { FaUserMinus, FaUserPlus, FaMars, FaVenus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserSettings } from '../hooks/useUserSettings';
@@ -21,6 +24,10 @@ const SettingsMenu = () => {
 
   const { data: stepsData, syncStatus } = useStepsData();
   const [isIncreasing, setIsIncreasing] = useState(true);
+  const [showStopDialogPreview, setShowStopDialogPreview] = useState(false);
+  const [showPOIDialogPreview, setShowPOIDialogPreview] = useState(false);
+  const [showSavingWalkPreview, setShowSavingWalkPreview] = useState(false);
+  const [savingWalkPreviewStages, setSavingWalkPreviewStages] = useState([]);
   const queryClient = useQueryClient();
   
   // Health Connect state
@@ -54,6 +61,66 @@ const SettingsMenu = () => {
 
   const saveSettings = () => {
     alert('Settings saved');
+  };
+
+  const simulateSavingWalk = async () => {
+    const stages = [
+      { id: 'gpx-generation',       title: 'Generating GPX File',  description: 'Generating walk file',        status: 'pending' },
+      { id: 'thumbnail-generation', title: 'Creating Thumbnail',   description: 'Generating map preview',      status: 'pending' },
+      { id: 'metadata-processing',  title: 'Processing Walk Data', description: 'Processing walk metadata',    status: 'pending' },
+      { id: 'saving-data',          title: 'Saving Walk',          description: 'Saving walk to collection',   status: 'pending' },
+    ];
+    setSavingWalkPreviewStages(stages);
+    setShowSavingWalkPreview(true);
+
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const setStage = (id, status) =>
+      setSavingWalkPreviewStages(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+
+    for (const stage of stages) {
+      await delay(600);
+      setStage(stage.id, 'loading');
+      await delay(1400);
+      setStage(stage.id, 'completed');
+    }
+  };
+
+  const simulateThumbnailFailure = async () => {
+    const stages = [
+      { id: 'gpx-generation',       title: 'Generating GPX File',  description: 'Generating walk file',        status: 'pending' },
+      { id: 'thumbnail-generation', title: 'Creating Thumbnail',   description: 'Generating map preview',      status: 'pending' },
+      { id: 'metadata-processing',  title: 'Processing Walk Data', description: 'Processing walk metadata',    status: 'pending' },
+      { id: 'saving-data',          title: 'Saving Walk',          description: 'Saving walk to collection',   status: 'pending' },
+    ];
+    setSavingWalkPreviewStages(stages);
+    setShowSavingWalkPreview(true);
+
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const setStage = (id, status, error = null) =>
+      setSavingWalkPreviewStages(prev => prev.map(s => s.id === id ? { ...s, status, error } : s));
+
+    // GPX generation completes normally
+    await delay(500);
+    setStage('gpx-generation', 'loading');
+    await delay(1200);
+    setStage('gpx-generation', 'completed');
+
+    // Thumbnail generation starts but stalls — simulating poor reception
+    await delay(400);
+    setStage('thumbnail-generation', 'loading');
+    await delay(7000);
+    setStage('thumbnail-generation', 'error', 'Request timed out. Check your connection and try again.');
+
+    // Thumbnail failure is non-fatal — continue with remaining stages
+    await delay(600);
+    setStage('metadata-processing', 'loading');
+    await delay(1400);
+    setStage('metadata-processing', 'completed');
+
+    await delay(400);
+    setStage('saving-data', 'loading');
+    await delay(1200);
+    setStage('saving-data', 'completed');
   };
 
   // Health Connect functions
@@ -1165,6 +1232,36 @@ const SettingsMenu = () => {
             </div>
           </div>
 
+          <div className="ui-debug-settings">
+            <h2>UI Debug</h2>
+            <div className="ui-debug-section">
+              <button
+                className="health-button primary"
+                onClick={() => setShowStopDialogPreview(true)}
+              >
+                Preview Stop Recording Dialogue
+              </button>
+              <button
+                className="health-button primary"
+                onClick={() => setShowPOIDialogPreview(true)}
+              >
+                Preview POI Dialogue
+              </button>
+              <button
+                className="health-button primary"
+                onClick={simulateSavingWalk}
+              >
+                Preview Saving Walk Dialog
+              </button>
+              <button
+                className="health-button primary"
+                onClick={simulateThumbnailFailure}
+              >
+                Test Fail Thumbnail Generation
+              </button>
+            </div>
+          </div>
+
           <div className="database-upload-settings">
             <h2>Database Upload</h2>
             <div className="database-upload-section">
@@ -1226,6 +1323,25 @@ const SettingsMenu = () => {
           </div>
         </div>
       </PageTransition>
+
+      <StopRecordingDialogue
+        isOpen={showStopDialogPreview}
+        onDiscard={() => setShowStopDialogPreview(false)}
+        onFinishWalk={() => setShowStopDialogPreview(false)}
+      />
+
+      <POIDialog
+        isOpen={showPOIDialogPreview}
+        onClose={() => setShowPOIDialogPreview(false)}
+        onSelectPOI={() => setShowPOIDialogPreview(false)}
+        pendingPOICoords={{ timestamp: Date.now(), ele: 142 }}
+      />
+
+      <ProgressDialog
+        isOpen={showSavingWalkPreview}
+        stages={savingWalkPreviewStages}
+        onClose={() => setShowSavingWalkPreview(false)}
+      />
     </>
   );
 };

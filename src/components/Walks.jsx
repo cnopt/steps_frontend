@@ -7,7 +7,6 @@ import Dock from './Dock';
 import LoadingSpinner from './LoadingSpinner';
 import WalkThumbnail from './WalkThumbnail';
 import PageTransition from './PageTransition';
-import { getTodayLocalDateString } from '../helpers/dateUtils';
 import '../styles/Walks.css';
 
 export default function Walks() {
@@ -136,11 +135,7 @@ export default function Walks() {
                 <button
                     type="button"
                     className="walks-add-new-btn"
-                    onClick={() => navigate('/insert-walk', {
-                        state: {
-                            selectedDate: getTodayLocalDateString()
-                        }
-                    })}
+                    onClick={() => navigate('/recorder')}
                 >
                     <span>󰖃</span> Record New Walk
                 </button>

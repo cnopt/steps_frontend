@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import userService from '../services/userService';
 import localDataService from '../services/localDataService';
-import { milestones } from '../helpers/milestones';
+import { badges } from '../helpers/badge-list';
 import '../styles/VF5ProfileBorder.css'
 
 export default function VF5ProfileBorder({ 
@@ -15,25 +15,25 @@ export default function VF5ProfileBorder({
     // Get username - use prop if provided, otherwise get from userService
     const username = propUsername || userService.getUsername();
     
-    // Function to get selected milestone data from localStorage (for current user)
-    const getSelectedMilestoneData = () => {
-        const userSelectedMilestoneValue = localDataService.getUserSelectedMilestone();
-        return userSelectedMilestoneValue ? milestones.find(milestone => milestone.value === userSelectedMilestoneValue) : null;
+    // Function to get selected badge data from localStorage (for current user)
+    const getSelectedBadgeData = () => {
+        const selectedBadgeId = localDataService.getSelectedBadgeId();
+        return selectedBadgeId ? badges.find(badge => badge.id === selectedBadgeId) : null;
     };
-    
-    // State for selected milestone data (only for non-props usage)
+
+    // State for selected badge data (only for non-props usage)
     const [selectedMilestoneData, setSelectedMilestoneData] = useState(() => {
         if (!isUsingProps) {
-            return getSelectedMilestoneData();
+            return getSelectedBadgeData();
         }
         return null;
     });
-    
-    // Function to update selected milestone data (only for non-props usage)
+
+    // Function to update selected badge data (only for non-props usage)
     const updateSelectedMilestoneData = () => {
         if (!isUsingProps) {
-            const milestoneData = getSelectedMilestoneData();
-            setSelectedMilestoneData(milestoneData);
+            const badgeData = getSelectedBadgeData();
+            setSelectedMilestoneData(badgeData);
         }
     };
     
@@ -81,11 +81,13 @@ export default function VF5ProfileBorder({
     return(
         <>
             <div className="profile-border-wrapper">
-                <div 
-                    className={getSizeClass()}
-                    style={getTitleStyle(selectedMilestoneData)}
-                >
-                    <div className="glare"></div>
+                <div className="profile-border-frame">
+                    <div 
+                        className={getSizeClass()}
+                        style={getTitleStyle(selectedMilestoneData)}
+                    >
+                        <div className="glare"></div>
+                    </div>
                     <p className="username">{username}</p>
                 </div>
                 {showDescription && !isUsingProps && (

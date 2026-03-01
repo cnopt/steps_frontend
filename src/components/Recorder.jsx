@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Geolocation } from '@capacitor/geolocation';
 import { Encoding } from '@capacitor/filesystem';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import localDataService from '../services/localDataService';
 import { create } from 'xmlbuilder2';
 import mapboxgl from "mapbox-gl";
@@ -19,7 +20,6 @@ import {
   deleteFileFromWalkDirectories
 } from '../helpers/walkStorage';
  
-
 
 const MAP_STYLES = [
   { id: 'outdoors-v12', name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
@@ -75,6 +75,7 @@ function Recorder() {
   const lastCoordRef = useRef(null);
   const isPausedRef = useRef(false);
   const isRecordingRef = useRef(false);
+  const pausedByDialogRef = useRef(false);
   const recordingStartTimeRef = useRef(null);
   const totalPausedTimeRef = useRef(0);
   const lastPauseTimeRef = useRef(null);
@@ -97,6 +98,7 @@ function Recorder() {
 
   // Stop recording dialog state
   const [showStopDialog, setShowStopDialog] = useState(false);
+  const showStopDialogRef = useRef(false);
 
   // Progress dialog helper functions
   const initializeProgressStages = () => {
@@ -109,13 +111,13 @@ function Recorder() {
       },
       {
         id: 'thumbnail-generation',
-        title: 'Creating Thumbnail',
+        title: 'Generating Thumbnail',
         description: 'Generating map preview',
         status: 'pending'
       },
       {
         id: 'metadata-processing',
-        title: 'Processing Walk Data',
+        title: 'Processing Walk Metadata',
         description: 'Processing walk metadata',
         status: 'pending'
       },
@@ -735,10 +737,35 @@ function Recorder() {
   };
 
   const handleStopButtonPress = () => {
+    if (!isPausedRef.current) {
+      pauseRecording();
+      pausedByDialogRef.current = true;
+    }
+    showStopDialogRef.current = true;
     setShowStopDialog(true);
   };
 
+  // Override the Android hardware back button once recording has started.
+  // - If the stop dialogue is open, close it.
+  // - If recording is active, open the stop dialogue.
+  // - If recording has not yet started, fall through to native back navigation.
+  useEffect(() => {
+    const listener = App.addListener('backButton', ({ canGoBack }) => {
+      if (showStopDialogRef.current) {
+        handleStopDialogClose();
+      } else if (isRecordingRef.current) {
+        handleStopButtonPress();
+      } else if (canGoBack) {
+        navigate(-1);
+      }
+    });
+    return () => {
+      listener.then(l => l.remove());
+    };
+  }, []);
+
   const handleDiscardWalk = () => {
+    pausedByDialogRef.current = false;
     // Perform the same actions as the old cancel button
     setIsRecording(false);
     setIsPaused(false);
@@ -781,16 +808,24 @@ function Recorder() {
     setRecordedPOIs([]);
     
     pushLog('Walk discarded');
+    showStopDialogRef.current = false;
     setShowStopDialog(false);
     navigate(-1);
   };
 
   const handleFinishWalk = () => {
+    pausedByDialogRef.current = false;
+    showStopDialogRef.current = false;
     setShowStopDialog(false);
     stopRecording();
   };
 
   const handleStopDialogClose = () => {
+    if (pausedByDialogRef.current) {
+      resumeRecording();
+      pausedByDialogRef.current = false;
+    }
+    showStopDialogRef.current = false;
     setShowStopDialog(false);
   };
 
@@ -1377,6 +1412,19 @@ function Recorder() {
       fitBoundsOptions: { maxZoom: 15, duration: 0 }
     });
     geolocateControlRef.current = geolocate;
+
+    // Wrap trigger() before addControl so that when _setupUI runs asynchronously
+    // (after the geolocation permissions check) and binds `this.trigger` to the
+    // button's click handler, it picks up our wrapper. This prevents the button
+    // from cycling ACTIVE_LOCK → OFF when the user is already being tracked.
+    const _originalTrigger = geolocate.trigger;
+    geolocate.trigger = function() {
+      if (this._watchState === 'ACTIVE_LOCK') {
+        return true;
+      }
+      return _originalTrigger.call(this);
+    };
+
     mapRef.current.addControl(geolocate);
 
     // Let GeolocateControl manage camera per its active/passive states; just log updates
@@ -1669,6 +1717,7 @@ function Recorder() {
       
       <StopRecordingDialogue
         isOpen={showStopDialog}
+        onClose={handleStopDialogClose}
         onDiscard={handleDiscardWalk}
         onFinishWalk={handleFinishWalk}
       />

@@ -19,8 +19,8 @@ import VF5ProfileBorder from './VF5ProfileBorder';
 
 const Achievements = () => {
   const [unlockedBadges, setUnlockedBadges] = useLocalStorage('unlockedBadges', []);
-  const [userSelectedMilestoneValue, setUserSelectedMilestoneValue] = useState(() => {
-    return localDataService.getUserSelectedMilestone();
+  const [userSelectedBadgeId, setUserSelectedBadgeId] = useState(() => {
+    return localDataService.getSelectedBadgeId();
   });
   const query = useStepsData();
   const { settings } = useUserSettings();
@@ -60,37 +60,30 @@ const Achievements = () => {
   );
 
 
-  const handleMilestoneSelection = (milestone) => {
+  const handleBadgeSelection = (badge) => {
     try {
-      // Save selected milestone to localStorage
-      const result = localDataService.setUserSelectedMilestone(milestone);
-      
+      const result = localDataService.setSelectedBadgeId(badge);
+
       if (result.success) {
-        setUserSelectedMilestoneValue(result.selectedMilestoneValue);
+        setUserSelectedBadgeId(result.selectedBadgeId);
       }
     } catch (error) {
-      console.error('Error selecting milestone:', error);
+      console.error('Error selecting badge:', error);
     }
   };
 
-  const getAchievementPreviewStyle = (milestone) => {
-    if (!milestone?.titleImage) {
+  const getAchievementPreviewStyle = (badge) => {
+    if (!badge?.titleImage) {
       return undefined;
     }
 
+    const [posX = 'center', posY = 'center'] = (badge.titleImagePos || 'center center').split(' ');
     return {
-      '--achievement-preview-image': `url(${milestone.titleImage})`,
-      '--achievement-preview-size': milestone.titleImageSize || 'cover',
-      '--achievement-preview-position': milestone.titleImagePos || 'center'
+      '--achievement-preview-image': `url(${badge.titleImage})`,
+      '--achievement-preview-size': badge.titleImageSize || 'cover',
+      '--achievement-preview-x': posX,
+      '--achievement-preview-y': posY,
     };
-  };
-
-  const getAchievementIcon = (type) => {
-    switch (type) {
-      case 'badge': return '🏆';
-      case 'milestone': return '󰖃';
-      default: return '🎉';
-    }
   };
 
   const formatAchievementUnlockDate = (unlockDate, dateFormat = 'dd/MM/yy') => {
@@ -176,64 +169,6 @@ const Achievements = () => {
 
         <div className="achievements-container">
           
-          {/* Pending Achievements Section */}
-          {pendingAchievements.length > 0 && (
-            <div className="pending-achievements-section">
-              <div className="pending-achievements-header">
-                <p><span>󰝧</span> New Unlocks</p>
-              </div>
-              
-              <div className="pending-achievements-list">
-                  {pendingAchievements.map((achievement, index) => {
-                    const formattedPendingUnlockDate = formatAchievementUnlockDate(achievement?.unlockDate);
-
-                    return (
-                    <div
-                      key={`${achievement.type}-${achievement.id || achievement.value}-${index}`}
-                      className={`pending-achievement-item ${achievement.type}`}
-                    >
-                      <div className="achievement-icon">
-                        {achievement.image ? (
-                          <img 
-                            src={achievement.image} 
-                            alt={achievement.name}
-                            className="achievement-image"
-                          />
-                        ) : (
-                          <span className={`achievement-emoji ${achievement.rarity || ''}`}>
-                            {getAchievementIcon(achievement.type)}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="achievement-details">
-                        <div className="achievement-name">{achievement.name}</div>
-                        {achievement.description && (
-                          <div className="achievement-description">
-                            {achievement.description}
-                          </div>
-                        )}
-                        <div className="achievement-date">
-                          {formattedPendingUnlockDate ? `Unlocked ${formattedPendingUnlockDate}` : 'Unlocked recently'}
-                        </div>
-                      </div>
-
-                      <div className="achievement-actions">
-                        <button 
-                          className="dismiss-btn"
-                          onClick={() => dismissAchievement(index)}
-                          title="Dismiss"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-          
           <h3>Milestones</h3>
           {/* Achieved Milestones */}
           <div className="milestones-section">
@@ -265,12 +200,11 @@ const Achievements = () => {
           <div className="badges-section">
             <h3>Achievements</h3>
             <div className="achievement-progress-list">
-              {challengeBadges.map((badge, badgeIndex) => {
+              {challengeBadges.map((badge) => {
                 const isUnlocked = unlockedBadgeIds.has(badge.id);
                 const unlockedBadge = unlockedBadgeMap.get(badge.id);
-                const linkedMilestone = milestones[badgeIndex] || null;
-                const isSelectedBackground = linkedMilestone && userSelectedMilestoneValue === linkedMilestone.value;
-                const isSelectable = Boolean(isUnlocked && linkedMilestone);
+                const isSelectedBackground = userSelectedBadgeId === badge.id;
+                const isSelectable = Boolean(isUnlocked && badge.titleImage);
                 const progress = badgeProgress[badge.id] || { percent: 0, label: 'No progress yet', isBinary: false, displayMode: 'bar' };
                 const displayMode = progress.displayMode || (progress.isBinary ? 'binary' : 'bar');
                 const progressPercent = isUnlocked ? 100 : Math.round(progress.percent * 100);
@@ -280,22 +214,37 @@ const Achievements = () => {
                 const progressValueClass = `achievement-progress-value ${progress.labelVariant === 'attempt' ? 'attempt-progress-value' : ''}`;
                 const formattedUnlockDate = formatAchievementUnlockDate(unlockedBadge?.unlockDate);
 
+                const pendingIndex = pendingAchievements.findIndex(
+                  a => a.type === 'badge' && (a.id || a.value) === badge.id
+                );
+                const isNew = isUnlocked && pendingIndex >= 0;
+                const isClickable = isSelectable || isNew;
+
+                const handleCardClick = () => {
+                  if (isNew && pendingIndex >= 0) {
+                    dismissAchievement(pendingIndex);
+                  }
+                  if (isSelectable) {
+                    handleBadgeSelection(badge);
+                  }
+                };
+
                 return (
                   <div
                     key={badge.id}
-                    className={`achievement-progress-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelectedBackground ? 'user-selected' : ''} ${isUnlocked && linkedMilestone?.titleImage ? 'has-preview-image' : ''}`}
-                    onClick={isSelectable ? () => handleMilestoneSelection(linkedMilestone) : undefined}
+                    className={`achievement-progress-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelectedBackground ? 'user-selected' : ''} ${isUnlocked && badge.titleImage ? 'has-preview-image' : ''}`}
+                    onClick={isClickable ? handleCardClick : undefined}
                     onKeyDown={(event) => {
-                      if (!isSelectable) return;
+                      if (!isClickable) return;
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                        handleMilestoneSelection(linkedMilestone);
+                        handleCardClick();
                       }
                     }}
-                    role={isSelectable ? 'button' : undefined}
-                    tabIndex={isSelectable ? 0 : undefined}
-                    aria-disabled={!isSelectable}
-                    style={isUnlocked ? getAchievementPreviewStyle(linkedMilestone) : undefined}
+                    role={isClickable ? 'button' : undefined}
+                    tabIndex={isClickable ? 0 : undefined}
+                    aria-disabled={!isClickable}
+                    style={isUnlocked ? getAchievementPreviewStyle(badge) : undefined}
                   >
                     <div className="achievement-progress-header">
                       <p className="achievement-progress-name">{badge.name}</p>
@@ -337,9 +286,12 @@ const Achievements = () => {
                     )}
 
                     {isUnlocked && (
-                      <p className="achievement-progress-value completion-date-value">
-                        {formattedUnlockDate ? `✔ ${formattedUnlockDate}` : 'Completed'}
-                      </p>
+                      <div className="completion-date-container">
+                        {isNew && <span className="achievement-new-indicator"><span className="achievement-new-indicator-icon">󰝧</span>NEW</span>}
+                        <p className="achievement-progress-value completion-date-value">
+                          {formattedUnlockDate ? `✔ ${formattedUnlockDate}` : 'Completed'}
+                        </p>
+                      </div>
                     )}
 
                   </div>

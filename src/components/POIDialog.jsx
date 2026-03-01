@@ -93,7 +93,7 @@ const POIDialog = ({ isOpen, onClose, onSelectPOI, pendingPOICoords }) => {
   };
 
   return (
-    <div className="poi-dialog-overlay" onClick={onClose}>
+    <div className="poi-dialog-overlay" onClick={handleCancel}>
       <div className="poi-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="poi-dialog__header">
           <h3>Add Marker</h3>
@@ -116,7 +116,7 @@ const POIDialog = ({ isOpen, onClose, onSelectPOI, pendingPOICoords }) => {
             </>
           )}
           <div className="poi-options-container">
-            <div className="poi-options">
+            <div className={`poi-options${selectedType ? ' has-selection' : ''}`}>
               <button 
                 className={`poi-option poi-option--bird ${selectedType === 'bird' ? 'selected' : ''}`}
                 onClick={() => handlePOISelect('bird')}
